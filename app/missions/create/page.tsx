@@ -76,7 +76,7 @@ export default function CreateMissionPage() {
   const handleSubmit = () => {
     const user = getUserProfile();
     if (!user) {
-      router.push("/welcome");
+      router.push("/onboarding");
       return;
     }
 

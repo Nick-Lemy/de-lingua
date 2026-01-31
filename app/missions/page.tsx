@@ -32,7 +32,7 @@ export default function MissionsPage() {
     if (!mounted) return;
     const profile = getUserProfile();
     if (!profile) {
-      router.push("/welcome");
+      router.push("/onboarding");
       return;
     }
     setUser(profile);

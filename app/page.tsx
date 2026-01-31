@@ -27,7 +27,7 @@ export default function HomePage() {
     setMounted(true);
     const profile = getUserProfile();
     if (!profile) {
-      router.push("/welcome");
+      router.push("/onboarding");
       return;
     }
     setUser(profile);
