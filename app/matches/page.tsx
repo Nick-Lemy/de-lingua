@@ -1,0 +1,257 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import {
+  getUserProfile,
+  getMatches,
+  getMissionById,
+  getSellerById,
+} from "@/lib/storage";
+import type { UserProfile, Match } from "@/lib/storage";
+
+export default function MatchesPage() {
+  const router = useRouter();
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const profile = getUserProfile();
+    if (!profile) {
+      router.push("/welcome");
+      return;
+    }
+    setUser(profile);
+
+    // Get all matches for user's missions
+    const allMatches = getMatches().filter((match) => {
+      const mission = getMissionById(match.missionId);
+      return mission && mission.buyerId === profile.id;
+    });
+    setMatches(allMatches.sort((a, b) => b.matchScore - a.matchScore));
+  }, [router]);
+
+  if (!mounted || !user) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  const getBudgetFitColor = (fit: string) => {
+    switch (fit) {
+      case "good":
+        return "text-green-600";
+      case "moderate":
+        return "text-yellow-600";
+      case "high":
+        return "text-red-600";
+      default:
+        return "text-gray-600";
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-white pb-24">
+      {/* Header */}
+      <div className="bg-black text-white px-6 lg:px-8 pt-14 pb-8">
+        <div className="max-w-4xl mx-auto">
+          <div>
+            <h1 className="text-2xl font-bold">All Matches</h1>
+            <p className="text-gray-400 text-sm">
+              {matches.length} potential suppliers
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Matches List */}
+      <div className="px-6 lg:px-8 max-w-4xl mx-auto mt-6">
+        {matches.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="w-20 h-20 rounded-3xl bg-gray-100 flex items-center justify-center mx-auto mb-4">
+              <svg
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="black"
+                strokeWidth="2"
+              >
+                <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                <circle cx="8.5" cy="7" r="4" />
+                <path d="M20 8v6M17 11h6" />
+              </svg>
+            </div>
+            <h3 className="font-bold text-lg mb-2 text-black">
+              No matches yet
+            </h3>
+            <p className="text-gray-600 text-sm mb-6">
+              Create a mission to find suppliers
+            </p>
+            <Link
+              href="/missions/create"
+              className="inline-block px-6 py-3 bg-black text-white rounded-2xl font-semibold hover:bg-gray-900 transition-colors"
+            >
+              Create Mission
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {matches.map((match) => {
+              const mission = getMissionById(match.missionId);
+              const seller = getSellerById(match.sellerId);
+              if (!mission || !seller) return null;
+
+              return (
+                <Link
+                  key={match.id}
+                  href={`/sellers/${match.sellerId}?mission=${match.missionId}`}
+                  className="block bg-white border-2 border-gray-200 rounded-2xl p-5 hover:border-black transition-colors"
+                >
+                  {/* Match Header */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-2xl bg-black text-white flex items-center justify-center text-xl font-bold">
+                        {match.sellerAvatar}
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-black">
+                          {match.sellerName}
+                        </h4>
+                        <p className="text-sm text-gray-600">
+                          {seller.category}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold">
+                        {match.matchScore}%
+                      </div>
+                      <p className="text-xs text-gray-600">Match</p>
+                    </div>
+                  </div>
+
+                  {/* Mission Context */}
+                  <div className="bg-gray-50 rounded-xl p-3 mb-3">
+                    <p className="text-xs text-gray-600 mb-1">For mission</p>
+                    <p className="font-medium text-sm text-black">
+                      {mission.product}
+                    </p>
+                  </div>
+
+                  {/* Match Details */}
+                  <div className="grid grid-cols-3 gap-3 text-center">
+                    <div className="bg-gray-50 rounded-xl p-2">
+                      <p className="text-xs text-gray-600 mb-1">Distance</p>
+                      <p className="font-semibold text-sm text-black">
+                        {match.distance}
+                      </p>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-2">
+                      <p className="text-xs text-gray-600 mb-1">Budget</p>
+                      <p
+                        className={`font-semibold text-sm capitalize ${getBudgetFitColor(match.budgetFit)}`}
+                      >
+                        {match.budgetFit}
+                      </p>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl p-2">
+                      <p className="text-xs text-gray-600 mb-1">Stock</p>
+                      <p className="font-semibold text-sm capitalize text-black">
+                        {match.stockStatus.replace("-", " ")}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Nav */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
+        <div className="max-w-4xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-around">
+            <Link
+              href="/"
+              className="flex flex-col items-center gap-1 text-gray-400 hover:text-black"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+              </svg>
+              <span className="text-xs">Home</span>
+            </Link>
+            <Link
+              href="/missions"
+              className="flex flex-col items-center gap-1 text-gray-400 hover:text-black"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 6v6l4 2" />
+              </svg>
+              <span className="text-xs">Missions</span>
+            </Link>
+            <Link
+              href="/matches"
+              className="flex flex-col items-center gap-1 text-black"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                <circle cx="8.5" cy="7" r="4" />
+                <path
+                  d="M20 8v6M17 11h6"
+                  stroke="white"
+                  strokeWidth="2"
+                  fill="none"
+                />
+              </svg>
+              <span className="text-xs font-medium">Matches</span>
+            </Link>
+            <Link
+              href="/account"
+              className="flex flex-col items-center gap-1 text-gray-400 hover:text-black"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <circle cx="12" cy="8" r="4" />
+                <path d="M20 21c0-4-4-7-8-7s-8 3-8 7" />
+              </svg>
+              <span className="text-xs">Account</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
