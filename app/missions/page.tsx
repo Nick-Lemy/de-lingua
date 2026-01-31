@@ -26,6 +26,10 @@ export default function MissionsPage() {
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     const profile = getUserProfile();
     if (!profile) {
       router.push("/welcome");
@@ -39,7 +43,7 @@ export default function MissionsPage() {
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       ),
     );
-  }, [router]);
+  }, [mounted, router]);
 
   if (!mounted || !user) {
     return (
@@ -65,12 +69,12 @@ export default function MissionsPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
-      <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white px-5 pt-12 pb-6 rounded-b-3xl shadow-lg">
+      <div className="bg-indigo-900 text-white px-5 pt-12 pb-6 rounded-b-3xl shadow-lg">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between mb-3">
             <div>
               <h1 className="text-xl font-bold">My Missions</h1>
-              <p className="text-blue-100 text-xs mt-1">
+              <p className="text-indigo-100 text-xs mt-1">
                 {missions.length} total missions
               </p>
             </div>
@@ -99,7 +103,7 @@ export default function MissionsPage() {
             </p>
             <Link
               href="/missions/create"
-              className="inline-block px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-all active:scale-95"
+              className="inline-block px-5 py-2.5 bg-teal-800 text-white rounded-xl text-sm font-semibold hover:bg-teal-900 transition-all active:scale-95"
             >
               Create Mission
             </Link>
@@ -172,7 +176,7 @@ export default function MissionsPage() {
           </Link>
           <Link
             href="/missions"
-            className="flex flex-col items-center gap-0.5 text-blue-600 py-2"
+            className="flex flex-col items-center gap-0.5 text-indigo-900 py-2"
           >
             <IoRocket className="w-6 h-6" />
             <span className="text-[10px] font-semibold">Missions</span>

@@ -56,13 +56,13 @@ export default function MatchesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white pb-24">
+    <div className="min-h-screen bg-gray-50 pb-24">
       {/* Header */}
-      <div className="bg-black text-white px-6 lg:px-8 pt-14 pb-8">
+      <div className="bg-rose-900 text-white px-6 lg:px-8 pt-14 pb-8 rounded-b-3xl shadow-lg">
         <div className="max-w-4xl mx-auto">
           <div>
             <h1 className="text-2xl font-bold">All Matches</h1>
-            <p className="text-gray-400 text-sm">
+            <p className="text-rose-100 text-sm">
               {matches.length} potential suppliers
             </p>
           </div>
@@ -116,7 +116,7 @@ export default function MatchesPage() {
                   {/* Match Header */}
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-black text-white flex items-center justify-center text-xl font-bold">
+                      <div className="w-12 h-12 rounded-2xl bg-rose-800 text-white flex items-center justify-center text-xl font-bold">
                         {match.sellerAvatar}
                       </div>
                       <div>
@@ -129,7 +129,7 @@ export default function MatchesPage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold">
+                      <div className="text-2xl font-bold text-rose-900">
                         {match.matchScore}%
                       </div>
                       <p className="text-xs text-gray-600">Match</p>
@@ -146,23 +146,29 @@ export default function MatchesPage() {
 
                   {/* Match Details */}
                   <div className="grid grid-cols-3 gap-3 text-center">
-                    <div className="bg-gray-50 rounded-xl p-2">
-                      <p className="text-xs text-gray-600 mb-1">Distance</p>
-                      <p className="font-semibold text-sm text-black">
+                    <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-2">
+                      <p className="text-xs text-indigo-800 mb-1 font-medium">
+                        Distance
+                      </p>
+                      <p className="font-semibold text-sm text-indigo-950">
                         {match.distance}
                       </p>
                     </div>
-                    <div className="bg-gray-50 rounded-xl p-2">
-                      <p className="text-xs text-gray-600 mb-1">Budget</p>
+                    <div className="bg-green-50 border border-green-200 rounded-xl p-2">
+                      <p className="text-xs text-green-800 mb-1 font-medium">
+                        Budget
+                      </p>
                       <p
                         className={`font-semibold text-sm capitalize ${getBudgetFitColor(match.budgetFit)}`}
                       >
                         {match.budgetFit}
                       </p>
                     </div>
-                    <div className="bg-gray-50 rounded-xl p-2">
-                      <p className="text-xs text-gray-600 mb-1">Stock</p>
-                      <p className="font-semibold text-sm capitalize text-black">
+                    <div className="bg-teal-50 border border-teal-200 rounded-xl p-2">
+                      <p className="text-xs text-teal-800 mb-1 font-medium">
+                        Stock
+                      </p>
+                      <p className="font-semibold text-sm capitalize text-teal-950">
                         {match.stockStatus.replace("-", " ")}
                       </p>
                     </div>

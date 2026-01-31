@@ -38,7 +38,7 @@ export default function SellerProfilePage() {
   return (
     <div className="min-h-screen bg-white pb-24">
       {/* Header */}
-      <div className="bg-black text-white px-6 lg:px-8 pt-14 pb-8">
+      <div className="bg-orange-900 text-white px-6 lg:px-8 pt-14 pb-8 rounded-b-3xl shadow-lg">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-4 mb-6">
             <button
@@ -108,7 +108,7 @@ export default function SellerProfilePage() {
           <h3 className="font-semibold mb-4 text-black">Key Details</h3>
           <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-purple-800 flex items-center justify-center flex-shrink-0 text-white">
                 📦
               </div>
               <div className="flex-1">
@@ -117,7 +117,7 @@ export default function SellerProfilePage() {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-teal-800 flex items-center justify-center flex-shrink-0 text-white">
                 🚚
               </div>
               <div className="flex-1">
@@ -126,7 +126,7 @@ export default function SellerProfilePage() {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-orange-800 flex items-center justify-center flex-shrink-0 text-white">
                 ⏱️
               </div>
               <div className="flex-1">
@@ -142,14 +142,21 @@ export default function SellerProfilePage() {
           <div className="bg-white border border-gray-200 rounded-2xl p-5">
             <h3 className="font-semibold mb-3 text-black">Certifications</h3>
             <div className="flex flex-wrap gap-2">
-              {seller.certifications.map((cert, i) => (
-                <span
-                  key={i}
-                  className="px-3 py-2 bg-gray-100 rounded-xl text-sm font-medium text-black"
-                >
-                  {cert}
-                </span>
-              ))}
+              {seller.certifications.map((cert, i) => {
+                const colors = [
+                  "bg-gradient-to-r from-green-500 to-emerald-500",
+                  "bg-gradient-to-r from-blue-500 to-indigo-500",
+                  "bg-gradient-to-r from-purple-500 to-pink-500",
+                ];
+                return (
+                  <span
+                    key={i}
+                    className={`px-3 py-2 ${colors[i % 3]} text-white rounded-xl text-sm font-medium shadow-sm`}
+                  >
+                    {cert}
+                  </span>
+                );
+              })}
             </div>
           </div>
         )}
@@ -188,7 +195,7 @@ export default function SellerProfilePage() {
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-black">
-                      €{item.price.toFixed(2)}
+                      €{Number(item.price).toFixed(2)}
                     </p>
                     <p className="text-xs text-gray-600">per unit</p>
                   </div>

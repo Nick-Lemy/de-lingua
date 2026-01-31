@@ -98,9 +98,9 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <div className="bg-black text-white px-6 lg:px-8 pt-14 pb-4 flex-shrink-0">
+      <div className="bg-cyan-900 text-white px-6 lg:px-8 pt-14 pb-6 shadow-lg">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-4">
             <button
@@ -133,10 +133,14 @@ export default function ChatPage() {
       <div className="flex-1 overflow-y-auto px-6 lg:px-8 py-6">
         <div className="max-w-4xl mx-auto space-y-4">
           {/* Mission Context */}
-          <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200 text-center">
-            <p className="text-xs text-gray-600 mb-2">Mission Details</p>
-            <p className="font-semibold text-sm">{mission.product}</p>
-            <p className="text-sm text-gray-600">
+          <div className="bg-cyan-50 border border-cyan-200 rounded-2xl p-4 text-center">
+            <p className="text-xs text-cyan-800 mb-2 font-medium">
+              Mission Details
+            </p>
+            <p className="font-semibold text-sm text-cyan-950">
+              {mission.product}
+            </p>
+            <p className="text-sm text-cyan-800">
               {mission.quantity} units • €{mission.budgetMin}-€
               {mission.budgetMax} • {mission.location}
             </p>
@@ -156,8 +160,8 @@ export default function ChatPage() {
                 <div
                   className={`max-w-[75%] rounded-2xl px-4 py-3 ${
                     msg.sender === "buyer"
-                      ? "bg-black text-white"
-                      : "bg-gray-100 text-black"
+                      ? "bg-cyan-900 text-white"
+                      : "bg-white border-2 border-gray-200 text-black"
                   }`}
                 >
                   <p className="text-sm">{msg.text}</p>

@@ -3,12 +3,16 @@
 :root {
   --background: #f9fafb;
   --foreground: #111827;
-  --primary: #2563eb;
-  --primary-dark: #1e40af;
-  --primary-light: #dbeafe;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
+  --primary: #1e40af;
+  --primary-dark: #1e3a8a;
+  --primary-light: #3b82f6;
+  --success: #065f46;
+  --warning: #b45309;
+  --danger: #991b1b;
+  --purple: #6b21a8;
+  --teal: #115e59;
+  --orange: #c2410c;
+  --pink: #9f1239;
 }
 
 @theme inline {

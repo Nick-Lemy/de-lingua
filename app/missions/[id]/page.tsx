@@ -64,9 +64,9 @@ export default function MissionDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white pb-24">
+    <div className="min-h-screen bg-gray-50 pb-24">
       {/* Header */}
-      <div className="bg-black text-white px-6 lg:px-8 pt-14 pb-8">
+      <div className="bg-emerald-900 text-white px-6 lg:px-8 pt-14 pb-8 rounded-b-3xl shadow-lg">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-4 mb-6">
             <button
@@ -106,27 +106,33 @@ export default function MissionDetailPage() {
         <div className="bg-gray-50 rounded-2xl p-5 border border-gray-200">
           <h3 className="font-semibold mb-4 text-black">Mission Details</h3>
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <p className="text-gray-600 mb-1">Quantity</p>
-              <p className="font-semibold text-black">
+            <div className="bg-teal-50 border border-teal-200 rounded-xl p-3">
+              <p className="text-teal-800 text-xs mb-1 font-medium">Quantity</p>
+              <p className="font-semibold text-teal-950">
                 {mission.quantity} units
               </p>
             </div>
-            <div>
-              <p className="text-gray-600 mb-1">Budget</p>
-              <p className="font-semibold text-black">
+            <div className="bg-green-50 border border-green-200 rounded-xl p-3">
+              <p className="text-green-800 text-xs mb-1 font-medium">Budget</p>
+              <p className="font-semibold text-green-950">
                 €{mission.budgetMin} - €{mission.budgetMax}
               </p>
             </div>
-            <div>
-              <p className="text-gray-600 mb-1">Urgency</p>
-              <p className="font-semibold capitalize text-black">
+            <div className="bg-orange-50 border border-orange-200 rounded-xl p-3">
+              <p className="text-orange-800 text-xs mb-1 font-medium">
+                Urgency
+              </p>
+              <p className="font-semibold capitalize text-orange-950">
                 {mission.urgency}
               </p>
             </div>
-            <div>
-              <p className="text-gray-600 mb-1">Location</p>
-              <p className="font-semibold text-black">{mission.location}</p>
+            <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-3">
+              <p className="text-indigo-800 text-xs mb-1 font-medium">
+                Location
+              </p>
+              <p className="font-semibold text-indigo-900">
+                {mission.location}
+              </p>
             </div>
           </div>
           {mission.description && (

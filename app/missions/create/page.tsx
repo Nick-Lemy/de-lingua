@@ -11,13 +11,6 @@ import {
 } from "@/lib/storage";
 import type { Mission, Match } from "@/lib/storage";
 import { IoArrowBack, IoCheckmarkCircle } from "react-icons/io5";
-import {
-  MdLocalOffer,
-  MdCategory,
-  MdInventory,
-  MdLocationOn,
-  MdAccessTime,
-} from "react-icons/md";
 
 const categories = [
   "Office Supplies",
@@ -87,14 +80,17 @@ export default function CreateMissionPage() {
       return;
     }
 
+    const budgetMinValue = parseInt(formData.budgetMin) || 0;
+    const budgetMaxValue = parseInt(formData.budgetMax) || 0;
+
     const mission: Mission = {
-      id: generateId(),
+      id: generateId("mission"),
       buyerId: user.id,
       product: formData.product,
       category: formData.category,
-      quantity: parseInt(formData.quantity) || 0,
-      budgetMin: parseInt(formData.budgetMin) || 0,
-      budgetMax: parseInt(formData.budgetMax) || 0,
+      quantity: formData.quantity,
+      budgetMin: formData.budgetMin,
+      budgetMax: formData.budgetMax,
       urgency: formData.urgency as "urgent" | "normal" | "flexible",
       location: formData.location,
       description: formData.description,
@@ -115,11 +111,13 @@ export default function CreateMissionPage() {
     relevantSellers.forEach((seller) => {
       const matchScore = 85 + Math.floor(Math.random() * 15);
       const distance = Math.floor(Math.random() * 500) + 10;
-      const budgetMid = (mission.budgetMin + mission.budgetMax) / 2;
+      const budgetMid = (budgetMinValue + budgetMaxValue) / 2;
       const sellerAvgPrice =
         seller.inventory.length > 0
-          ? seller.inventory.reduce((sum, item) => sum + item.price, 0) /
-            seller.inventory.length
+          ? seller.inventory.reduce(
+              (sum, item) => sum + Number(item.price),
+              0,
+            ) / seller.inventory.length
           : budgetMid;
       const budgetFit =
         Math.abs(budgetMid - sellerAvgPrice) < budgetMid * 0.3
@@ -127,7 +125,7 @@ export default function CreateMissionPage() {
           : "moderate";
 
       const match: Match = {
-        id: generateId(),
+        id: generateId("match"),
         missionId: mission.id,
         sellerId: seller.id,
         sellerName: seller.name,
@@ -136,7 +134,9 @@ export default function CreateMissionPage() {
         distance: `${distance}km`,
         budgetFit: budgetFit as "good" | "moderate" | "high",
         stockStatus: seller.inventory.length > 0 ? "in-stock" : "on-request",
-        whyMatch: `${seller.name} specializes in ${seller.category} and has ${seller.inventory.length} products in stock. ${seller.verified ? "Verified supplier." : ""} Average delivery in ${seller.responseTime}.`,
+        whyMatch: [
+          `${seller.name} specializes in ${seller.category} and has ${seller.inventory.length} products in stock. ${seller.verified ? "Verified supplier." : ""} Average delivery in ${seller.responseTime}.`,
+        ],
         status: "pending",
       };
 
@@ -149,7 +149,7 @@ export default function CreateMissionPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       {/* Header */}
-      <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white px-5 pt-12 pb-6">
+      <div className="bg-teal-900 text-white px-5 pt-12 pb-6">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center gap-3 mb-4">
             <button
@@ -160,7 +160,7 @@ export default function CreateMissionPage() {
             </button>
             <div className="flex-1">
               <h1 className="text-lg font-bold">Create Mission</h1>
-              <p className="text-blue-100 text-xs">Step {step} of 5</p>
+              <p className="text-teal-100 text-xs">Step {step} of 5</p>
             </div>
           </div>
           <div className="h-1 bg-white/20 rounded-full overflow-hidden">
@@ -192,7 +192,7 @@ export default function CreateMissionPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, product: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-sm bg-white"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none text-sm bg-white"
                 autoFocus
               />
             </div>
@@ -216,8 +216,8 @@ export default function CreateMissionPage() {
                   onClick={() => setFormData({ ...formData, category: cat })}
                   className={`p-3 rounded-xl text-left transition-all text-sm font-medium ${
                     formData.category === cat
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "bg-white border border-gray-200 text-gray-700 hover:border-blue-300"
+                      ? "bg-teal-800 text-white shadow-md"
+                      : "bg-white border border-gray-200 text-gray-700 hover:border-teal-300"
                   }`}
                 >
                   {cat}
@@ -246,7 +246,7 @@ export default function CreateMissionPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, quantity: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-sm bg-white"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none text-sm bg-white"
               />
             </div>
             <div>
@@ -261,7 +261,7 @@ export default function CreateMissionPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, budgetMin: e.target.value })
                   }
-                  className="px-4 py-3 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-sm bg-white"
+                  className="px-4 py-3 border border-gray-200 rounded-xl focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none text-sm bg-white"
                 />
                 <input
                   type="number"
@@ -270,7 +270,7 @@ export default function CreateMissionPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, budgetMax: e.target.value })
                   }
-                  className="px-4 py-3 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-sm bg-white"
+                  className="px-4 py-3 border border-gray-200 rounded-xl focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none text-sm bg-white"
                 />
               </div>
             </div>
@@ -296,14 +296,14 @@ export default function CreateMissionPage() {
                   }
                   className={`w-full p-4 rounded-xl text-left flex items-center justify-between transition-all ${
                     formData.urgency === urg.value
-                      ? "bg-blue-600 text-white shadow-md"
-                      : "bg-white border border-gray-200 text-gray-900 hover:border-blue-300"
+                      ? "bg-orange-800 text-white shadow-md"
+                      : "bg-white border border-gray-200 text-gray-900 hover:border-orange-300"
                   }`}
                 >
                   <div>
                     <p className="font-semibold text-sm">{urg.label}</p>
                     <p
-                      className={`text-xs ${formData.urgency === urg.value ? "text-blue-100" : "text-gray-500"}`}
+                      className={`text-xs ${formData.urgency === urg.value ? "text-orange-100" : "text-gray-500"}`}
                     >
                       {urg.sublabel}
                     </p>
@@ -335,7 +335,7 @@ export default function CreateMissionPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, location: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-sm bg-white"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none text-sm bg-white"
                 autoFocus
               />
             </div>
@@ -350,7 +350,7 @@ export default function CreateMissionPage() {
                   setFormData({ ...formData, description: e.target.value })
                 }
                 rows={4}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none text-sm resize-none bg-white"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-teal-500 focus:ring-2 focus:ring-teal-100 focus:outline-none text-sm resize-none bg-white"
               />
             </div>
           </div>
@@ -363,7 +363,7 @@ export default function CreateMissionPage() {
           <button
             onClick={step < 5 ? handleNext : handleSubmit}
             disabled={!canProceed()}
-            className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-600/30"
+            className="w-full py-3 rounded-xl bg-teal-800 text-white font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-teal-900 transition-all active:scale-95 shadow-lg"
           >
             {step < 5 ? "Continue" : "Find Suppliers"}
           </button>
