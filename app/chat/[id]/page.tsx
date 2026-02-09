@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
+import { useAuth } from "@/lib/AuthContext";
+import { isFirebaseConfigured } from "@/lib/firebase";
 import {
   getUserProfile,
   getMissionById,
@@ -9,12 +11,19 @@ import {
   getChatByMissionAndSeller,
   saveChatMessage,
 } from "@/lib/storage";
-import type { ChatMessage, Mission, Seller, UserProfile } from "@/lib/storage";
+import {
+  getMissionById as getFirebaseMission,
+  getSellerById as getFirebaseSeller,
+  getChatMessages,
+  sendChatMessage as saveFirebaseMessage,
+} from "@/lib/db";
+import type { ChatMessage, Mission, Seller, UserProfile } from "@/lib/types";
 
 export default function ChatPage() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
+  const { user: authUser, loading: authLoading } = useAuth();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [mission, setMission] = useState<Mission | null>(null);
   const [seller, setSeller] = useState<Seller | null>(null);
@@ -26,41 +35,77 @@ export default function ChatPage() {
 
   useEffect(() => {
     setMounted(true);
-    const profile = getUserProfile();
-    if (!profile) {
-      router.push("/onboarding");
-      return;
-    }
-    setUser(profile);
+  }, []);
 
-    const missionId = params?.id as string;
-    if (!missionId || !sellerId) return;
+  useEffect(() => {
+    if (!mounted || authLoading) return;
 
-    const foundMission = getMissionById(missionId);
-    if (!foundMission) {
-      router.push("/missions");
-      return;
-    }
-    setMission(foundMission);
+    const loadData = async () => {
+      const isConfigured = isFirebaseConfigured();
+      const missionId = params?.id as string;
+      if (!missionId || !sellerId) return;
 
-    const foundSeller = getSellerById(sellerId);
-    if (!foundSeller) {
-      router.push("/missions");
-      return;
-    }
-    setSeller(foundSeller);
+      if (isConfigured) {
+        if (!authUser) {
+          router.push("/onboarding");
+          return;
+        }
+        setUser(authUser);
 
-    const chat = getChatByMissionAndSeller(missionId, sellerId);
-    setMessages(chat);
-  }, [params, router, sellerId]);
+        const foundMission = await getFirebaseMission(missionId);
+        if (!foundMission) {
+          router.push("/missions");
+          return;
+        }
+        setMission(foundMission);
+
+        const foundSeller = await getFirebaseSeller(sellerId);
+        if (!foundSeller) {
+          router.push("/missions");
+          return;
+        }
+        setSeller(foundSeller);
+
+        const chat = await getChatMessages(missionId, sellerId);
+        setMessages(chat);
+      } else {
+        const profile = getUserProfile();
+        if (!profile) {
+          router.push("/onboarding");
+          return;
+        }
+        setUser(profile);
+
+        const foundMission = getMissionById(missionId);
+        if (!foundMission) {
+          router.push("/missions");
+          return;
+        }
+        setMission(foundMission);
+
+        const foundSeller = getSellerById(sellerId);
+        if (!foundSeller) {
+          router.push("/missions");
+          return;
+        }
+        setSeller(foundSeller);
+
+        const chat = getChatByMissionAndSeller(missionId, sellerId);
+        setMessages(chat);
+      }
+    };
+
+    loadData();
+  }, [mounted, authLoading, authUser, params, router, sellerId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!newMessage.trim() || !mission || !seller || !user) return;
 
+    const isConfigured = isFirebaseConfigured();
     const message: ChatMessage = {
       id: Date.now().toString(),
       missionId: mission.id,
@@ -70,12 +115,16 @@ export default function ChatPage() {
       time: new Date().toISOString(),
     };
 
-    saveChatMessage(message);
+    if (isConfigured) {
+      await saveFirebaseMessage(message);
+    } else {
+      saveChatMessage(message);
+    }
     setMessages([...messages, message]);
     setNewMessage("");
 
     // Simulate seller response after 2 seconds
-    setTimeout(() => {
+    setTimeout(async () => {
       const response: ChatMessage = {
         id: (Date.now() + 1).toString(),
         missionId: mission.id,
@@ -84,7 +133,11 @@ export default function ChatPage() {
         text: "Thank you for your message. We'll review your requirements and get back to you shortly.",
         time: new Date().toISOString(),
       };
-      saveChatMessage(response);
+      if (isConfigured) {
+        await saveFirebaseMessage(response);
+      } else {
+        saveChatMessage(response);
+      }
       setMessages((prev) => [...prev, response]);
     }, 2000);
   };
@@ -100,12 +153,12 @@ export default function ChatPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <div className="bg-cyan-900 text-white px-6 lg:px-8 pt-14 pb-6 shadow-lg">
+      <div className="bg-slate-800 text-white px-6 lg:px-8 pt-14 pb-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.back()}
-              className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center"
+              className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center"
             >
               <svg
                 width="20"
@@ -118,12 +171,12 @@ export default function ChatPage() {
                 <path d="M15 18l-6-6 6-6" />
               </svg>
             </button>
-            <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-xl font-bold">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center text-xl font-bold">
               {seller.avatar}
             </div>
             <div className="flex-1">
               <h1 className="text-lg font-bold">{seller.name}</h1>
-              <p className="text-sm text-gray-400">Re: {mission.product}</p>
+              <p className="text-sm text-slate-300">Re: {mission.product}</p>
             </div>
           </div>
         </div>
@@ -133,14 +186,14 @@ export default function ChatPage() {
       <div className="flex-1 overflow-y-auto px-6 lg:px-8 py-6">
         <div className="max-w-4xl mx-auto space-y-4">
           {/* Mission Context */}
-          <div className="bg-cyan-50 border border-cyan-200 rounded-2xl p-4 text-center">
-            <p className="text-xs text-cyan-800 mb-2 font-medium">
+          <div className="bg-slate-100 border border-slate-200 rounded-2xl p-4 text-center">
+            <p className="text-xs text-slate-600 mb-2 font-medium">
               Mission Details
             </p>
-            <p className="font-semibold text-sm text-cyan-950">
+            <p className="font-semibold text-sm text-slate-800">
               {mission.product}
             </p>
-            <p className="text-sm text-cyan-800">
+            <p className="text-sm text-slate-600">
               {mission.quantity} units • €{mission.budgetMin}-€
               {mission.budgetMax} • {mission.location}
             </p>
@@ -160,8 +213,8 @@ export default function ChatPage() {
                 <div
                   className={`max-w-[75%] rounded-2xl px-4 py-3 ${
                     msg.sender === "buyer"
-                      ? "bg-cyan-900 text-white"
-                      : "bg-white border-2 border-gray-200 text-black"
+                      ? "bg-slate-800 text-white"
+                      : "bg-white border border-gray-200 text-black"
                   }`}
                 >
                   <p className="text-sm">{msg.text}</p>
@@ -195,7 +248,7 @@ export default function ChatPage() {
           <button
             onClick={handleSend}
             disabled={!newMessage.trim()}
-            className="w-12 h-12 rounded-2xl bg-black text-white flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-900 transition-colors"
+            className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <svg
               width="20"

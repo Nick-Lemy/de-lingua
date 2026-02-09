@@ -3,21 +3,25 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@/lib/AuthContext";
+import { isFirebaseConfigured } from "@/lib/firebase";
 import { getUserProfile, getSellers, getMissions } from "@/lib/storage";
-import type { UserProfile, Seller, Mission } from "@/lib/storage";
+import { getAllSellers, getMissionsByBuyer } from "@/lib/db";
+import type { UserProfile, Seller, Mission } from "@/lib/types";
+import { BottomNav } from "@/components/BottomNav";
 import {
-  IoHome,
   IoRocket,
   IoCheckmarkCircle,
-  IoPerson,
   IoAdd,
-  IoStorefront,
   IoLocationSharp,
+  IoChevronForward,
+  IoStorefront,
 } from "react-icons/io5";
 import { HiStar } from "react-icons/hi2";
 
 export default function HomePage() {
   const router = useRouter();
+  const { user: authUser, isConfigured, loading } = useAuth();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [missions, setMissions] = useState<Mission[]>([]);
@@ -25,27 +29,57 @@ export default function HomePage() {
 
   useEffect(() => {
     setMounted(true);
-    const profile = getUserProfile();
-    if (!profile) {
-      router.push("/onboarding");
-      return;
-    }
-    setUser(profile);
-    setSellers(getSellers());
-    setMissions(getMissions().filter((m) => m.buyerId === profile.id));
-  }, [router]);
+  }, []);
 
-  if (!mounted || !user) {
+  useEffect(() => {
+    if (!mounted || loading) return;
+
+    const loadData = async () => {
+      let currentUser: UserProfile | null = null;
+
+      if (isConfigured) {
+        if (!authUser) {
+          router.push("/onboarding");
+          return;
+        }
+        currentUser = authUser;
+
+        // Fetch from Firebase
+        const [fbSellers, fbMissions] = await Promise.all([
+          getAllSellers(),
+          getMissionsByBuyer(currentUser.id),
+        ]);
+        setSellers(fbSellers);
+        setMissions(fbMissions);
+      } else {
+        // LocalStorage fallback
+        const localUser = getUserProfile();
+        if (!localUser) {
+          router.push("/onboarding");
+          return;
+        }
+        currentUser = localUser;
+        setSellers(getSellers());
+        setMissions(getMissions().filter((m) => m.buyerId === currentUser!.id));
+      }
+
+      if (currentUser?.role === "seller") {
+        router.push("/seller-dashboard");
+        return;
+      }
+
+      setUser(currentUser);
+    };
+
+    loadData();
+  }, [mounted, loading, authUser, isConfigured, router]);
+
+  if (!mounted || loading || !user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-slate-800 border-t-transparent rounded-full animate-spin" />
       </div>
     );
-  }
-
-  if (user.role === "seller") {
-    router.push("/seller-dashboard");
-    return null;
   }
 
   const activeMissionCount = missions.filter(
@@ -53,20 +87,20 @@ export default function HomePage() {
   ).length;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-24">
       {/* Header */}
-      <div className="bg-blue-900 text-white px-5 pt-12 pb-6 rounded-b-3xl shadow-lg">
+      <div className="bg-slate-800 text-white px-5 pt-12 pb-6">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <p className="text-blue-100 text-xs font-medium mb-1">
-                Welcome back
+              <p className="text-slate-300 text-xs font-medium mb-1">
+                Murakaza neza
               </p>
               <h1 className="text-xl font-bold">{user.name}</h1>
             </div>
             <Link
               href="/account"
-              className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-lg font-bold"
+              className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-lg font-bold"
             >
               {user.avatar}
             </Link>
@@ -76,7 +110,7 @@ export default function HomePage() {
           {activeMissionCount > 0 && (
             <Link
               href="/missions"
-              className="block bg-white/10 backdrop-blur-md rounded-2xl p-4 hover:bg-white/15 transition-all"
+              className="block bg-white/10 rounded-2xl p-4"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -84,7 +118,7 @@ export default function HomePage() {
                     <IoRocket className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-blue-100 text-xs font-medium">
+                    <p className="text-slate-300 text-xs font-medium">
                       Active Missions
                     </p>
                     <p className="text-lg font-bold">{activeMissionCount}</p>
@@ -106,11 +140,11 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="px-5 max-w-lg mx-auto -mt-4">
+      <div className="px-5 max-w-lg mx-auto mt-5">
         {/* Create Mission Button */}
         <Link
           href="/missions/create"
-          className="block bg-teal-800 text-white rounded-2xl p-4 shadow-lg hover:bg-teal-900 transition-all active:scale-95"
+          className="block bg-emerald-600 text-white rounded-2xl p-4"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -119,7 +153,9 @@ export default function HomePage() {
               </div>
               <div>
                 <h2 className="text-base font-bold">Create Mission</h2>
-                <p className="text-teal-100 text-xs">Find suppliers quickly</p>
+                <p className="text-emerald-100 text-xs">
+                  Find suppliers quickly
+                </p>
               </div>
             </div>
             <svg
@@ -137,19 +173,19 @@ export default function HomePage() {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-3 gap-3 mt-5">
-          <div className="bg-indigo-50 rounded-xl p-3 shadow-sm border border-indigo-200">
-            <p className="text-indigo-800 text-xs mb-1 font-medium">Missions</p>
-            <p className="text-lg font-bold text-indigo-950">
+          <div className="bg-white rounded-xl p-3 border border-gray-200">
+            <p className="text-gray-500 text-xs mb-1 font-medium">Missions</p>
+            <p className="text-lg font-bold text-slate-800">
               {missions.length}
             </p>
           </div>
-          <div className="bg-teal-50 rounded-xl p-3 shadow-sm border border-teal-200">
-            <p className="text-teal-800 text-xs mb-1 font-medium">Suppliers</p>
-            <p className="text-lg font-bold text-teal-950">{sellers.length}</p>
+          <div className="bg-white rounded-xl p-3 border border-gray-200">
+            <p className="text-gray-500 text-xs mb-1 font-medium">Suppliers</p>
+            <p className="text-lg font-bold text-slate-800">{sellers.length}</p>
           </div>
-          <div className="bg-orange-50 rounded-xl p-3 shadow-sm border border-orange-200">
-            <p className="text-orange-800 text-xs mb-1 font-medium">Active</p>
-            <p className="text-lg font-bold text-orange-950">
+          <div className="bg-white rounded-xl p-3 border border-gray-200">
+            <p className="text-gray-500 text-xs mb-1 font-medium">Active</p>
+            <p className="text-lg font-bold text-slate-800">
               {activeMissionCount}
             </p>
           </div>
@@ -163,101 +199,64 @@ export default function HomePage() {
             </h3>
             <Link
               href="/discover"
-              className="text-xs font-medium text-blue-800"
+              className="text-xs font-medium text-slate-600"
             >
               See all
             </Link>
           </div>
           <div className="space-y-3">
-            {sellers.slice(0, 3).map((seller, idx) => {
-              const colors = ["bg-orange-700", "bg-purple-800", "bg-teal-700"];
-              return (
-                <Link
-                  key={seller.id}
-                  href={`/sellers/${seller.id}`}
-                  className="block bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all active:scale-98"
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`w-11 h-11 rounded-xl ${colors[idx % 3]} text-white flex items-center justify-center text-base font-bold flex-shrink-0`}
-                    >
-                      {seller.avatar}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-sm text-gray-900">
-                          {seller.name}
-                        </h4>
-                        {seller.verified && (
-                          <IoCheckmarkCircle className="w-4 h-4 text-green-600" />
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500 mb-2">
-                        {seller.category}
-                      </p>
-                      <div className="flex items-center gap-3 text-xs text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <HiStar className="w-3 h-3 text-yellow-500" />
-                          {seller.rating}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <IoLocationSharp className="w-3 h-3" />
-                          {seller.location}
-                        </span>
-                      </div>
-                    </div>
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      className="text-gray-400"
-                    >
-                      <path d="M9 18l6-6-6-6" />
-                    </svg>
+            {sellers.length === 0 ? (
+              <div className="bg-white rounded-xl p-6 border border-gray-200 text-center">
+                <IoStorefront className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-500">No suppliers yet</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Suppliers will appear when they join DeLingua
+                </p>
+              </div>
+            ) : (
+              sellers.slice(0, 3).map((seller) => (
+              <Link
+                key={seller.id}
+                href={`/sellers/${seller.id}`}
+                className="block bg-white rounded-xl p-4 border border-gray-200"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-11 h-11 rounded-xl bg-slate-800 text-white flex items-center justify-center text-base font-bold shrink-0">
+                    {seller.avatar}
                   </div>
-                </Link>
-              );
-            })}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-semibold text-sm text-gray-900">
+                        {seller.name}
+                      </h4>
+                      {seller.verified && (
+                        <IoCheckmarkCircle className="w-4 h-4 text-emerald-600" />
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 mb-2">
+                      {seller.category}
+                    </p>
+                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <HiStar className="w-3 h-3 text-amber-500" />
+                        {seller.rating}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <IoLocationSharp className="w-3 h-3" />
+                        {seller.location}
+                      </span>
+                    </div>
+                  </div>
+                  <IoChevronForward className="w-4 h-4 text-gray-400" />
+                </div>
+              </Link>
+              ))
+            )}
           </div>
         </div>
       </div>
 
-      {/* Bottom Nav */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-inset-bottom">
-        <div className="max-w-lg mx-auto px-5 h-16 flex items-center justify-around">
-          <Link
-            href="/"
-            className="flex flex-col items-center gap-0.5 text-blue-900 py-2"
-          >
-            <IoHome className="w-6 h-6" />
-            <span className="text-[10px] font-semibold">Home</span>
-          </Link>
-          <Link
-            href="/missions"
-            className="flex flex-col items-center gap-0.5 text-gray-400 py-2"
-          >
-            <IoRocket className="w-6 h-6" />
-            <span className="text-[10px] font-medium">Missions</span>
-          </Link>
-          <Link
-            href="/matches"
-            className="flex flex-col items-center gap-0.5 text-gray-400 py-2"
-          >
-            <IoStorefront className="w-6 h-6" />
-            <span className="text-[10px] font-medium">Matches</span>
-          </Link>
-          <Link
-            href="/account"
-            className="flex flex-col items-center gap-0.5 text-gray-400 py-2"
-          >
-            <IoPerson className="w-6 h-6" />
-            <span className="text-[10px] font-medium">Account</span>
-          </Link>
-        </div>
-      </div>
+      <BottomNav role="buyer" />
     </div>
   );
 }

@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { isFirebaseConfigured } from "@/lib/firebase";
 import { getSellerById } from "@/lib/storage";
-import type { Seller } from "@/lib/storage";
+import { getSellerById as getFirebaseSeller } from "@/lib/db";
+import type { Seller } from "@/lib/types";
 
 export default function SellerProfilePage() {
   const router = useRouter();
@@ -16,15 +18,27 @@ export default function SellerProfilePage() {
 
   useEffect(() => {
     setMounted(true);
-    const id = params?.id as string;
-    if (!id) return;
+    const loadSeller = async () => {
+      const id = params?.id as string;
+      if (!id) return;
 
-    const foundSeller = getSellerById(id);
-    if (!foundSeller) {
-      router.push("/");
-      return;
-    }
-    setSeller(foundSeller);
+      const isConfigured = isFirebaseConfigured();
+      let foundSeller: Seller | null = null;
+
+      if (isConfigured) {
+        foundSeller = await getFirebaseSeller(id);
+      } else {
+        foundSeller = getSellerById(id);
+      }
+
+      if (!foundSeller) {
+        router.push("/");
+        return;
+      }
+      setSeller(foundSeller);
+    };
+
+    loadSeller();
   }, [params, router]);
 
   if (!mounted || !seller) {
@@ -38,12 +52,12 @@ export default function SellerProfilePage() {
   return (
     <div className="min-h-screen bg-white pb-24">
       {/* Header */}
-      <div className="bg-orange-900 text-white px-6 lg:px-8 pt-14 pb-8 rounded-b-3xl shadow-lg">
+      <div className="bg-slate-800 text-white px-6 lg:px-8 pt-14 pb-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-4 mb-6">
             <button
               onClick={() => router.back()}
-              className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center"
+              className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center"
             >
               <svg
                 width="20"
@@ -58,7 +72,7 @@ export default function SellerProfilePage() {
             </button>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-2xl font-bold">
+                <div className="w-16 h-16 rounded-2xl bg-emerald-600 flex items-center justify-center text-2xl font-bold">
                   {seller.avatar}
                 </div>
                 <div>
@@ -69,19 +83,19 @@ export default function SellerProfilePage() {
                         width="20"
                         height="20"
                         viewBox="0 0 24 24"
-                        fill="white"
+                        fill="#059669"
                       >
                         <circle cx="12" cy="12" r="10" />
                         <path
                           d="M9 12l2 2 4-4"
-                          stroke="black"
+                          stroke="white"
                           strokeWidth="2"
                           fill="none"
                         />
                       </svg>
                     )}
                   </div>
-                  <p className="text-gray-400">{seller.category}</p>
+                  <p className="text-slate-300">{seller.category}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4 text-sm">
@@ -108,7 +122,7 @@ export default function SellerProfilePage() {
           <h3 className="font-semibold mb-4 text-black">Key Details</h3>
           <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-800 flex items-center justify-center flex-shrink-0 text-white">
+              <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center flex-shrink-0 text-white">
                 📦
               </div>
               <div className="flex-1">
@@ -117,7 +131,7 @@ export default function SellerProfilePage() {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-teal-800 flex items-center justify-center flex-shrink-0 text-white">
+              <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center flex-shrink-0 text-white">
                 🚚
               </div>
               <div className="flex-1">
@@ -126,7 +140,7 @@ export default function SellerProfilePage() {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-orange-800 flex items-center justify-center flex-shrink-0 text-white">
+              <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center flex-shrink-0 text-white">
                 ⏱️
               </div>
               <div className="flex-1">
@@ -142,21 +156,14 @@ export default function SellerProfilePage() {
           <div className="bg-white border border-gray-200 rounded-2xl p-5">
             <h3 className="font-semibold mb-3 text-black">Certifications</h3>
             <div className="flex flex-wrap gap-2">
-              {seller.certifications.map((cert, i) => {
-                const colors = [
-                  "bg-gradient-to-r from-green-500 to-emerald-500",
-                  "bg-gradient-to-r from-blue-500 to-indigo-500",
-                  "bg-gradient-to-r from-purple-500 to-pink-500",
-                ];
-                return (
-                  <span
-                    key={i}
-                    className={`px-3 py-2 ${colors[i % 3]} text-white rounded-xl text-sm font-medium shadow-sm`}
-                  >
-                    {cert}
-                  </span>
-                );
-              })}
+              {seller.certifications.map((cert, i) => (
+                <span
+                  key={i}
+                  className="px-3 py-2 bg-emerald-600 text-white rounded-xl text-sm font-medium"
+                >
+                  {cert}
+                </span>
+              ))}
             </div>
           </div>
         )}
@@ -184,7 +191,7 @@ export default function SellerProfilePage() {
                       <span>•</span>
                       <span
                         className={
-                          item.stock > 0 ? "text-green-600" : "text-gray-400"
+                          item.stock > 0 ? "text-emerald-600" : "text-gray-400"
                         }
                       >
                         {item.stock > 0
@@ -212,7 +219,7 @@ export default function SellerProfilePage() {
           <div className="max-w-4xl mx-auto px-6 py-4">
             <Link
               href={`/chat/${missionId}?seller=${seller.id}`}
-              className="block w-full py-4 rounded-2xl bg-black text-white text-center font-semibold hover:bg-gray-900 transition-colors"
+              className="block w-full py-4 rounded-2xl bg-emerald-600 text-white text-center font-semibold"
             >
               Start Conversation
             </Link>

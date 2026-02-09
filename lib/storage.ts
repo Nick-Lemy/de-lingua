@@ -1,91 +1,15 @@
 // LocalStorage utilities for data persistence
+// Re-export types for backwards compatibility
+export type {
+  UserProfile,
+  Mission,
+  Match,
+  Seller,
+  InventoryItem,
+  ChatMessage,
+} from "./types";
 
-export interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  role: "buyer" | "seller";
-  avatar: string;
-  preferences?: {
-    categories: string[];
-    budgetBehavior: string;
-    locationRadius: string;
-    values: string[];
-  };
-  businessProfile?: {
-    category: string;
-    products: string[];
-    minOrderQty: string;
-    location: string;
-    serviceRange: string;
-    capacity: string;
-  };
-}
-
-export interface Mission {
-  id: string;
-  buyerId: string;
-  product: string;
-  category: string;
-  quantity: string;
-  budgetMin: string;
-  budgetMax: string;
-  urgency: string;
-  location: string;
-  description?: string;
-  status: "finding" | "matched" | "completed" | "cancelled";
-  createdAt: string;
-  matches?: Match[];
-}
-
-export interface Match {
-  id: string;
-  missionId: string;
-  sellerId: string;
-  sellerName: string;
-  sellerAvatar: string;
-  matchScore: number;
-  distance: string;
-  budgetFit: string;
-  stockStatus: string;
-  whyMatch: string[];
-  status: "pending" | "connected" | "declined";
-}
-
-export interface Seller {
-  id: string;
-  name: string;
-  avatar: string;
-  category: string;
-  rating: number;
-  reviews: number;
-  verified: boolean;
-  location: string;
-  serviceRange: string;
-  minOrder: string;
-  responseTime: string;
-  description: string;
-  certifications: string[];
-  inventory: InventoryItem[];
-}
-
-export interface InventoryItem {
-  id: string;
-  name: string;
-  price: string;
-  stock: number;
-  moq: string;
-  leadTime: string;
-}
-
-export interface ChatMessage {
-  id: string;
-  missionId: string;
-  sellerId: string;
-  sender: "buyer" | "seller";
-  text: string;
-  time: string;
-}
+import type { UserProfile, Mission, Match, Seller, ChatMessage } from "./types";
 
 // Storage keys
 const KEYS = {
@@ -180,6 +104,45 @@ export function getMatchesByMission(missionId: string): Match[] {
   return getMatches().filter((m) => m.missionId === missionId);
 }
 
+// Get matches for a seller (incoming buyer requests)
+export function getMatchesForSeller(sellerId: string): Match[] {
+  return getMatches().filter((m) => m.sellerId === sellerId);
+}
+
+// Update seller inventory
+export function updateSellerInventory(
+  sellerId: string,
+  inventory: Seller["inventory"],
+): void {
+  const seller = getSellerById(sellerId);
+  if (seller) {
+    seller.inventory = inventory;
+    saveSeller(seller);
+  }
+}
+
+// Create a Seller from UserProfile during signup
+export function createSellerFromUser(user: UserProfile): Seller {
+  const seller: Seller = {
+    id: user.id,
+    name: user.name,
+    avatar: user.avatar,
+    category: user.businessProfile?.category || "General",
+    rating: 5.0,
+    reviews: 0,
+    verified: false,
+    location: user.businessProfile?.location || "Rwanda",
+    serviceRange: user.businessProfile?.serviceRange || "Nationwide",
+    minOrder: user.businessProfile?.minOrderQty || "1 unit",
+    responseTime: "< 24 hours",
+    description: `${user.name} is a supplier offering ${user.businessProfile?.products?.join(", ") || "products"} in Rwanda.`,
+    certifications: [],
+    inventory: [],
+  };
+  saveSeller(seller);
+  return seller;
+}
+
 // Chat Messages
 export function saveChatMessage(message: ChatMessage): void {
   const chats = getChatMessages();
@@ -201,101 +164,9 @@ export function getChatByMissionAndSeller(
   );
 }
 
-// Initialize dummy data
+// Initialize dummy data (no longer seeds fake sellers - sellers come from real signups)
 export function initializeDummyData(): void {
-  // Only initialize if no data exists
-  if (getSellers().length === 0) {
-    const dummySellers: Seller[] = [
-      {
-        id: "seller_1",
-        name: "TechPro Supplies",
-        avatar: "T",
-        category: "Electronics",
-        rating: 4.8,
-        reviews: 234,
-        verified: true,
-        location: "Berlin, Germany",
-        serviceRange: "EU Wide",
-        minOrder: "€500",
-        responseTime: "< 2 hours",
-        description:
-          "Leading supplier of professional electronics and office equipment. We specialize in bulk orders for businesses and offer competitive pricing with certified quality.",
-        certifications: ["ISO 9001", "CE Certified", "RoHS"],
-        inventory: [
-          {
-            id: "inv_1",
-            name: '27" LED Monitor',
-            price: "245",
-            stock: 450,
-            moq: "10 units",
-            leadTime: "3-5 days",
-          },
-          {
-            id: "inv_2",
-            name: "Wireless Keyboard & Mouse",
-            price: "45",
-            stock: 890,
-            moq: "20 units",
-            leadTime: "2-3 days",
-          },
-        ],
-      },
-      {
-        id: "seller_2",
-        name: "Office Direct",
-        avatar: "O",
-        category: "Office Supplies",
-        rating: 4.6,
-        reviews: 189,
-        verified: true,
-        location: "Munich, Germany",
-        serviceRange: "Nationwide",
-        minOrder: "€200",
-        responseTime: "< 4 hours",
-        description:
-          "Your trusted partner for office supplies. From paper to furniture, we deliver quality products at competitive prices.",
-        certifications: ["ISO 14001"],
-        inventory: [
-          {
-            id: "inv_3",
-            name: "Office Chair Premium",
-            price: "189",
-            stock: 120,
-            moq: "5 units",
-            leadTime: "1 week",
-          },
-        ],
-      },
-      {
-        id: "seller_3",
-        name: "GreenPack Co",
-        avatar: "G",
-        category: "Packaging",
-        rating: 4.9,
-        reviews: 312,
-        verified: true,
-        location: "Hamburg, Germany",
-        serviceRange: "EU Wide",
-        minOrder: "€1000",
-        responseTime: "< 3 hours",
-        description:
-          "Eco-friendly packaging solutions for modern businesses. Sustainable, certified, and competitively priced.",
-        certifications: ["FSC", "EU Ecolabel", "Cradle to Cradle"],
-        inventory: [
-          {
-            id: "inv_4",
-            name: "Recycled Cardboard Boxes",
-            price: "0.45",
-            stock: 50000,
-            moq: "500 units",
-            leadTime: "5-7 days",
-          },
-        ],
-      },
-    ];
-
-    dummySellers.forEach(saveSeller);
-  }
+  // No longer pre-seeding sellers - they are created when users sign up as sellers
 }
 
 // Generate unique ID

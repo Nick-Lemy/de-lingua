@@ -3,8 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import { isFirebaseConfigured } from "@/lib/firebase";
 import { getMissionById, getMatchesByMission } from "@/lib/storage";
-import type { Mission, Match } from "@/lib/storage";
+import {
+  getMissionById as getFirebaseMission,
+  getMatchesByMission as getFirebaseMatches,
+} from "@/lib/db";
+import type { Mission, Match } from "@/lib/types";
+import { BottomNav } from "@/components/BottomNav";
 
 export default function MissionDetailPage() {
   const router = useRouter();
@@ -15,18 +21,36 @@ export default function MissionDetailPage() {
 
   useEffect(() => {
     setMounted(true);
-    const id = params?.id as string;
-    if (!id) return;
+    const loadData = async () => {
+      const id = params?.id as string;
+      if (!id) return;
 
-    const foundMission = getMissionById(id);
-    if (!foundMission) {
-      router.push("/missions");
-      return;
-    }
-    setMission(foundMission);
+      const isConfigured = isFirebaseConfigured();
+      let foundMission: Mission | null = null;
+      let foundMatches: Match[] = [];
 
-    const foundMatches = getMatchesByMission(id);
-    setMatches(foundMatches.sort((a, b) => b.matchScore - a.matchScore));
+      if (isConfigured) {
+        foundMission = await getFirebaseMission(id);
+        if (foundMission) {
+          foundMatches = await getFirebaseMatches(id);
+        }
+      } else {
+        foundMission = getMissionById(id);
+        if (foundMission) {
+          foundMatches = getMatchesByMission(id);
+        }
+      }
+
+      if (!foundMission) {
+        router.push("/missions");
+        return;
+      }
+
+      setMission(foundMission);
+      setMatches(foundMatches.sort((a, b) => b.matchScore - a.matchScore));
+    };
+
+    loadData();
   }, [params, router]);
 
   if (!mounted || !mission) {
@@ -40,9 +64,9 @@ export default function MissionDetailPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "finding":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-slate-100 text-slate-800";
       case "matched":
-        return "bg-green-100 text-green-800";
+        return "bg-emerald-100 text-emerald-800";
       case "completed":
         return "bg-gray-100 text-gray-800";
       default:
@@ -53,11 +77,11 @@ export default function MissionDetailPage() {
   const getBudgetFitColor = (fit: string) => {
     switch (fit) {
       case "good":
-        return "text-green-600";
+        return "text-emerald-600";
       case "moderate":
-        return "text-yellow-600";
+        return "text-slate-600";
       case "high":
-        return "text-red-600";
+        return "text-gray-600";
       default:
         return "text-gray-600";
     }
@@ -66,12 +90,12 @@ export default function MissionDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       {/* Header */}
-      <div className="bg-emerald-900 text-white px-6 lg:px-8 pt-14 pb-8 rounded-b-3xl shadow-lg">
+      <div className="bg-slate-800 text-white px-6 lg:px-8 pt-14 pb-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-4 mb-6">
             <button
               onClick={() => router.back()}
-              className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center"
+              className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center"
             >
               <svg
                 width="20"
@@ -92,7 +116,7 @@ export default function MissionDetailPage() {
                 >
                   {mission.status}
                 </span>
-                <span className="text-gray-400 text-sm">
+                <span className="text-slate-300 text-sm">
                   • {mission.category}
                 </span>
               </div>
@@ -106,33 +130,33 @@ export default function MissionDetailPage() {
         <div className="bg-gray-50 rounded-2xl p-5 border border-gray-200">
           <h3 className="font-semibold mb-4 text-black">Mission Details</h3>
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="bg-teal-50 border border-teal-200 rounded-xl p-3">
-              <p className="text-teal-800 text-xs mb-1 font-medium">Quantity</p>
-              <p className="font-semibold text-teal-950">
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+              <p className="text-slate-600 text-xs mb-1 font-medium">
+                Quantity
+              </p>
+              <p className="font-semibold text-slate-800">
                 {mission.quantity} units
               </p>
             </div>
-            <div className="bg-green-50 border border-green-200 rounded-xl p-3">
-              <p className="text-green-800 text-xs mb-1 font-medium">Budget</p>
-              <p className="font-semibold text-green-950">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+              <p className="text-emerald-700 text-xs mb-1 font-medium">
+                Budget
+              </p>
+              <p className="font-semibold text-emerald-800">
                 €{mission.budgetMin} - €{mission.budgetMax}
               </p>
             </div>
-            <div className="bg-orange-50 border border-orange-200 rounded-xl p-3">
-              <p className="text-orange-800 text-xs mb-1 font-medium">
-                Urgency
-              </p>
-              <p className="font-semibold capitalize text-orange-950">
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+              <p className="text-slate-600 text-xs mb-1 font-medium">Urgency</p>
+              <p className="font-semibold capitalize text-slate-800">
                 {mission.urgency}
               </p>
             </div>
-            <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-3">
-              <p className="text-indigo-800 text-xs mb-1 font-medium">
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+              <p className="text-slate-600 text-xs mb-1 font-medium">
                 Location
               </p>
-              <p className="font-semibold text-indigo-900">
-                {mission.location}
-              </p>
+              <p className="font-semibold text-slate-800">{mission.location}</p>
             </div>
           </div>
           {mission.description && (
@@ -162,12 +186,12 @@ export default function MissionDetailPage() {
               <Link
                 key={match.id}
                 href={`/sellers/${match.sellerId}?mission=${mission.id}`}
-                className="block bg-white border-2 border-gray-200 rounded-2xl p-5 hover:border-black transition-colors"
+                className="block bg-white border border-gray-200 rounded-2xl p-5"
               >
                 {/* Match Score Header */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-black text-white flex items-center justify-center text-xl font-bold">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-800 text-white flex items-center justify-center text-xl font-bold">
                       {match.sellerAvatar}
                     </div>
                     <div>
@@ -232,6 +256,8 @@ export default function MissionDetailPage() {
           </div>
         )}
       </div>
+
+      <BottomNav role="buyer" />
     </div>
   );
 }

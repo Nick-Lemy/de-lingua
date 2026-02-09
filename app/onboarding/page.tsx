@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { isFirebaseConfigured } from "@/lib/firebase";
+import { signUp } from "@/lib/auth";
 import {
   saveUserProfile,
   generateId,
-  initializeDummyData,
+  createSellerFromUser,
 } from "@/lib/storage";
 
 const buyerSteps = [
@@ -16,14 +18,14 @@ const buyerSteps = [
     type: "multi",
     key: "categories",
     options: [
-      "Electronics",
+      "Agricultural Products",
+      "Construction Materials",
+      "Electronics & Tech",
+      "Textiles & Garments",
+      "Food & Beverages",
+      "Handicrafts & Art",
       "Office Supplies",
-      "Industrial",
-      "Textiles",
-      "Food & Beverage",
-      "Raw Materials",
-      "Packaging",
-      "Furniture",
+      "Machinery & Equipment",
     ],
   },
   {
@@ -34,16 +36,16 @@ const buyerSteps = [
     options: ["Low-cost first", "Quality-first", "Premium only", "Flexible"],
   },
   {
-    title: "How far can you source?",
+    title: "Where do you prefer to source?",
     subtitle: "Set your location preference",
     type: "single",
     key: "locationRadius",
     options: [
-      "Local (50km)",
-      "Regional (200km)",
-      "Nationwide",
-      "EU Wide",
-      "Global",
+      "Kigali City",
+      "Within Province",
+      "Nationwide (Rwanda)",
+      "East Africa",
+      "International",
     ],
   },
   {
@@ -52,10 +54,10 @@ const buyerSteps = [
     type: "multi",
     key: "values",
     options: [
+      "Made in Rwanda",
       "Eco-friendly",
-      "Local suppliers",
       "Fast delivery",
-      "Certified products",
+      "Certified quality",
       "Bulk discounts",
       "Flexible MOQ",
     ],
@@ -69,14 +71,14 @@ const sellerSteps = [
     type: "multi",
     key: "categories",
     options: [
-      "Electronics",
+      "Agricultural Products",
+      "Construction Materials",
+      "Electronics & Tech",
+      "Textiles & Garments",
+      "Food & Beverages",
+      "Handicrafts & Art",
       "Office Supplies",
-      "Industrial",
-      "Textiles",
-      "Food & Beverage",
-      "Raw Materials",
-      "Packaging",
-      "Furniture",
+      "Machinery & Equipment",
     ],
   },
   {
@@ -97,19 +99,25 @@ const sellerSteps = [
     type: "single",
     key: "serviceRange",
     options: [
-      "Local (50km)",
-      "Regional (200km)",
-      "Nationwide",
-      "EU Wide",
-      "Global",
+      "Kigali City",
+      "Within Province",
+      "Nationwide (Rwanda)",
+      "East Africa",
+      "International",
     ],
   },
   {
-    title: "Minimum order quantity?",
+    title: "Minimum order value?",
     subtitle: "Set your business constraints",
     type: "single",
     key: "minOrderQty",
-    options: ["No minimum", "€100+", "€500+", "€1000+", "€5000+"],
+    options: [
+      "No minimum",
+      "50,000 RWF+",
+      "200,000 RWF+",
+      "500,000 RWF+",
+      "1,000,000 RWF+",
+    ],
   },
 ];
 
@@ -119,12 +127,16 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showNameEmail, setShowNameEmail] = useState(false);
   const [preferences, setPreferences] = useState<Record<string, string[]>>({});
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isConfigured, setIsConfigured] = useState(false);
 
   useEffect(() => {
-    // Initialize dummy data on mount
-    initializeDummyData();
+    // Check if Firebase is configured
+    setIsConfigured(isFirebaseConfigured());
   }, []);
 
   const steps = role === "buyer" ? buyerSteps : sellerSteps;
@@ -163,58 +175,84 @@ export default function OnboardingPage() {
     }
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     if (!name.trim() || !email.trim()) return;
+    if (isConfigured && !password.trim()) return;
 
-    const userId = generateId("user");
+    setError("");
+    setIsSubmitting(true);
 
-    if (role === "buyer") {
-      saveUserProfile({
-        id: userId,
-        name: name.trim(),
-        email: email.trim(),
-        role: "buyer",
-        avatar: name.trim()[0].toUpperCase(),
-        preferences: {
-          categories: preferences.categories || [],
-          budgetBehavior: preferences.budgetBehavior?.[0] || "",
-          locationRadius: preferences.locationRadius?.[0] || "",
-          values: preferences.values || [],
-        },
-      });
-    } else {
-      saveUserProfile({
-        id: userId,
-        name: name.trim(),
-        email: email.trim(),
-        role: "seller",
-        avatar: name.trim()[0].toUpperCase(),
-        businessProfile: {
-          category: preferences.categories?.[0] || "",
-          products: preferences.categories || [],
-          minOrderQty: preferences.minOrderQty?.[0] || "",
-          location: "Germany",
-          serviceRange: preferences.serviceRange?.[0] || "",
-          capacity: preferences.capacity?.[0] || "",
-        },
-      });
+    try {
+      const userPreferences =
+        role === "buyer"
+          ? {
+              categories: preferences.categories || [],
+              budgetBehavior: preferences.budgetBehavior?.[0] || "",
+              locationRadius: preferences.locationRadius?.[0] || "",
+              values: preferences.values || [],
+            }
+          : undefined;
+
+      const businessProfile =
+        role === "seller"
+          ? {
+              category: preferences.categories?.[0] || "",
+              products: preferences.categories || [],
+              minOrderQty: preferences.minOrderQty?.[0] || "",
+              location: preferences.locationRadius?.[0] || "Kigali, Rwanda",
+              serviceRange: preferences.serviceRange?.[0] || "",
+              capacity: preferences.capacity?.[0] || "",
+            }
+          : undefined;
+
+      if (isConfigured) {
+        // Use Firebase Auth
+        await signUp(
+          email.trim(),
+          password,
+          name.trim(),
+          role!,
+          userPreferences,
+          businessProfile,
+        );
+      } else {
+        // Use localStorage
+        const userId = generateId("user");
+        const userProfile = {
+          id: userId,
+          name: name.trim(),
+          email: email.trim(),
+          role: role!,
+          avatar: name.trim()[0].toUpperCase(),
+          preferences: userPreferences,
+          businessProfile,
+        };
+        saveUserProfile(userProfile);
+
+        // If seller, also create a Seller entry
+        if (role === "seller") {
+          createSellerFromUser(userProfile);
+        }
+      }
+
+      router.push("/");
+    } catch (err: any) {
+      console.error("Registration error:", err);
+      setError(err.message || "Failed to create account. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    router.push("/");
   };
 
   if (!role) {
     return (
-      <div className="min-h-screen bg-blue-950 flex flex-col relative overflow-hidden">
-        <div className="absolute top-20 left-10 w-64 h-64 rounded-full bg-indigo-800/20 blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-80 h-80 rounded-full bg-purple-800/20 blur-3xl" />
-
-        <div className="flex-1 flex flex-col justify-center px-6 lg:px-8 max-w-2xl mx-auto w-full relative z-10">
+      <div className="min-h-screen bg-slate-800 flex flex-col">
+        <div className="flex-1 flex flex-col justify-center px-6 lg:px-8 max-w-2xl mx-auto w-full">
           <div className="flex items-center gap-3 mb-12">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
                 <circle cx="12" cy="12" r="8" />
-                <circle cx="12" cy="12" r="3" fill="#312e81" />
+                <circle cx="12" cy="12" r="3" fill="#064e3b" />
               </svg>
             </div>
             <span className="text-2xl font-bold text-white">DeLingua</span>
@@ -225,23 +263,23 @@ export default function OnboardingPage() {
             <br />
             the future of B2B
           </h1>
-          <p className="text-indigo-200 text-base lg:text-lg mb-16">
+          <p className="text-slate-300 text-base lg:text-lg mb-16">
             Choose your role to get started
           </p>
 
           <div className="space-y-4">
-            <button onClick={() => setRole("buyer")} className="w-full group">
-              <div className="bg-teal-900/80 backdrop-blur-md border-2 border-teal-700 rounded-3xl p-6 hover:bg-teal-800 transition-all">
+            <button onClick={() => setRole("buyer")} className="w-full">
+              <div className="bg-white/10 border border-white/20 rounded-2xl p-6">
                 <div className="flex items-center justify-between">
                   <div className="text-left">
                     <h3 className="text-xl font-bold text-white mb-2">
-                      I'm a Buyer
+                      I&apos;m a Buyer
                     </h3>
-                    <p className="text-teal-100">
+                    <p className="text-slate-300">
                       Looking for suppliers and products
                     </p>
                   </div>
-                  <div className="w-14 h-14 rounded-2xl bg-teal-700 flex items-center justify-center group-hover:bg-white transition-colors">
+                  <div className="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center">
                     <svg
                       width="24"
                       height="24"
@@ -249,7 +287,7 @@ export default function OnboardingPage() {
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
-                      className="text-white group-hover:text-black transition-colors"
+                      className="text-white"
                     >
                       <path d="M9 18l6-6-6-6" />
                     </svg>
@@ -258,18 +296,18 @@ export default function OnboardingPage() {
               </div>
             </button>
 
-            <button onClick={() => setRole("seller")} className="w-full group">
-              <div className="bg-orange-900/80 backdrop-blur-md border-2 border-orange-700 rounded-3xl p-6 hover:bg-orange-800 transition-all">
+            <button onClick={() => setRole("seller")} className="w-full">
+              <div className="bg-white/10 border border-white/20 rounded-2xl p-6">
                 <div className="flex items-center justify-between">
                   <div className="text-left">
                     <h3 className="text-xl font-bold text-white mb-2">
-                      I'm a Seller
+                      I&apos;m a Seller
                     </h3>
-                    <p className="text-orange-100">
+                    <p className="text-slate-300">
                       Ready to showcase my products
                     </p>
                   </div>
-                  <div className="w-14 h-14 rounded-2xl bg-orange-700 flex items-center justify-center group-hover:bg-white transition-colors">
+                  <div className="w-14 h-14 rounded-2xl bg-slate-600 flex items-center justify-center">
                     <svg
                       width="24"
                       height="24"
@@ -277,7 +315,7 @@ export default function OnboardingPage() {
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
-                      className="text-white group-hover:text-orange-900 transition-colors"
+                      className="text-white"
                     >
                       <path d="M9 18l6-6-6-6" />
                     </svg>
@@ -290,8 +328,8 @@ export default function OnboardingPage() {
 
         <div className="px-6 lg:px-8 pb-10 max-w-2xl mx-auto w-full relative z-10">
           <Link
-            href="/"
-            className="block w-full py-4 text-indigo-200 text-center text-sm hover:text-white transition-colors"
+            href="/login"
+            className="block w-full py-4 text-slate-300 text-center text-sm"
           >
             I already have an account
           </Link>
@@ -301,19 +339,31 @@ export default function OnboardingPage() {
   }
 
   if (showNameEmail) {
-    return (
-      <div className="min-h-screen bg-indigo-950 flex flex-col relative overflow-hidden">
-        <div className="absolute top-20 right-10 w-64 h-64 rounded-full bg-purple-800/20 blur-3xl" />
+    const canSubmit = isConfigured
+      ? name.trim() && email.trim() && password.trim() && password.length >= 6
+      : name.trim() && email.trim();
 
-        <div className="flex-1 px-6 lg:px-8 pt-14 max-w-2xl mx-auto w-full relative z-10">
+    return (
+      <div className="min-h-screen bg-slate-800 flex flex-col">
+        <div className="flex-1 px-6 lg:px-8 pt-14 max-w-2xl mx-auto w-full">
           <h1 className="text-2xl lg:text-3xl font-bold text-white mb-3">
             Almost done!
           </h1>
-          <p className="text-indigo-200 text-base mb-10">Tell us who you are</p>
+          <p className="text-slate-300 text-base mb-10">
+            {isConfigured
+              ? "Create your account to get started"
+              : "Tell us who you are"}
+          </p>
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-2xl text-red-200 text-sm">
+              {error}
+            </div>
+          )}
 
           <div className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-indigo-200 mb-2">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
                 Your name
               </label>
               <input
@@ -321,11 +371,11 @@ export default function OnboardingPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="John Doe"
-                className="w-full h-14 px-5 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white placeholder:text-gray-600 outline-none focus:border-white/40 transition-colors"
+                className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-2xl text-white placeholder:text-gray-500 outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-indigo-200 mb-2">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
                 Email address
               </label>
               <input
@@ -333,30 +383,58 @@ export default function OnboardingPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="john@company.com"
-                className="w-full h-14 px-5 bg-indigo-900/50 backdrop-blur-md border-2 border-indigo-700 rounded-2xl text-white placeholder:text-indigo-300 outline-none focus:border-indigo-500 transition-colors"
+                className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-2xl text-white placeholder:text-gray-500 outline-none"
               />
             </div>
+            {isConfigured && (
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Min. 6 characters"
+                  className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-2xl text-white placeholder:text-gray-500 outline-none"
+                />
+                <p className="mt-2 text-xs text-slate-400">
+                  Password must be at least 6 characters
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="px-6 lg:px-8 pb-10 max-w-2xl mx-auto w-full relative z-10">
+        <div className="px-6 lg:px-8 pb-10 max-w-2xl mx-auto w-full">
           <div className="flex gap-4">
             <button
-              onClick={() => setShowNameEmail(false)}
-              className="flex-1 py-4 border-2 border-indigo-700 text-white font-semibold rounded-2xl backdrop-blur-md hover:bg-indigo-900/50 transition-colors"
+              onClick={() => {
+                setShowNameEmail(false);
+                setError("");
+              }}
+              disabled={isSubmitting}
+              className="flex-1 py-4 border border-white/20 text-white font-semibold rounded-2xl disabled:opacity-50"
             >
               Back
             </button>
             <button
               onClick={handleFinish}
-              disabled={!name.trim() || !email.trim()}
-              className={`flex-1 py-4 font-semibold rounded-2xl transition-all ${
-                name.trim() && email.trim()
-                  ? "bg-indigo-600 text-white hover:bg-indigo-500"
-                  : "bg-indigo-900/30 text-indigo-400 cursor-not-allowed"
+              disabled={!canSubmit || isSubmitting}
+              className={`flex-1 py-4 font-semibold rounded-2xl flex items-center justify-center gap-2 ${
+                canSubmit && !isSubmitting
+                  ? "bg-emerald-600 text-white"
+                  : "bg-slate-600 text-slate-400 cursor-not-allowed"
               }`}
             >
-              Get Started
+              {isSubmitting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                "Get Started"
+              )}
             </button>
           </div>
         </div>
@@ -365,40 +443,38 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-purple-950 flex flex-col relative overflow-hidden">
-      <div className="absolute top-20 right-10 w-64 h-64 rounded-full bg-indigo-800/20 blur-3xl" />
-
-      <div className="px-6 lg:px-8 pt-14 max-w-2xl mx-auto w-full relative z-10">
+    <div className="min-h-screen bg-slate-800 flex flex-col">
+      <div className="px-6 lg:px-8 pt-14 max-w-2xl mx-auto w-full">
         <div className="flex gap-2 mb-4">
           {steps.map((_, i) => (
             <div
               key={i}
-              className={`flex-1 h-1 rounded-full transition-colors ${
-                i <= step ? "bg-indigo-400" : "bg-indigo-900"
+              className={`flex-1 h-1 rounded-full ${
+                i <= step ? "bg-emerald-600" : "bg-slate-600"
               }`}
             />
           ))}
         </div>
-        <p className="text-sm text-purple-200">
+        <p className="text-sm text-slate-300">
           Step {step + 1} of {steps.length}
         </p>
       </div>
 
-      <div className="flex-1 px-6 lg:px-8 pt-12 max-w-2xl mx-auto w-full relative z-10">
+      <div className="flex-1 px-6 lg:px-8 pt-12 max-w-2xl mx-auto w-full">
         <h1 className="text-2xl lg:text-3xl font-bold text-white mb-3">
           {currentStep.title}
         </h1>
-        <p className="text-purple-200 text-base">{currentStep.subtitle}</p>
+        <p className="text-slate-300 text-base">{currentStep.subtitle}</p>
 
         <div className="mt-10 flex flex-wrap gap-3">
           {currentStep.options.map((option) => (
             <button
               key={option}
               onClick={() => handleSelect(option)}
-              className={`px-6 py-4 rounded-2xl text-sm font-medium transition-all ${
+              className={`px-6 py-4 rounded-2xl text-sm font-medium ${
                 isSelected(option)
-                  ? "bg-indigo-600 text-white border-2 border-indigo-500"
-                  : "bg-purple-900/50 backdrop-blur-md border-2 border-purple-700 text-white hover:bg-purple-800"
+                  ? "bg-emerald-600 text-white border border-emerald-500"
+                  : "bg-white/10 border border-white/20 text-white"
               }`}
             >
               {option}
@@ -407,12 +483,12 @@ export default function OnboardingPage() {
         </div>
       </div>
 
-      <div className="px-6 lg:px-8 pb-10 max-w-2xl mx-auto w-full relative z-10">
+      <div className="px-6 lg:px-8 pb-10 max-w-2xl mx-auto w-full">
         <div className="flex gap-4">
           {step > 0 && (
             <button
               onClick={() => setStep(step - 1)}
-              className="flex-1 py-4 border-2 border-purple-700 text-white font-semibold rounded-2xl backdrop-blur-md hover:bg-purple-900/50 transition-colors"
+              className="flex-1 py-4 border border-white/20 text-white font-semibold rounded-2xl"
             >
               Back
             </button>
@@ -420,10 +496,10 @@ export default function OnboardingPage() {
           <button
             onClick={handleContinue}
             disabled={!canContinue}
-            className={`flex-1 py-4 font-semibold rounded-2xl transition-all ${
+            className={`flex-1 py-4 font-semibold rounded-2xl ${
               canContinue
-                ? "bg-indigo-600 text-white hover:bg-indigo-500"
-                : "bg-purple-900/30 text-purple-400 cursor-not-allowed"
+                ? "bg-emerald-600 text-white"
+                : "bg-slate-600 text-slate-400 cursor-not-allowed"
             }`}
           >
             Continue

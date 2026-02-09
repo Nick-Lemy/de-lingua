@@ -3,36 +3,62 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@/lib/AuthContext";
+import { isFirebaseConfigured } from "@/lib/firebase";
 import {
   getUserProfile,
   getMatches,
   getMissionById,
   getSellerById,
 } from "@/lib/storage";
-import type { UserProfile, Match } from "@/lib/storage";
+import { getAllMatchesForBuyer, getMissionsByBuyer } from "@/lib/db";
+import type { UserProfile, Match } from "@/lib/types";
+import { BottomNav } from "@/components/BottomNav";
 
 export default function MatchesPage() {
   const router = useRouter();
+  const { user: authUser, loading: authLoading } = useAuth();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const profile = getUserProfile();
-    if (!profile) {
-      router.push("/onboarding");
-      return;
-    }
-    setUser(profile);
+  }, []);
 
-    // Get all matches for user's missions
-    const allMatches = getMatches().filter((match) => {
-      const mission = getMissionById(match.missionId);
-      return mission && mission.buyerId === profile.id;
-    });
-    setMatches(allMatches.sort((a, b) => b.matchScore - a.matchScore));
-  }, [router]);
+  useEffect(() => {
+    if (!mounted || authLoading) return;
+
+    const loadData = async () => {
+      const isConfigured = isFirebaseConfigured();
+
+      if (isConfigured) {
+        if (!authUser) {
+          router.push("/onboarding");
+          return;
+        }
+        setUser(authUser);
+
+        const allMatches = await getAllMatchesForBuyer(authUser.id);
+        setMatches(allMatches.sort((a, b) => b.matchScore - a.matchScore));
+      } else {
+        const profile = getUserProfile();
+        if (!profile) {
+          router.push("/onboarding");
+          return;
+        }
+        setUser(profile);
+
+        const allMatches = getMatches().filter((match) => {
+          const mission = getMissionById(match.missionId);
+          return mission && mission.buyerId === profile.id;
+        });
+        setMatches(allMatches.sort((a, b) => b.matchScore - a.matchScore));
+      }
+    };
+
+    loadData();
+  }, [mounted, authLoading, authUser, router]);
 
   if (!mounted || !user) {
     return (
@@ -45,11 +71,11 @@ export default function MatchesPage() {
   const getBudgetFitColor = (fit: string) => {
     switch (fit) {
       case "good":
-        return "text-green-600";
+        return "text-emerald-600";
       case "moderate":
-        return "text-yellow-600";
+        return "text-slate-600";
       case "high":
-        return "text-red-600";
+        return "text-gray-600";
       default:
         return "text-gray-600";
     }
@@ -58,11 +84,11 @@ export default function MatchesPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       {/* Header */}
-      <div className="bg-rose-900 text-white px-6 lg:px-8 pt-14 pb-8 rounded-b-3xl shadow-lg">
+      <div className="bg-slate-800 text-white px-6 lg:px-8 pt-14 pb-8">
         <div className="max-w-4xl mx-auto">
           <div>
             <h1 className="text-2xl font-bold">All Matches</h1>
-            <p className="text-rose-100 text-sm">
+            <p className="text-slate-300 text-sm">
               {matches.length} potential suppliers
             </p>
           </div>
@@ -95,7 +121,7 @@ export default function MatchesPage() {
             </p>
             <Link
               href="/missions/create"
-              className="inline-block px-6 py-3 bg-black text-white rounded-2xl font-semibold hover:bg-gray-900 transition-colors"
+              className="inline-block px-6 py-3 bg-emerald-600 text-white rounded-2xl font-semibold"
             >
               Create Mission
             </Link>
@@ -111,12 +137,12 @@ export default function MatchesPage() {
                 <Link
                   key={match.id}
                   href={`/sellers/${match.sellerId}?mission=${match.missionId}`}
-                  className="block bg-white border-2 border-gray-200 rounded-2xl p-5 hover:border-black transition-colors"
+                  className="block bg-white border border-gray-200 rounded-2xl p-5"
                 >
                   {/* Match Header */}
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-rose-800 text-white flex items-center justify-center text-xl font-bold">
+                      <div className="w-12 h-12 rounded-2xl bg-slate-800 text-white flex items-center justify-center text-xl font-bold">
                         {match.sellerAvatar}
                       </div>
                       <div>
@@ -129,7 +155,7 @@ export default function MatchesPage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-rose-900">
+                      <div className="text-2xl font-bold text-slate-800">
                         {match.matchScore}%
                       </div>
                       <p className="text-xs text-gray-600">Match</p>
@@ -146,16 +172,16 @@ export default function MatchesPage() {
 
                   {/* Match Details */}
                   <div className="grid grid-cols-3 gap-3 text-center">
-                    <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-2">
-                      <p className="text-xs text-indigo-800 mb-1 font-medium">
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-2">
+                      <p className="text-xs text-slate-600 mb-1 font-medium">
                         Distance
                       </p>
-                      <p className="font-semibold text-sm text-indigo-950">
+                      <p className="font-semibold text-sm text-slate-800">
                         {match.distance}
                       </p>
                     </div>
-                    <div className="bg-green-50 border border-green-200 rounded-xl p-2">
-                      <p className="text-xs text-green-800 mb-1 font-medium">
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2">
+                      <p className="text-xs text-emerald-700 mb-1 font-medium">
                         Budget
                       </p>
                       <p
@@ -164,11 +190,11 @@ export default function MatchesPage() {
                         {match.budgetFit}
                       </p>
                     </div>
-                    <div className="bg-teal-50 border border-teal-200 rounded-xl p-2">
-                      <p className="text-xs text-teal-800 mb-1 font-medium">
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-2">
+                      <p className="text-xs text-slate-600 mb-1 font-medium">
                         Stock
                       </p>
-                      <p className="font-semibold text-sm capitalize text-teal-950">
+                      <p className="font-semibold text-sm capitalize text-slate-800">
                         {match.stockStatus.replace("-", " ")}
                       </p>
                     </div>
@@ -180,84 +206,7 @@ export default function MatchesPage() {
         )}
       </div>
 
-      {/* Bottom Nav */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
-        <div className="max-w-4xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-around">
-            <Link
-              href="/"
-              className="flex flex-col items-center gap-1 text-gray-400 hover:text-black"
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-              </svg>
-              <span className="text-xs">Home</span>
-            </Link>
-            <Link
-              href="/missions"
-              className="flex flex-col items-center gap-1 text-gray-400 hover:text-black"
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <path d="M12 6v6l4 2" />
-              </svg>
-              <span className="text-xs">Missions</span>
-            </Link>
-            <Link
-              href="/matches"
-              className="flex flex-col items-center gap-1 text-black"
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-                <circle cx="8.5" cy="7" r="4" />
-                <path
-                  d="M20 8v6M17 11h6"
-                  stroke="white"
-                  strokeWidth="2"
-                  fill="none"
-                />
-              </svg>
-              <span className="text-xs font-medium">Matches</span>
-            </Link>
-            <Link
-              href="/account"
-              className="flex flex-col items-center gap-1 text-gray-400 hover:text-black"
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="12" cy="8" r="4" />
-                <path d="M20 21c0-4-4-7-8-7s-8 3-8 7" />
-              </svg>
-              <span className="text-xs">Account</span>
-            </Link>
-          </div>
-        </div>
-      </div>
+      <BottomNav role="buyer" />
     </div>
   );
 }

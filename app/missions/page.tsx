@@ -3,23 +3,21 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@/lib/AuthContext";
+import { isFirebaseConfigured } from "@/lib/firebase";
 import {
   getUserProfile,
   getMissions,
   getMatchesByMission,
 } from "@/lib/storage";
-import type { UserProfile, Mission } from "@/lib/storage";
-import {
-  IoHome,
-  IoRocket,
-  IoStorefront,
-  IoPerson,
-  IoAdd,
-  IoTime,
-} from "react-icons/io5";
+import { getMissionsByBuyer as getFirebaseMissions } from "@/lib/db";
+import type { UserProfile, Mission } from "@/lib/types";
+import { IoRocket, IoAdd, IoTime } from "react-icons/io5";
+import { BottomNav } from "@/components/BottomNav";
 
 export default function MissionsPage() {
   const router = useRouter();
+  const { user: authUser, loading: authLoading } = useAuth();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [missions, setMissions] = useState<Mission[]>([]);
   const [mounted, setMounted] = useState(false);
@@ -29,26 +27,50 @@ export default function MissionsPage() {
   }, []);
 
   useEffect(() => {
-    if (!mounted) return;
-    const profile = getUserProfile();
-    if (!profile) {
-      router.push("/onboarding");
-      return;
-    }
-    setUser(profile);
-    const allMissions = getMissions().filter((m) => m.buyerId === profile.id);
-    setMissions(
-      allMissions.sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      ),
-    );
-  }, [mounted, router]);
+    if (!mounted || authLoading) return;
+
+    const loadData = async () => {
+      const isConfigured = isFirebaseConfigured();
+
+      if (isConfigured) {
+        if (!authUser) {
+          router.push("/onboarding");
+          return;
+        }
+        setUser(authUser);
+        const allMissions = await getFirebaseMissions(authUser.id);
+        setMissions(
+          allMissions.sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          ),
+        );
+      } else {
+        const profile = getUserProfile();
+        if (!profile) {
+          router.push("/onboarding");
+          return;
+        }
+        setUser(profile);
+        const allMissions = getMissions().filter(
+          (m) => m.buyerId === profile.id,
+        );
+        setMissions(
+          allMissions.sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          ),
+        );
+      }
+    };
+
+    loadData();
+  }, [mounted, authLoading, authUser, router]);
 
   if (!mounted || !user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-slate-800 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -67,20 +89,20 @@ export default function MissionsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 pb-24">
       {/* Header */}
-      <div className="bg-indigo-900 text-white px-5 pt-12 pb-6 rounded-b-3xl shadow-lg">
+      <div className="bg-slate-800 text-white px-5 pt-12 pb-6">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between mb-3">
             <div>
               <h1 className="text-xl font-bold">My Missions</h1>
-              <p className="text-indigo-100 text-xs mt-1">
+              <p className="text-slate-300 text-xs mt-1">
                 {missions.length} total missions
               </p>
             </div>
             <Link
               href="/missions/create"
-              className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center hover:bg-white/30 transition-all"
+              className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center"
             >
               <IoAdd className="w-6 h-6" />
             </Link>
@@ -103,7 +125,7 @@ export default function MissionsPage() {
             </p>
             <Link
               href="/missions/create"
-              className="inline-block px-5 py-2.5 bg-teal-800 text-white rounded-xl text-sm font-semibold hover:bg-teal-900 transition-all active:scale-95"
+              className="inline-block px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-semibold"
             >
               Create Mission
             </Link>
@@ -116,7 +138,7 @@ export default function MissionsPage() {
                 <Link
                   key={mission.id}
                   href={`/missions/${mission.id}`}
-                  className="block bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all active:scale-98"
+                  className="block bg-white rounded-xl p-4 border border-gray-200"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
@@ -164,39 +186,7 @@ export default function MissionsPage() {
         )}
       </div>
 
-      {/* Bottom Nav */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
-        <div className="max-w-lg mx-auto px-5 h-16 flex items-center justify-around">
-          <Link
-            href="/"
-            className="flex flex-col items-center gap-0.5 text-gray-400 py-2"
-          >
-            <IoHome className="w-6 h-6" />
-            <span className="text-[10px] font-medium">Home</span>
-          </Link>
-          <Link
-            href="/missions"
-            className="flex flex-col items-center gap-0.5 text-indigo-900 py-2"
-          >
-            <IoRocket className="w-6 h-6" />
-            <span className="text-[10px] font-semibold">Missions</span>
-          </Link>
-          <Link
-            href="/matches"
-            className="flex flex-col items-center gap-0.5 text-gray-400 py-2"
-          >
-            <IoStorefront className="w-6 h-6" />
-            <span className="text-[10px] font-medium">Matches</span>
-          </Link>
-          <Link
-            href="/account"
-            className="flex flex-col items-center gap-0.5 text-gray-400 py-2"
-          >
-            <IoPerson className="w-6 h-6" />
-            <span className="text-[10px] font-medium">Account</span>
-          </Link>
-        </div>
-      </div>
+      <BottomNav role="buyer" />
     </div>
   );
 }
