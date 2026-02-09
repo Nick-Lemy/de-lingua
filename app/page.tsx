@@ -215,41 +215,41 @@ export default function HomePage() {
               </div>
             ) : (
               sellers.slice(0, 3).map((seller) => (
-              <Link
-                key={seller.id}
-                href={`/sellers/${seller.id}`}
-                className="block bg-white rounded-xl p-4 border border-gray-200"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-slate-800 text-white flex items-center justify-center text-base font-bold shrink-0">
-                    {seller.avatar}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-semibold text-sm text-gray-900">
-                        {seller.name}
-                      </h4>
-                      {seller.verified && (
-                        <IoCheckmarkCircle className="w-4 h-4 text-emerald-600" />
-                      )}
+                <Link
+                  key={seller.id}
+                  href={`/sellers/${seller.id}`}
+                  className="block bg-white rounded-xl p-4 border border-gray-200"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-11 h-11 rounded-xl bg-slate-800 text-white flex items-center justify-center text-base font-bold shrink-0">
+                      {seller.avatar}
                     </div>
-                    <p className="text-xs text-gray-500 mb-2">
-                      {seller.category}
-                    </p>
-                    <div className="flex items-center gap-3 text-xs text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <HiStar className="w-3 h-3 text-amber-500" />
-                        {seller.rating}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <IoLocationSharp className="w-3 h-3" />
-                        {seller.location}
-                      </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-semibold text-sm text-gray-900">
+                          {seller.name}
+                        </h4>
+                        {seller.verified && (
+                          <IoCheckmarkCircle className="w-4 h-4 text-emerald-600" />
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 mb-2">
+                        {seller.category}
+                      </p>
+                      <div className="flex items-center gap-3 text-xs text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <HiStar className="w-3 h-3 text-amber-500" />
+                          {seller.rating}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <IoLocationSharp className="w-3 h-3" />
+                          {seller.location}
+                        </span>
+                      </div>
                     </div>
+                    <IoChevronForward className="w-4 h-4 text-gray-400" />
                   </div>
-                  <IoChevronForward className="w-4 h-4 text-gray-400" />
-                </div>
-              </Link>
+                </Link>
               ))
             )}
           </div>
