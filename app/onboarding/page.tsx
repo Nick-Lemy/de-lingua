@@ -128,6 +128,7 @@ export default function OnboardingPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [storeName, setStoreName] = useState("");
   const [showNameEmail, setShowNameEmail] = useState(false);
   const [preferences, setPreferences] = useState<Record<string, string[]>>({});
   const [error, setError] = useState("");
@@ -196,6 +197,7 @@ export default function OnboardingPage() {
       const businessProfile =
         role === "seller"
           ? {
+              storeName: storeName.trim() || name.trim(),
               category: preferences.categories?.[0] || "",
               products: preferences.categories || [],
               minOrderQty: preferences.minOrderQty?.[0] || "",
@@ -246,7 +248,7 @@ export default function OnboardingPage() {
 
   if (!role) {
     return (
-      <div className="min-h-screen bg-slate-800 flex flex-col">
+      <div className="min-h-screen pt-8 lg:pt-0 bg-slate-800 flex flex-col">
         <div className="flex-1 flex flex-col justify-center px-6 lg:px-8 max-w-2xl mx-auto w-full">
           <div className="flex items-center gap-3 mb-12">
             <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center">
@@ -261,7 +263,7 @@ export default function OnboardingPage() {
           <h1 className="text-3xl lg:text-4xl font-bold text-white leading-tight mb-4">
             Welcome to
             <br />
-            the future of B2B
+            DeLingua
           </h1>
           <p className="text-slate-300 text-base lg:text-lg mb-16">
             Choose your role to get started
@@ -340,8 +342,12 @@ export default function OnboardingPage() {
 
   if (showNameEmail) {
     const canSubmit = isConfigured
-      ? name.trim() && email.trim() && password.trim() && password.length >= 6
-      : name.trim() && email.trim();
+      ? name.trim() &&
+        email.trim() &&
+        password.trim() &&
+        password.length >= 6 &&
+        (role !== "seller" || storeName.trim())
+      : name.trim() && email.trim() && (role !== "seller" || storeName.trim());
 
     return (
       <div className="min-h-screen bg-slate-800 flex flex-col">
@@ -374,6 +380,23 @@ export default function OnboardingPage() {
                 className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-2xl text-white placeholder:text-gray-500 outline-none"
               />
             </div>
+            {role === "seller" && (
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Store / Business name
+                </label>
+                <input
+                  type="text"
+                  value={storeName}
+                  onChange={(e) => setStoreName(e.target.value)}
+                  placeholder="e.g., Kigali Fresh Produce, TechHub Rwanda"
+                  className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-2xl text-white placeholder:text-gray-500 outline-none"
+                />
+                <p className="mt-2 text-xs text-slate-400">
+                  This is how buyers will see your business
+                </p>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
                 Email address

@@ -20,7 +20,7 @@ export default function WelcomePage() {
 
         {/* Hero Text */}
         <h1 className="text-4xl lg:text-5xl font-bold text-white leading-tight mb-6">
-          Rwanda&apos;s B2B
+          Rwanda&apos;s Smart
           <br />
           <span className="text-emerald-400">Marketplace</span>
         </h1>

@@ -53,9 +53,11 @@ export async function signUp(
 
   // If seller, create a Seller entry as well
   if (role === "seller") {
+    // Use store name as the seller's display name (falls back to user name)
+    const displayName = businessProfile?.storeName || name;
     const sellerData: Omit<Seller, "id"> = {
-      name,
-      avatar: name.charAt(0).toUpperCase(),
+      name: displayName,
+      avatar: displayName.charAt(0).toUpperCase(),
       category: businessProfile?.category || "General",
       rating: 5.0,
       reviews: 0,
@@ -64,7 +66,7 @@ export async function signUp(
       serviceRange: businessProfile?.serviceRange || "Nationwide",
       minOrder: businessProfile?.minOrderQty || "1 unit",
       responseTime: "< 24 hours",
-      description: `${name} is a supplier offering ${businessProfile?.products?.join(", ") || "products"} in Rwanda.`,
+      description: `${displayName} is a supplier offering ${businessProfile?.products?.join(", ") || "products"} in Rwanda.`,
       certifications: [],
       inventory: [],
     };

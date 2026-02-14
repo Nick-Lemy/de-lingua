@@ -22,8 +22,8 @@ export function BottomNav({ role = "buyer" }: BottomNavProps) {
   const buyerItems = [
     { href: "/", icon: IoHome, label: "Home" },
     { href: "/missions", icon: IoRocket, label: "Missions" },
+    { href: "/messages", icon: IoChatbubbles, label: "Messages" },
     { href: "/discover", icon: IoSearch, label: "Discover" },
-    { href: "/matches", icon: HiSparkles, label: "Matches" },
     { href: "/account", icon: IoPerson, label: "Account" },
   ];
 
@@ -31,9 +31,10 @@ export function BottomNav({ role = "buyer" }: BottomNavProps) {
     { href: "/seller-dashboard", icon: IoHome, label: "Dashboard" },
     {
       href: "/requests",
-      icon: IoChatbubbles,
+      icon: HiSparkles,
       label: "Requests",
     },
+    { href: "/messages", icon: IoChatbubbles, label: "Messages" },
     {
       href: "/inventory",
       icon: IoStorefront,

@@ -88,7 +88,7 @@ function buildMatchingPrompt(mission: Mission, sellers: Seller[]): string {
     })),
   }));
 
-  return `You are a B2B supplier matching expert for the Rwandan market. Analyze the buyer's mission and available sellers to find the best matches.
+  return `You are a supplier matching expert for the Rwandan market. Analyze the buyer's mission and available sellers to find the best matches.
 
 BUYER MISSION:
 - Product needed: ${mission.product}

@@ -109,6 +109,16 @@ export function getMatchesForSeller(sellerId: string): Match[] {
   return getMatches().filter((m) => m.sellerId === sellerId);
 }
 
+// Update a match
+export function updateMatch(id: string, updates: Partial<Match>): void {
+  const matches = getMatches();
+  const index = matches.findIndex((m) => m.id === id);
+  if (index >= 0) {
+    matches[index] = { ...matches[index], ...updates };
+    localStorage.setItem(KEYS.MATCHES, JSON.stringify(matches));
+  }
+}
+
 // Update seller inventory
 export function updateSellerInventory(
   sellerId: string,
@@ -123,10 +133,12 @@ export function updateSellerInventory(
 
 // Create a Seller from UserProfile during signup
 export function createSellerFromUser(user: UserProfile): Seller {
+  // Use store name as the seller's display name (falls back to user name)
+  const displayName = user.businessProfile?.storeName || user.name;
   const seller: Seller = {
     id: user.id,
-    name: user.name,
-    avatar: user.avatar,
+    name: displayName,
+    avatar: displayName.charAt(0).toUpperCase(),
     category: user.businessProfile?.category || "General",
     rating: 5.0,
     reviews: 0,
@@ -135,7 +147,7 @@ export function createSellerFromUser(user: UserProfile): Seller {
     serviceRange: user.businessProfile?.serviceRange || "Nationwide",
     minOrder: user.businessProfile?.minOrderQty || "1 unit",
     responseTime: "< 24 hours",
-    description: `${user.name} is a supplier offering ${user.businessProfile?.products?.join(", ") || "products"} in Rwanda.`,
+    description: `${displayName} is a supplier offering ${user.businessProfile?.products?.join(", ") || "products"} in Rwanda.`,
     certifications: [],
     inventory: [],
   };
@@ -162,6 +174,16 @@ export function getChatByMissionAndSeller(
   return getChatMessages().filter(
     (m) => m.missionId === missionId && m.sellerId === sellerId,
   );
+}
+
+// Get all chats for a buyer
+export function getChatsForBuyer(buyerId: string): ChatMessage[] {
+  return getChatMessages().filter((m) => m.buyerId === buyerId);
+}
+
+// Get all chats for a seller
+export function getChatsForSeller(sellerId: string): ChatMessage[] {
+  return getChatMessages().filter((m) => m.sellerId === sellerId);
 }
 
 // Initialize dummy data (no longer seeds fake sellers - sellers come from real signups)

@@ -9,14 +9,14 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "DeLingua - B2B Marketplace",
+  title: "DeLingua - Smart Marketplace",
   description:
-    "Connect with verified suppliers, create missions, and find perfect matches for your business needs.",
-  keywords: ["B2B", "marketplace", "suppliers", "business", "procurement"],
+    "Connect with verified suppliers, create missions, and find perfect matches for your needs.",
+  keywords: ["marketplace", "suppliers", "shopping", "matching", "procurement"],
   authors: [{ name: "DeLingua Team" }],
   openGraph: {
-    title: "DeLingua - B2B Marketplace",
-    description: "The future of B2B commerce",
+    title: "DeLingua - Smart Marketplace",
+    description: "The future of smart commerce",
     type: "website",
   },
 };

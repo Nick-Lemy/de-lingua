@@ -9,6 +9,7 @@ import {
   getUserProfile,
   getMatchesForSeller,
   getMissionById,
+  updateMatch as updateLocalMatch,
 } from "@/lib/storage";
 import {
   getMatchesForSeller as getFirebaseMatchesForSeller,
@@ -21,7 +22,6 @@ import {
   IoArrowBack,
   IoCheckmarkCircle,
   IoCloseCircle,
-  IoTime,
   IoChatbubbles,
 } from "react-icons/io5";
 
@@ -100,6 +100,8 @@ export default function RequestsPage() {
   const handleAccept = async (matchId: string) => {
     if (isConfigured) {
       await updateMatch(matchId, { status: "connected" });
+    } else {
+      updateLocalMatch(matchId, { status: "connected" });
     }
     setRequests(
       requests.map((r) =>
@@ -111,6 +113,8 @@ export default function RequestsPage() {
   const handleDecline = async (matchId: string) => {
     if (isConfigured) {
       await updateMatch(matchId, { status: "declined" });
+    } else {
+      updateLocalMatch(matchId, { status: "declined" });
     }
     setRequests(
       requests.map((r) =>

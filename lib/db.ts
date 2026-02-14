@@ -292,6 +292,40 @@ export async function getChatMessages(
   return querySnapshot.docs.map((doc) => doc.data() as ChatMessage);
 }
 
+// Get all chats for a buyer (grouped by seller)
+export async function getChatsForBuyer(
+  buyerId: string,
+): Promise<ChatMessage[]> {
+  if (!isFirebaseConfigured() || !db) return [];
+
+  const chatsRef = collection(db, COLLECTIONS.CHATS);
+  const q = query(
+    chatsRef,
+    where("buyerId", "==", buyerId),
+    orderBy("time", "desc"),
+  );
+  const querySnapshot = await getDocs(q);
+
+  return querySnapshot.docs.map((doc) => doc.data() as ChatMessage);
+}
+
+// Get all chats for a seller
+export async function getChatsForSeller(
+  sellerId: string,
+): Promise<ChatMessage[]> {
+  if (!isFirebaseConfigured() || !db) return [];
+
+  const chatsRef = collection(db, COLLECTIONS.CHATS);
+  const q = query(
+    chatsRef,
+    where("sellerId", "==", sellerId),
+    orderBy("time", "desc"),
+  );
+  const querySnapshot = await getDocs(q);
+
+  return querySnapshot.docs.map((doc) => doc.data() as ChatMessage);
+}
+
 // ==================== UTILITY ====================
 
 export function generateId(prefix: string): string {

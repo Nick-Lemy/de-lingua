@@ -14,6 +14,7 @@ export interface UserProfile {
     values: string[];
   };
   businessProfile?: {
+    storeName: string;
     category: string;
     products: string[];
     minOrderQty: string;
@@ -84,6 +85,7 @@ export interface ChatMessage {
   id: string;
   missionId: string;
   sellerId: string;
+  buyerId: string;
   sender: "buyer" | "seller";
   text: string;
   time: string;

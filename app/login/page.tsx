@@ -114,9 +114,7 @@ export default function LoginPage() {
         </div>
 
         <h1 className="text-3xl font-bold text-white mb-2">Murakaza neza</h1>
-        <p className="text-slate-300 mb-8">
-          Sign in to your Rwanda B2B account
-        </p>
+        <p className="text-slate-300 mb-8">Sign in to your DeLingua account</p>
 
         {error && (
           <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-2xl text-red-200 text-sm">
