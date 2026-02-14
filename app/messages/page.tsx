@@ -155,8 +155,7 @@ export default function MessagesPage() {
   const formatTime = (time: string) => {
     const date = new Date(time);
     const now = new Date();
-    const diffInHours =
-      (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
     if (diffInHours < 24) {
       return date.toLocaleTimeString([], {
