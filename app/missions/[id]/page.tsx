@@ -64,9 +64,9 @@ export default function MissionDetailPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "finding":
-        return "bg-slate-100 text-slate-800";
+        return "bg-[#EF7C29]/10 text-[#EF7C29]";
       case "matched":
-        return "bg-emerald-100 text-emerald-800";
+        return "bg-[#1152A2]/10 text-[#1152A2]";
       case "completed":
         return "bg-gray-100 text-gray-800";
       default:
@@ -77,9 +77,9 @@ export default function MissionDetailPage() {
   const getBudgetFitColor = (fit: string) => {
     switch (fit) {
       case "good":
-        return "text-emerald-600";
+        return "text-[#1152A2]";
       case "moderate":
-        return "text-slate-600";
+        return "text-[#EF7C29]";
       case "high":
         return "text-gray-600";
       default:
@@ -88,9 +88,9 @@ export default function MissionDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-white pb-24">
       {/* Header */}
-      <div className="bg-slate-800 text-white px-6 lg:px-8 pt-14 pb-8">
+      <div className="bg-[#1152A2] text-white px-6 lg:px-8 pt-14 pb-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-4 mb-6">
             <button
@@ -138,11 +138,9 @@ export default function MissionDetailPage() {
                 {mission.quantity} units
               </p>
             </div>
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
-              <p className="text-emerald-700 text-xs mb-1 font-medium">
-                Budget
-              </p>
-              <p className="font-semibold text-emerald-800">
+            <div className="bg-[#EF7C29]/10 border border-[#EF7C29]/20 rounded-xl p-3">
+              <p className="text-[#EF7C29] text-xs mb-1 font-medium">Budget</p>
+              <p className="font-semibold text-[#EF7C29]">
                 €{mission.budgetMin} - €{mission.budgetMax}
               </p>
             </div>
@@ -191,7 +189,7 @@ export default function MissionDetailPage() {
                 {/* Match Score Header */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-800 text-white flex items-center justify-center text-xl font-bold">
+                    <div className="w-12 h-12 rounded-2xl bg-[#1152A2] text-white flex items-center justify-center text-xl font-bold">
                       {match.sellerAvatar}
                     </div>
                     <div>

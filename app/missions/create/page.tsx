@@ -146,9 +146,9 @@ export default function CreateMissionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-white pb-24">
       {/* Header */}
-      <div className="bg-slate-800 text-white px-5 pt-12 pb-6">
+      <div className="bg-[#1152A2] text-white px-5 pt-12 pb-6">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center gap-3 mb-4">
             <button
@@ -164,7 +164,7 @@ export default function CreateMissionPage() {
           </div>
           <div className="h-1 bg-white/20 rounded-full overflow-hidden">
             <div
-              className="h-full bg-emerald-500"
+              className="h-full bg-[#EF7C29]"
               style={{ width: `${(step / 5) * 100}%` }}
             />
           </div>
@@ -362,7 +362,7 @@ export default function CreateMissionPage() {
           <button
             onClick={step < 5 ? handleNext : handleSubmit}
             disabled={!canProceed()}
-            className="w-full py-3 rounded-xl bg-emerald-600 text-white font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full py-3 rounded-xl bg-[#EF7C29] text-white font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#d96a1f]"
           >
             {step < 5 ? "Continue" : "Find Suppliers"}
           </button>

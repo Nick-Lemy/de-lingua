@@ -163,16 +163,16 @@ export default function InventoryPage() {
 
   if (!mounted || loading || !user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-slate-800 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-28">
+    <div className="min-h-screen bg-white pb-28">
       {/* Header */}
-      <div className="bg-slate-800 text-white px-5 pt-12 pb-6">
+      <div className="bg-[#1152A2] text-white px-5 pt-12 pb-6">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center gap-3 mb-4">
             <button
@@ -196,19 +196,19 @@ export default function InventoryPage() {
         <div className="grid grid-cols-3 gap-3 mb-5">
           <div className="bg-white rounded-xl p-3 border border-gray-200">
             <p className="text-gray-500 text-xs mb-1">Products</p>
-            <p className="text-lg font-bold text-slate-800">
+            <p className="text-lg font-bold text-[#1152A2]">
               {inventory.length}
             </p>
           </div>
           <div className="bg-white rounded-xl p-3 border border-gray-200">
             <p className="text-gray-500 text-xs mb-1">In Stock</p>
-            <p className="text-lg font-bold text-emerald-600">
+            <p className="text-lg font-bold text-[#1152A2]">
               {inventory.filter((i) => i.stock > 0).length}
             </p>
           </div>
           <div className="bg-white rounded-xl p-3 border border-gray-200">
             <p className="text-gray-500 text-xs mb-1">Low Stock</p>
-            <p className="text-lg font-bold text-amber-600">
+            <p className="text-lg font-bold text-[#EF7C29]">
               {inventory.filter((i) => i.stock > 0 && i.stock < 10).length}
             </p>
           </div>
@@ -217,7 +217,7 @@ export default function InventoryPage() {
         {/* Add Button */}
         <button
           onClick={handleAddItem}
-          className="w-full bg-emerald-600 text-white rounded-xl p-4 flex items-center justify-center gap-2 mb-5"
+          className="w-full bg-[#EF7C29] text-white rounded-xl p-4 flex items-center justify-center gap-2 mb-5 hover:bg-[#d96a1f]"
         >
           <IoAdd className="w-5 h-5" />
           Add New Product
@@ -241,9 +241,7 @@ export default function InventoryPage() {
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <h4 className="font-semibold text-gray-900">{item.name}</h4>
-                    <p className="text-emerald-600 font-bold">
-                      {item.price} RWF
-                    </p>
+                    <p className="text-[#EF7C29] font-bold">{item.price} RWF</p>
                   </div>
                   <div className="flex gap-2">
                     <button
@@ -278,8 +276,8 @@ export default function InventoryPage() {
                       item.stock === 0
                         ? "text-red-500"
                         : item.stock < 10
-                          ? "text-amber-500"
-                          : "text-emerald-600"
+                          ? "text-[#EF7C29]"
+                          : "text-[#1152A2]"
                     }`}
                   >
                     Stock: {item.stock}
@@ -299,7 +297,7 @@ export default function InventoryPage() {
               <button
                 onClick={handleSaveInventory}
                 disabled={saving}
-                className="w-full bg-slate-800 text-white rounded-xl py-4 flex items-center justify-center gap-2"
+                className="w-full bg-[#1152A2] text-white rounded-xl py-4 flex items-center justify-center gap-2 hover:bg-[#0d3f7a]"
               >
                 {saving ? (
                   <>
@@ -415,7 +413,7 @@ export default function InventoryPage() {
               <button
                 onClick={handleSaveItem}
                 disabled={!formData.name.trim() || !formData.price.trim()}
-                className="w-full bg-emerald-600 text-white py-4 rounded-xl font-semibold mt-6 disabled:opacity-50"
+                className="w-full bg-[#EF7C29] text-white py-4 rounded-xl font-semibold mt-6 disabled:opacity-50 hover:bg-[#d96a1f]"
               >
                 {editingItem ? "Update Product" : "Add Product"}
               </button>

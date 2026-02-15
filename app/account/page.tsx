@@ -60,8 +60,8 @@ export default function AccountPage() {
 
   if (!mounted || loading || !user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-slate-800 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -100,9 +100,9 @@ export default function AccountPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-white pb-24">
       {/* Header */}
-      <div className="bg-slate-800 text-white px-5 pt-12 pb-8">
+      <div className="bg-[#1152A2] text-white px-5 pt-12 pb-8">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center gap-3 mb-6">
             <button
@@ -117,7 +117,7 @@ export default function AccountPage() {
           {/* User Card */}
           <div className="bg-white/10 rounded-2xl p-5 border border-white/10">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-emerald-600 flex items-center justify-center text-2xl font-bold">
+              <div className="w-16 h-16 rounded-2xl bg-[#EF7C29] flex items-center justify-center text-2xl font-bold">
                 {user.avatar}
               </div>
               <div className="flex-1">
@@ -185,7 +185,7 @@ export default function AccountPage() {
               {user.preferences.budgetBehavior && (
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Budget Behavior</p>
-                  <span className="px-2 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs">
+                  <span className="px-2 py-1 bg-[#1152A2]/10 text-[#1152A2] rounded-lg text-xs">
                     {user.preferences.budgetBehavior}
                   </span>
                 </div>
@@ -217,7 +217,7 @@ export default function AccountPage() {
               </div>
               <div>
                 <p className="text-xs text-gray-500 mb-1">Service Range</p>
-                <span className="px-2 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs">
+                <span className="px-2 py-1 bg-[#1152A2]/10 text-[#1152A2] rounded-lg text-xs">
                   {user.businessProfile.serviceRange}
                 </span>
               </div>

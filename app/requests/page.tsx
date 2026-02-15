@@ -130,7 +130,7 @@ export default function RequestsPage() {
       case "urgent":
         return "bg-red-100 text-red-700";
       case "normal":
-        return "bg-emerald-100 text-emerald-700";
+        return "bg-[#1152A2]/10 text-[#1152A2]";
       case "flexible":
         return "bg-gray-100 text-gray-700";
       default:
@@ -140,16 +140,16 @@ export default function RequestsPage() {
 
   if (!mounted || loading || !user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-slate-800 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-28">
+    <div className="min-h-screen bg-white pb-28">
       {/* Header */}
-      <div className="bg-slate-800 text-white px-5 pt-12 pb-6">
+      <div className="bg-[#1152A2] text-white px-5 pt-12 pb-6">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center gap-3 mb-4">
             <button
@@ -176,7 +176,7 @@ export default function RequestsPage() {
             onClick={() => setActiveTab("pending")}
             className={`flex-1 py-2 rounded-lg text-sm font-medium ${
               activeTab === "pending"
-                ? "bg-white text-slate-800 shadow-sm"
+                ? "bg-white text-[#1152A2] shadow-sm"
                 : "text-gray-600"
             }`}
           >
@@ -186,7 +186,7 @@ export default function RequestsPage() {
             onClick={() => setActiveTab("connected")}
             className={`flex-1 py-2 rounded-lg text-sm font-medium ${
               activeTab === "connected"
-                ? "bg-white text-slate-800 shadow-sm"
+                ? "bg-white text-[#1152A2] shadow-sm"
                 : "text-gray-600"
             }`}
           >
@@ -197,7 +197,7 @@ export default function RequestsPage() {
             onClick={() => setActiveTab("declined")}
             className={`flex-1 py-2 rounded-lg text-sm font-medium ${
               activeTab === "declined"
-                ? "bg-white text-slate-800 shadow-sm"
+                ? "bg-white text-[#1152A2] shadow-sm"
                 : "text-gray-600"
             }`}
           >
@@ -224,7 +224,7 @@ export default function RequestsPage() {
               >
                 {/* Match Score */}
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
+                  <span className="text-xs font-medium text-[#1152A2] bg-[#1152A2]/10 px-2 py-1 rounded-full">
                     {request.matchScore}% match
                   </span>
                   {request.mission?.urgency && (
@@ -286,7 +286,7 @@ export default function RequestsPage() {
                     </button>
                     <button
                       onClick={() => handleAccept(request.id)}
-                      className="flex-1 py-2 bg-emerald-600 text-white rounded-xl font-medium flex items-center justify-center gap-2"
+                      className="flex-1 py-2 bg-[#EF7C29] text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-[#d96a1f]"
                     >
                       <IoCheckmarkCircle className="w-4 h-4" />
                       Accept
@@ -297,7 +297,7 @@ export default function RequestsPage() {
                 {activeTab === "connected" && (
                   <Link
                     href={`/chat/${request.missionId}?seller=${request.sellerId}`}
-                    className="w-full py-2 bg-slate-800 text-white rounded-xl font-medium flex items-center justify-center gap-2 mt-4"
+                    className="w-full py-2 bg-[#1152A2] text-white rounded-xl font-medium flex items-center justify-center gap-2 mt-4 hover:bg-[#0d3f7a]"
                   >
                     <IoChatbubbles className="w-4 h-4" />
                     Open Chat

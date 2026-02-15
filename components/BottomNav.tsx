@@ -58,7 +58,7 @@ export function BottomNav({ role = "buyer" }: BottomNavProps) {
               key={item.href}
               href={item.href}
               className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl ${
-                isActive ? "text-slate-800" : "text-gray-400"
+                isActive ? "text-[#1152A2]" : "text-gray-400"
               }`}
             >
               <item.icon className="w-6 h-6" />

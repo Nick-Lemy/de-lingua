@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { isFirebaseConfigured } from "@/lib/firebase";
 import { signIn, signInWithGoogle } from "@/lib/auth";
 import { getUserProfile } from "@/lib/storage";
@@ -100,15 +101,18 @@ export default function LoginPage() {
       : phone.trim();
 
   return (
-    <div className="min-h-screen bg-slate-800 flex flex-col">
+    <div className="min-h-screen bg-[#1152A2] flex flex-col">
       <div className="flex-1 flex flex-col justify-center px-6 lg:px-8 max-w-md mx-auto w-full">
         {/* Logo */}
         <div className="flex items-center gap-3 mb-12">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-              <circle cx="12" cy="12" r="8" />
-              <circle cx="12" cy="12" r="3" fill="#064e3b" />
-            </svg>
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center">
+            <Image
+              src="/logo.png"
+              alt="DeLingua"
+              width={48}
+              height={48}
+              className="rounded-2xl"
+            />
           </div>
           <span className="text-2xl font-bold text-white">DeLingua</span>
         </div>
@@ -128,7 +132,7 @@ export default function LoginPage() {
             onClick={() => setLoginMethod("email")}
             className={`flex-1 py-3 rounded-xl text-sm font-medium ${
               loginMethod === "email"
-                ? "bg-emerald-600 text-white"
+                ? "bg-[#EF7C29] text-white"
                 : "text-slate-300"
             }`}
           >
@@ -138,7 +142,7 @@ export default function LoginPage() {
             onClick={() => setLoginMethod("phone")}
             className={`flex-1 py-3 rounded-xl text-sm font-medium ${
               loginMethod === "phone"
-                ? "bg-emerald-600 text-white"
+                ? "bg-[#EF7C29] text-white"
                 : "text-slate-300"
             }`}
           >
@@ -204,7 +208,7 @@ export default function LoginPage() {
           disabled={!canSubmit || isSubmitting}
           className={`w-full mt-6 py-4 font-semibold rounded-2xl flex items-center justify-center gap-2 ${
             canSubmit && !isSubmitting
-              ? "bg-emerald-600 text-white"
+              ? "bg-[#EF7C29] text-white hover:bg-[#d96a1f]"
               : "bg-slate-600 text-slate-400 cursor-not-allowed"
           }`}
         >

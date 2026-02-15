@@ -22,12 +22,12 @@ export function Badge({
 }: BadgeProps) {
   const variants = {
     default: "bg-gray-100 text-gray-700 border-gray-200",
-    success: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    warning: "bg-slate-100 text-slate-700 border-slate-200",
+    success: "bg-[#1152A2]/10 text-[#1152A2] border-[#1152A2]/20",
+    warning: "bg-[#EF7C29]/10 text-[#EF7C29] border-[#EF7C29]/20",
     danger: "bg-slate-100 text-slate-700 border-slate-200",
-    info: "bg-slate-50 text-slate-700 border-slate-200",
-    purple: "bg-slate-50 text-slate-700 border-slate-200",
-    teal: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    info: "bg-[#1152A2]/10 text-[#1152A2] border-[#1152A2]/20",
+    purple: "bg-[#1152A2]/10 text-[#1152A2] border-[#1152A2]/20",
+    teal: "bg-[#1152A2]/10 text-[#1152A2] border-[#1152A2]/20",
   };
 
   const sizes = {

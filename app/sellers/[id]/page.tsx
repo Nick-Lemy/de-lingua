@@ -52,7 +52,7 @@ export default function SellerProfilePage() {
   return (
     <div className="min-h-screen bg-white pb-24">
       {/* Header */}
-      <div className="bg-slate-800 text-white px-6 lg:px-8 pt-14 pb-8">
+      <div className="bg-[#1152A2] text-white px-6 lg:px-8 pt-14 pb-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-4 mb-6">
             <button
@@ -72,7 +72,7 @@ export default function SellerProfilePage() {
             </button>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-16 h-16 rounded-2xl bg-emerald-600 flex items-center justify-center text-2xl font-bold">
+                <div className="w-16 h-16 rounded-2xl bg-[#EF7C29] flex items-center justify-center text-2xl font-bold">
                   {seller.avatar}
                 </div>
                 <div>
@@ -83,7 +83,7 @@ export default function SellerProfilePage() {
                         width="20"
                         height="20"
                         viewBox="0 0 24 24"
-                        fill="#059669"
+                        fill="#EF7C29"
                       >
                         <circle cx="12" cy="12" r="10" />
                         <path
@@ -122,7 +122,7 @@ export default function SellerProfilePage() {
           <h3 className="font-semibold mb-4 text-black">Key Details</h3>
           <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center flex-shrink-0 text-white">
+              <div className="w-10 h-10 rounded-xl bg-[#1152A2] flex items-center justify-center shrink-0 text-white">
                 📦
               </div>
               <div className="flex-1">
@@ -131,7 +131,7 @@ export default function SellerProfilePage() {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center flex-shrink-0 text-white">
+              <div className="w-10 h-10 rounded-xl bg-[#1152A2] flex items-center justify-center shrink-0 text-white">
                 🚚
               </div>
               <div className="flex-1">
@@ -140,7 +140,7 @@ export default function SellerProfilePage() {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center flex-shrink-0 text-white">
+              <div className="w-10 h-10 rounded-xl bg-[#1152A2] flex items-center justify-center shrink-0 text-white">
                 ⏱️
               </div>
               <div className="flex-1">
@@ -159,7 +159,7 @@ export default function SellerProfilePage() {
               {seller.certifications.map((cert, i) => (
                 <span
                   key={i}
-                  className="px-3 py-2 bg-emerald-600 text-white rounded-xl text-sm font-medium"
+                  className="px-3 py-2 bg-[#1152A2] text-white rounded-xl text-sm font-medium"
                 >
                   {cert}
                 </span>
@@ -191,7 +191,7 @@ export default function SellerProfilePage() {
                       <span>•</span>
                       <span
                         className={
-                          item.stock > 0 ? "text-emerald-600" : "text-gray-400"
+                          item.stock > 0 ? "text-[#1152A2]" : "text-gray-400"
                         }
                       >
                         {item.stock > 0
@@ -219,7 +219,7 @@ export default function SellerProfilePage() {
           <div className="max-w-4xl mx-auto px-6 py-4">
             <Link
               href={`/chat/${missionId}?seller=${seller.id}`}
-              className="block w-full py-4 rounded-2xl bg-emerald-600 text-white text-center font-semibold"
+              className="block w-full py-4 rounded-2xl bg-[#EF7C29] text-white text-center font-semibold hover:bg-[#d96a1f]"
             >
               Start Conversation
             </Link>

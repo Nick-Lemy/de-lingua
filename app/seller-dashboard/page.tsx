@@ -134,49 +134,49 @@ export default function SellerDashboardPage() {
       icon: IoChatbubbles,
       label: "Pending Requests",
       value: pendingCount,
-      color: "bg-slate-600",
-      textColor: "text-slate-600",
+      color: "bg-[#EF7C29]",
+      textColor: "text-[#EF7C29]",
     },
     {
       icon: IoStorefront,
       label: "Products Listed",
       value: productCount,
-      color: "bg-emerald-600",
-      textColor: "text-emerald-600",
+      color: "bg-[#1152A2]",
+      textColor: "text-[#1152A2]",
     },
     {
       icon: IoCheckmarkCircle,
       label: "Completed Deals",
       value: 0,
-      color: "bg-emerald-600",
-      textColor: "text-emerald-600",
+      color: "bg-[#1152A2]",
+      textColor: "text-[#1152A2]",
     },
     {
       icon: IoTrendingUp,
       label: "This Month",
       value: "0 RWF",
-      color: "bg-slate-800",
-      textColor: "text-slate-800",
+      color: "bg-[#1152A2]",
+      textColor: "text-[#1152A2]",
     },
   ];
 
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
       case "urgent":
-        return "bg-slate-100 text-slate-700 border-slate-200";
+        return "bg-red-50 text-red-700 border-red-200";
       case "normal":
-        return "bg-slate-50 text-slate-600 border-slate-200";
+        return "bg-[#1152A2]/10 text-[#1152A2] border-[#1152A2]/20";
       case "flexible":
-        return "bg-emerald-50 text-emerald-700 border-emerald-200";
+        return "bg-[#1152A2]/10 text-[#1152A2] border-[#1152A2]/20";
       default:
         return "bg-gray-50 text-gray-700 border-gray-200";
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-white pb-24">
       {/* Header */}
-      <div className="bg-slate-800 text-white px-5 pt-12 pb-8">
+      <div className="bg-[#1152A2] text-white px-5 pt-12 pb-8">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -189,14 +189,14 @@ export default function SellerDashboardPage() {
               <button className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center relative">
                 <IoNotifications className="w-5 h-5" />
                 {pendingCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full text-[10px] font-bold flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#EF7C29] rounded-full text-[10px] font-bold flex items-center justify-center">
                     {pendingCount}
                   </span>
                 )}
               </button>
               <Link
                 href="/account"
-                className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-lg font-bold"
+                className="w-10 h-10 rounded-xl bg-[#EF7C29] flex items-center justify-center text-lg font-bold"
               >
                 {user.avatar}
               </Link>
@@ -318,8 +318,8 @@ export default function SellerDashboardPage() {
               href="/inventory"
               className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center gap-3"
             >
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-                <IoAdd className="w-5 h-5 text-emerald-600" />
+              <div className="w-10 h-10 rounded-xl bg-[#EF7C29]/10 flex items-center justify-center">
+                <IoAdd className="w-5 h-5 text-[#EF7C29]" />
               </div>
               <div>
                 <p className="font-medium text-sm text-gray-900">Add Product</p>
@@ -330,8 +330,8 @@ export default function SellerDashboardPage() {
               href="/requests"
               className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center gap-3"
             >
-              <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
-                <IoChatbubbles className="w-5 h-5 text-slate-600" />
+              <div className="w-10 h-10 rounded-xl bg-[#1152A2]/10 flex items-center justify-center">
+                <IoChatbubbles className="w-5 h-5 text-[#1152A2]" />
               </div>
               <div>
                 <p className="font-medium text-sm text-gray-900">

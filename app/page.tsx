@@ -76,8 +76,8 @@ export default function HomePage() {
 
   if (!mounted || loading || !user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-slate-800 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -87,9 +87,9 @@ export default function HomePage() {
   ).length;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-white pb-24">
       {/* Header */}
-      <div className="bg-slate-800 text-white px-5 pt-12 pb-6">
+      <div className="bg-[#1152A2] text-white px-5 pt-12 pb-6">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -144,7 +144,7 @@ export default function HomePage() {
         {/* Create Mission Button */}
         <Link
           href="/missions/create"
-          className="block bg-emerald-600 text-white rounded-2xl p-4"
+          className="block bg-[#EF7C29] text-white rounded-2xl p-4 hover:bg-[#d96a1f]"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -153,9 +153,7 @@ export default function HomePage() {
               </div>
               <div>
                 <h2 className="text-base font-bold">Create Mission</h2>
-                <p className="text-emerald-100 text-xs">
-                  Find suppliers quickly
-                </p>
+                <p className="text-white/80 text-xs">Find suppliers quickly</p>
               </div>
             </div>
             <svg
@@ -175,17 +173,17 @@ export default function HomePage() {
         <div className="grid grid-cols-3 gap-3 mt-5">
           <div className="bg-white rounded-xl p-3 border border-gray-200">
             <p className="text-gray-500 text-xs mb-1 font-medium">Missions</p>
-            <p className="text-lg font-bold text-slate-800">
+            <p className="text-lg font-bold text-[#1152A2]">
               {missions.length}
             </p>
           </div>
           <div className="bg-white rounded-xl p-3 border border-gray-200">
             <p className="text-gray-500 text-xs mb-1 font-medium">Suppliers</p>
-            <p className="text-lg font-bold text-slate-800">{sellers.length}</p>
+            <p className="text-lg font-bold text-[#1152A2]">{sellers.length}</p>
           </div>
           <div className="bg-white rounded-xl p-3 border border-gray-200">
             <p className="text-gray-500 text-xs mb-1 font-medium">Active</p>
-            <p className="text-lg font-bold text-slate-800">
+            <p className="text-lg font-bold text-[#1152A2]">
               {activeMissionCount}
             </p>
           </div>
@@ -199,7 +197,7 @@ export default function HomePage() {
             </h3>
             <Link
               href="/discover"
-              className="text-xs font-medium text-slate-600"
+              className="text-xs font-medium text-[#1152A2]"
             >
               See all
             </Link>
@@ -221,7 +219,7 @@ export default function HomePage() {
                   className="block bg-white rounded-xl p-4 border border-gray-200"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-11 h-11 rounded-xl bg-slate-800 text-white flex items-center justify-center text-base font-bold shrink-0">
+                    <div className="w-11 h-11 rounded-xl bg-[#1152A2] text-white flex items-center justify-center text-base font-bold shrink-0">
                       {seller.avatar}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -230,7 +228,7 @@ export default function HomePage() {
                           {seller.name}
                         </h4>
                         {seller.verified && (
-                          <IoCheckmarkCircle className="w-4 h-4 text-emerald-600" />
+                          <IoCheckmarkCircle className="w-4 h-4 text-[#1152A2]" />
                         )}
                       </div>
                       <p className="text-xs text-gray-500 mb-2">

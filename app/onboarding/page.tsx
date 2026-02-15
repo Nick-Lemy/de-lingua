@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { isFirebaseConfigured } from "@/lib/firebase";
 import { signUp } from "@/lib/auth";
 import {
@@ -248,14 +249,17 @@ export default function OnboardingPage() {
 
   if (!role) {
     return (
-      <div className="min-h-screen pt-8 lg:pt-0 bg-slate-800 flex flex-col">
+      <div className="min-h-screen pt-8 lg:pt-0 bg-[#1152A2] flex flex-col">
         <div className="flex-1 flex flex-col justify-center px-6 lg:px-8 max-w-2xl mx-auto w-full">
           <div className="flex items-center gap-3 mb-12">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-                <circle cx="12" cy="12" r="8" />
-                <circle cx="12" cy="12" r="3" fill="#064e3b" />
-              </svg>
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center">
+              <Image
+                src="/logo.png"
+                alt="DeLingua"
+                width={48}
+                height={48}
+                className="rounded-2xl"
+              />
             </div>
             <span className="text-2xl font-bold text-white">DeLingua</span>
           </div>
@@ -281,7 +285,7 @@ export default function OnboardingPage() {
                       Looking for suppliers and products
                     </p>
                   </div>
-                  <div className="w-14 h-14 rounded-2xl bg-emerald-600 flex items-center justify-center">
+                  <div className="w-14 h-14 rounded-2xl bg-[#EF7C29] flex items-center justify-center">
                     <svg
                       width="24"
                       height="24"
@@ -309,7 +313,7 @@ export default function OnboardingPage() {
                       Ready to showcase my products
                     </p>
                   </div>
-                  <div className="w-14 h-14 rounded-2xl bg-slate-600 flex items-center justify-center">
+                  <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center">
                     <svg
                       width="24"
                       height="24"
@@ -350,7 +354,7 @@ export default function OnboardingPage() {
       : name.trim() && email.trim() && (role !== "seller" || storeName.trim());
 
     return (
-      <div className="min-h-screen bg-slate-800 flex flex-col">
+      <div className="min-h-screen bg-[#1152A2] flex flex-col">
         <div className="flex-1 px-6 lg:px-8 pt-14 max-w-2xl mx-auto w-full">
           <h1 className="text-2xl lg:text-3xl font-bold text-white mb-3">
             Almost done!
@@ -446,8 +450,8 @@ export default function OnboardingPage() {
               disabled={!canSubmit || isSubmitting}
               className={`flex-1 py-4 font-semibold rounded-2xl flex items-center justify-center gap-2 ${
                 canSubmit && !isSubmitting
-                  ? "bg-emerald-600 text-white"
-                  : "bg-slate-600 text-slate-400 cursor-not-allowed"
+                  ? "bg-[#EF7C29] text-white hover:bg-[#d96a1f]"
+                  : "bg-white/20 text-white/40 cursor-not-allowed"
               }`}
             >
               {isSubmitting ? (
@@ -466,14 +470,14 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-800 flex flex-col">
+    <div className="min-h-screen bg-[#1152A2] flex flex-col">
       <div className="px-6 lg:px-8 pt-14 max-w-2xl mx-auto w-full">
         <div className="flex gap-2 mb-4">
           {steps.map((_, i) => (
             <div
               key={i}
               className={`flex-1 h-1 rounded-full ${
-                i <= step ? "bg-emerald-600" : "bg-slate-600"
+                i <= step ? "bg-[#EF7C29]" : "bg-white/20"
               }`}
             />
           ))}
@@ -496,7 +500,7 @@ export default function OnboardingPage() {
               onClick={() => handleSelect(option)}
               className={`px-6 py-4 rounded-2xl text-sm font-medium ${
                 isSelected(option)
-                  ? "bg-emerald-600 text-white border border-emerald-500"
+                  ? "bg-[#EF7C29] text-white border border-[#EF7C29]"
                   : "bg-white/10 border border-white/20 text-white"
               }`}
             >
@@ -521,8 +525,8 @@ export default function OnboardingPage() {
             disabled={!canContinue}
             className={`flex-1 py-4 font-semibold rounded-2xl ${
               canContinue
-                ? "bg-emerald-600 text-white"
-                : "bg-slate-600 text-slate-400 cursor-not-allowed"
+                ? "bg-[#EF7C29] text-white hover:bg-[#d96a1f]"
+                : "bg-white/20 text-white/40 cursor-not-allowed"
             }`}
           >
             Continue

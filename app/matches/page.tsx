@@ -63,7 +63,7 @@ export default function MatchesPage() {
   if (!mounted || !user) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -71,9 +71,9 @@ export default function MatchesPage() {
   const getBudgetFitColor = (fit: string) => {
     switch (fit) {
       case "good":
-        return "text-emerald-600";
+        return "text-[#1152A2]";
       case "moderate":
-        return "text-slate-600";
+        return "text-[#EF7C29]";
       case "high":
         return "text-gray-600";
       default:
@@ -82,9 +82,9 @@ export default function MatchesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-white pb-24">
       {/* Header */}
-      <div className="bg-slate-800 text-white px-6 lg:px-8 pt-14 pb-8">
+      <div className="bg-[#1152A2] text-white px-6 lg:px-8 pt-14 pb-8">
         <div className="max-w-4xl mx-auto">
           <div>
             <h1 className="text-2xl font-bold">All Matches</h1>
@@ -121,7 +121,7 @@ export default function MatchesPage() {
             </p>
             <Link
               href="/missions/create"
-              className="inline-block px-6 py-3 bg-emerald-600 text-white rounded-2xl font-semibold"
+              className="inline-block px-6 py-3 bg-[#EF7C29] text-white rounded-2xl font-semibold hover:bg-[#d96a1f]"
             >
               Create Mission
             </Link>
@@ -142,7 +142,7 @@ export default function MatchesPage() {
                   {/* Match Header */}
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-slate-800 text-white flex items-center justify-center text-xl font-bold">
+                      <div className="w-12 h-12 rounded-2xl bg-[#1152A2] text-white flex items-center justify-center text-xl font-bold">
                         {match.sellerAvatar}
                       </div>
                       <div>
@@ -155,7 +155,7 @@ export default function MatchesPage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-slate-800">
+                      <div className="text-2xl font-bold text-[#1152A2]">
                         {match.matchScore}%
                       </div>
                       <p className="text-xs text-gray-600">Match</p>
@@ -180,8 +180,8 @@ export default function MatchesPage() {
                         {match.distance}
                       </p>
                     </div>
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2">
-                      <p className="text-xs text-emerald-700 mb-1 font-medium">
+                    <div className="bg-[#1152A2]/10 border border-[#1152A2]/20 rounded-xl p-2">
+                      <p className="text-xs text-[#1152A2] mb-1 font-medium">
                         Budget
                       </p>
                       <p

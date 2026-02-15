@@ -174,8 +174,8 @@ export default function MessagesPage() {
 
   if (!mounted || loading || !user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-slate-800 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -183,9 +183,9 @@ export default function MessagesPage() {
   const isBuyer = user.role === "buyer";
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-28">
+    <div className="min-h-screen bg-white pb-28">
       {/* Header */}
-      <div className="bg-slate-800 text-white px-5 pt-12 pb-6">
+      <div className="bg-[#1152A2] text-white px-5 pt-12 pb-6">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center gap-3">
             <button
@@ -233,10 +233,10 @@ export default function MessagesPage() {
                 <Link
                   key={`${conv.missionId}_${conv.sellerId}`}
                   href={`/chat/${conv.missionId}?seller=${conv.sellerId}`}
-                  className="block bg-white rounded-xl p-4 border border-gray-200 hover:border-slate-300 transition-colors"
+                  className="block bg-white rounded-xl p-4 border border-gray-200 hover:border-[#1152A2]/30 transition-colors"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-slate-800 text-white flex items-center justify-center text-lg font-bold shrink-0">
+                    <div className="w-12 h-12 rounded-xl bg-[#1152A2] text-white flex items-center justify-center text-lg font-bold shrink-0">
                       {partnerAvatar}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -249,7 +249,7 @@ export default function MessagesPage() {
                           {formatTime(conv.lastMessage.time)}
                         </span>
                       </div>
-                      <p className="text-sm text-slate-600 mb-1 truncate">
+                      <p className="text-sm text-[#1152A2] mb-1 truncate">
                         Re: {conv.mission?.product || "Mission"}
                       </p>
                       <p className="text-sm text-gray-500 truncate">

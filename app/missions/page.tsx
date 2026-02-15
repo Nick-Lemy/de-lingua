@@ -69,8 +69,8 @@ export default function MissionsPage() {
 
   if (!mounted || !user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-slate-800 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -78,9 +78,9 @@ export default function MissionsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "finding":
-        return "bg-yellow-50 text-yellow-700 border-yellow-200";
+        return "bg-[#EF7C29]/10 text-[#EF7C29] border-[#EF7C29]/20";
       case "matched":
-        return "bg-green-50 text-green-700 border-green-200";
+        return "bg-[#1152A2]/10 text-[#1152A2] border-[#1152A2]/20";
       case "completed":
         return "bg-gray-50 text-gray-700 border-gray-200";
       default:
@@ -89,9 +89,9 @@ export default function MissionsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-white pb-24">
       {/* Header */}
-      <div className="bg-slate-800 text-white px-5 pt-12 pb-6">
+      <div className="bg-[#1152A2] text-white px-5 pt-12 pb-6">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between mb-3">
             <div>
@@ -125,7 +125,7 @@ export default function MissionsPage() {
             </p>
             <Link
               href="/missions/create"
-              className="inline-block px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-semibold"
+              className="inline-block px-5 py-2.5 bg-[#EF7C29] text-white rounded-xl text-sm font-semibold hover:bg-[#d96a1f]"
             >
               Create Mission
             </Link>

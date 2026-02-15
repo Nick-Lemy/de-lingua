@@ -201,9 +201,9 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
-      <div className="bg-slate-800 text-white px-6 lg:px-8 pt-14 pb-6">
+      <div className="bg-[#1152A2] text-white px-6 lg:px-8 pt-14 pb-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-4">
             <button
@@ -212,7 +212,7 @@ export default function ChatPage() {
             >
               <IoArrowBack className="w-5 h-5" />
             </button>
-            <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center text-xl font-bold">
+            <div className="w-12 h-12 rounded-2xl bg-[#EF7C29] flex items-center justify-center text-xl font-bold">
               {partnerAvatar}
             </div>
             <div className="flex-1">
@@ -260,7 +260,7 @@ export default function ChatPage() {
                   <div
                     className={`max-w-[75%] rounded-2xl px-4 py-3 ${
                       isOwnMessage
-                        ? "bg-slate-800 text-white"
+                        ? "bg-[#1152A2] text-white"
                         : "bg-white border border-gray-200 text-black"
                     }`}
                   >
@@ -291,12 +291,12 @@ export default function ChatPage() {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleSend()}
-            className="flex-1 px-5 py-3 border-2 border-gray-200 rounded-2xl focus:border-slate-800 focus:outline-none text-base"
+            className="flex-1 px-5 py-3 border-2 border-gray-200 rounded-2xl focus:border-[#1152A2] focus:outline-none text-base"
           />
           <button
             onClick={handleSend}
             disabled={!newMessage.trim() || isSending}
-            className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
+            className="w-12 h-12 rounded-2xl bg-[#EF7C29] text-white flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#d96a1f]"
           >
             {isSending ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

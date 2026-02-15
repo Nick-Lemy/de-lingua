@@ -29,7 +29,7 @@ export function Button({
     "inline-flex items-center justify-center font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed";
 
   const variants = {
-    primary: "bg-emerald-600 text-white",
+    primary: "bg-[#1152A2] text-white hover:bg-[#0d3f7a]",
     secondary: "bg-gray-100 text-gray-900",
     outline: "border border-gray-200 text-gray-700",
     ghost: "text-gray-600",

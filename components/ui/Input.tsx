@@ -23,7 +23,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ${
               error
                 ? "border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-                : "border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                : "border-gray-200 focus:border-[#1152A2] focus:ring-2 focus:ring-[#1152A2]/10"
             }
             focus:outline-none
             placeholder:text-gray-400

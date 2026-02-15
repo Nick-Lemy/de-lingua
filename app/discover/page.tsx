@@ -107,16 +107,16 @@ export default function DiscoverPage() {
 
   if (!mounted || loading || !user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-slate-800 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-28">
+    <div className="min-h-screen bg-white pb-28">
       {/* Header */}
-      <div className="bg-slate-800 text-white px-5 pt-12 pb-6">
+      <div className="bg-[#1152A2] text-white px-5 pt-12 pb-6">
         <div className="max-w-lg mx-auto">
           <h1 className="text-xl font-bold mb-4">Discover Suppliers</h1>
 
@@ -143,7 +143,7 @@ export default function DiscoverPage() {
               onClick={() => setSelectedCategory(cat)}
               className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
                 selectedCategory === cat
-                  ? "bg-slate-800 text-white"
+                  ? "bg-[#1152A2] text-white"
                   : "bg-white border border-gray-200 text-gray-700"
               }`}
             >
@@ -158,7 +158,7 @@ export default function DiscoverPage() {
             {filteredSellers.length} supplier
             {filteredSellers.length !== 1 ? "s" : ""} found
           </p>
-          <button className="flex items-center gap-1 text-sm text-slate-600 font-medium">
+          <button className="flex items-center gap-1 text-sm text-[#1152A2] font-medium">
             <IoFilter className="w-4 h-4" />
             Filter
           </button>
@@ -184,7 +184,7 @@ export default function DiscoverPage() {
                 className="block bg-white rounded-xl p-4 border border-gray-200"
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-slate-800 text-white flex items-center justify-center text-lg font-bold shrink-0">
+                  <div className="w-12 h-12 rounded-xl bg-[#1152A2] text-white flex items-center justify-center text-lg font-bold shrink-0">
                     {seller.avatar}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -193,7 +193,7 @@ export default function DiscoverPage() {
                         {seller.name}
                       </h4>
                       {seller.verified && (
-                        <IoCheckmarkCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <IoCheckmarkCircle className="w-4 h-4 text-[#1152A2] shrink-0" />
                       )}
                     </div>
                     <p className="text-sm text-gray-500 mb-2">
