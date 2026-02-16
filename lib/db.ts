@@ -13,7 +13,15 @@ import {
   orderBy,
 } from "firebase/firestore";
 import { db, isFirebaseConfigured } from "./firebase";
-import type { UserProfile, Mission, Match, Seller, ChatMessage } from "./types";
+import type {
+  UserProfile,
+  Mission,
+  Match,
+  Seller,
+  ChatMessage,
+  FeedPost,
+  FeedReply,
+} from "./types";
 
 // Collection names
 const COLLECTIONS = {
@@ -22,6 +30,8 @@ const COLLECTIONS = {
   MATCHES: "matches",
   SELLERS: "sellers",
   CHATS: "chats",
+  FEED_POSTS: "feedPosts",
+  FEED_REPLIES: "feedReplies",
 };
 
 // ==================== USER OPERATIONS ====================
@@ -324,6 +334,118 @@ export async function getChatsForSeller(
   const querySnapshot = await getDocs(q);
 
   return querySnapshot.docs.map((doc) => doc.data() as ChatMessage);
+}
+
+// ==================== FEED POST OPERATIONS ====================
+
+export async function createFeedPost(post: FeedPost): Promise<string> {
+  if (!isFirebaseConfigured() || !db) return post.id;
+
+  const postRef = doc(db, COLLECTIONS.FEED_POSTS, post.id);
+  await setDoc(postRef, post);
+  return post.id;
+}
+
+export async function getFeedPostById(id: string): Promise<FeedPost | null> {
+  if (!isFirebaseConfigured() || !db) return null;
+
+  const postRef = doc(db, COLLECTIONS.FEED_POSTS, id);
+  const postSnap = await getDoc(postRef);
+
+  if (postSnap.exists()) {
+    return postSnap.data() as FeedPost;
+  }
+  return null;
+}
+
+export async function getAllFeedPosts(): Promise<FeedPost[]> {
+  if (!isFirebaseConfigured() || !db) return [];
+
+  const postsRef = collection(db, COLLECTIONS.FEED_POSTS);
+  const q = query(
+    postsRef,
+    where("status", "==", "active"),
+    orderBy("createdAt", "desc"),
+  );
+  const querySnapshot = await getDocs(q);
+
+  return querySnapshot.docs.map((doc) => doc.data() as FeedPost);
+}
+
+export async function getFeedPostsByUser(userId: string): Promise<FeedPost[]> {
+  if (!isFirebaseConfigured() || !db) return [];
+
+  const postsRef = collection(db, COLLECTIONS.FEED_POSTS);
+  const q = query(
+    postsRef,
+    where("userId", "==", userId),
+    orderBy("createdAt", "desc"),
+  );
+  const querySnapshot = await getDocs(q);
+
+  return querySnapshot.docs.map((doc) => doc.data() as FeedPost);
+}
+
+export async function updateFeedPost(
+  id: string,
+  updates: Partial<FeedPost>,
+): Promise<void> {
+  if (!isFirebaseConfigured() || !db) return;
+
+  const postRef = doc(db, COLLECTIONS.FEED_POSTS, id);
+  await updateDoc(postRef, updates);
+}
+
+export async function deleteFeedPost(id: string): Promise<void> {
+  if (!isFirebaseConfigured() || !db) return;
+
+  const postRef = doc(db, COLLECTIONS.FEED_POSTS, id);
+  await deleteDoc(postRef);
+}
+
+// ==================== FEED REPLY OPERATIONS ====================
+
+export async function createFeedReply(reply: FeedReply): Promise<string> {
+  if (!isFirebaseConfigured() || !db) return reply.id;
+
+  const replyRef = doc(db, COLLECTIONS.FEED_REPLIES, reply.id);
+  await setDoc(replyRef, reply);
+
+  // Increment reply count on post
+  const post = await getFeedPostById(reply.postId);
+  if (post) {
+    await updateFeedPost(reply.postId, { repliesCount: post.repliesCount + 1 });
+  }
+
+  return reply.id;
+}
+
+export async function getRepliesByPost(postId: string): Promise<FeedReply[]> {
+  if (!isFirebaseConfigured() || !db) return [];
+
+  const repliesRef = collection(db, COLLECTIONS.FEED_REPLIES);
+  const q = query(
+    repliesRef,
+    where("postId", "==", postId),
+    orderBy("createdAt", "asc"),
+  );
+  const querySnapshot = await getDocs(q);
+
+  return querySnapshot.docs.map((doc) => doc.data() as FeedReply);
+}
+
+export async function getRepliesByUser(userId: string): Promise<FeedReply[]> {
+  if (!isFirebaseConfigured() || !db) return [];
+
+  const repliesRef = collection(db, COLLECTIONS.FEED_REPLIES);
+  const q = query(
+    repliesRef,
+    where("userId", "==", userId),
+    orderBy("createdAt", "desc"),
+  );
+  const querySnapshot = await getDocs(q);
+
+  return querySnapshot.docs.map((doc) => doc.data() as FeedReply);
 }
 
 // ==================== UTILITY ====================

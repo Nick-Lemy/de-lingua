@@ -90,3 +90,45 @@ export interface ChatMessage {
   text: string;
   time: string;
 }
+
+export interface FeedPost {
+  id: string;
+  userId: string;
+  userName: string;
+  userAvatar: string;
+  userRole: "buyer" | "seller";
+  type: "looking-for" | "offering";
+  title: string;
+  description: string;
+  category: string;
+  budget?: string;
+  location: string;
+  urgency?: "urgent" | "normal" | "flexible";
+  images?: string[];
+  status: "active" | "fulfilled" | "closed";
+  createdAt: string;
+  repliesCount: number;
+  aiSuggestions?: FeedAISuggestion[];
+}
+
+export interface FeedReply {
+  id: string;
+  postId: string;
+  userId: string;
+  userName: string;
+  userAvatar: string;
+  userRole: "buyer" | "seller";
+  type: "have-it" | "interested" | "pass" | "comment";
+  message: string;
+  price?: string;
+  availability?: string;
+  createdAt: string;
+}
+
+export interface FeedAISuggestion {
+  sellerId: string;
+  sellerName: string;
+  sellerAvatar: string;
+  matchScore: number;
+  reason: string;
+}

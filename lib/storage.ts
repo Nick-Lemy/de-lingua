@@ -7,9 +7,20 @@ export type {
   Seller,
   InventoryItem,
   ChatMessage,
+  FeedPost,
+  FeedReply,
+  FeedAISuggestion,
 } from "./types";
 
-import type { UserProfile, Mission, Match, Seller, ChatMessage } from "./types";
+import type {
+  UserProfile,
+  Mission,
+  Match,
+  Seller,
+  ChatMessage,
+  FeedPost,
+  FeedReply,
+} from "./types";
 
 // Storage keys
 const KEYS = {
@@ -18,6 +29,8 @@ const KEYS = {
   SELLERS: "delingua_sellers",
   MATCHES: "delingua_matches",
   CHATS: "delingua_chats",
+  FEED_POSTS: "delingua_feed_posts",
+  FEED_REPLIES: "delingua_feed_replies",
 };
 
 // User Profile
@@ -194,4 +207,79 @@ export function initializeDummyData(): void {
 // Generate unique ID
 export function generateId(prefix: string): string {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+// ==================== FEED POSTS ====================
+
+export function saveFeedPost(post: FeedPost): void {
+  const posts = getFeedPosts();
+  const index = posts.findIndex((p) => p.id === post.id);
+  if (index >= 0) {
+    posts[index] = post;
+  } else {
+    posts.unshift(post); // Add to beginning
+  }
+  localStorage.setItem(KEYS.FEED_POSTS, JSON.stringify(posts));
+}
+
+export function getFeedPosts(): FeedPost[] {
+  const data = localStorage.getItem(KEYS.FEED_POSTS);
+  return data ? JSON.parse(data) : [];
+}
+
+export function getFeedPostById(id: string): FeedPost | null {
+  const posts = getFeedPosts();
+  return posts.find((p) => p.id === id) || null;
+}
+
+export function getFeedPostsByUser(userId: string): FeedPost[] {
+  return getFeedPosts().filter((p) => p.userId === userId);
+}
+
+export function updateFeedPost(id: string, updates: Partial<FeedPost>): void {
+  const posts = getFeedPosts();
+  const index = posts.findIndex((p) => p.id === id);
+  if (index >= 0) {
+    posts[index] = { ...posts[index], ...updates };
+    localStorage.setItem(KEYS.FEED_POSTS, JSON.stringify(posts));
+  }
+}
+
+export function deleteFeedPost(id: string): void {
+  const posts = getFeedPosts().filter((p) => p.id !== id);
+  localStorage.setItem(KEYS.FEED_POSTS, JSON.stringify(posts));
+  // Also delete associated replies
+  const replies = getFeedReplies().filter((r) => r.postId !== id);
+  localStorage.setItem(KEYS.FEED_REPLIES, JSON.stringify(replies));
+}
+
+// ==================== FEED REPLIES ====================
+
+export function saveFeedReply(reply: FeedReply): void {
+  const replies = getFeedReplies();
+  replies.push(reply);
+  localStorage.setItem(KEYS.FEED_REPLIES, JSON.stringify(replies));
+  // Increment reply count on post
+  const post = getFeedPostById(reply.postId);
+  if (post) {
+    updateFeedPost(reply.postId, { repliesCount: post.repliesCount + 1 });
+  }
+}
+
+export function getFeedReplies(): FeedReply[] {
+  const data = localStorage.getItem(KEYS.FEED_REPLIES);
+  return data ? JSON.parse(data) : [];
+}
+
+export function getRepliesByPost(postId: string): FeedReply[] {
+  return getFeedReplies()
+    .filter((r) => r.postId === postId)
+    .sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    );
+}
+
+export function getRepliesByUser(userId: string): FeedReply[] {
+  return getFeedReplies().filter((r) => r.userId === userId);
 }

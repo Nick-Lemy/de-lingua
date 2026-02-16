@@ -9,6 +9,7 @@ import {
   IoPerson,
   IoChatbubbles,
   IoSearch,
+  IoPeople,
 } from "react-icons/io5";
 import { HiSparkles } from "react-icons/hi2";
 
@@ -21,25 +22,21 @@ export function BottomNav({ role = "buyer" }: BottomNavProps) {
 
   const buyerItems = [
     { href: "/", icon: IoHome, label: "Home" },
+    { href: "/feed", icon: IoPeople, label: "Feed" },
     { href: "/missions", icon: IoRocket, label: "Missions" },
     { href: "/messages", icon: IoChatbubbles, label: "Messages" },
-    { href: "/discover", icon: IoSearch, label: "Discover" },
     { href: "/account", icon: IoPerson, label: "Account" },
   ];
 
   const sellerItems = [
     { href: "/seller-dashboard", icon: IoHome, label: "Dashboard" },
+    { href: "/feed", icon: IoPeople, label: "Feed" },
     {
       href: "/requests",
       icon: HiSparkles,
       label: "Requests",
     },
     { href: "/messages", icon: IoChatbubbles, label: "Messages" },
-    {
-      href: "/inventory",
-      icon: IoStorefront,
-      label: "Inventory",
-    },
     { href: "/account", icon: IoPerson, label: "Account" },
   ];
 
