@@ -103,12 +103,13 @@ AVAILABLE SELLERS:
 ${JSON.stringify(sellersInfo, null, 2)}
 
 INSTRUCTIONS:
-1. Match sellers based on: category relevance, product availability, price fit, location proximity within Rwanda, and reliability (rating)
-2. Calculate a matchScore (0-100) based on how well each seller fits the buyer's needs
-3. Determine budgetFit: "good" if within budget, "moderate" if slightly above, "high" if significantly above
-4. Determine stockStatus based on their inventory and the buyer's quantity needs
-5. Only include sellers with matchScore >= 60
-6. Prioritize local Rwandan suppliers and those who can deliver to the buyer's location
+1. Focus on matching sellers to the buyer's actual product needs, description, and requirements. Do NOT rely solely on category. Consider category only as a hint, not a filter.
+2. Match sellers based on: product availability, price fit, location proximity within Rwanda, reliability (rating), and any details in the buyer's description.
+3. Calculate a matchScore (0-100) based on how well each seller fits the buyer's needs, especially the product and description.
+4. Determine budgetFit: "good" if within budget, "moderate" if slightly above, "high" if significantly above
+5. Determine stockStatus based on their inventory and the buyer's quantity needs
+6. Only include sellers with matchScore >= 60
+7. Prioritize local Rwandan suppliers and those who can deliver to the buyer's location
 
 Return ONLY a JSON array with this exact format, no extra text:
 [

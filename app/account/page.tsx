@@ -180,7 +180,7 @@ export default function AccountPage() {
 
         {/* Version Info */}
         <p className="text-center text-xs text-gray-400 mt-6">
-          DeLingua v1.0.0 • {isConfigured ? "Firebase" : "Local Storage"}
+          DeLingua v1.0.0
         </p>
       </div>
 

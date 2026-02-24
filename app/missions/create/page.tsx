@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
-import { isFirebaseConfigured } from "@/lib/firebase";
 import {
   getUserProfile,
   saveMission,
@@ -18,7 +17,7 @@ import {
   generateId as generateFirebaseId,
 } from "@/lib/db";
 import { generateAIMatches } from "@/app/actions/matching";
-import type { Mission, Match } from "@/lib/types";
+import type { Mission } from "@/lib/types";
 import { IoArrowBack, IoCheckmarkCircle } from "react-icons/io5";
 
 const categories = [
@@ -30,6 +29,7 @@ const categories = [
   "Handicrafts & Art",
   "Office Supplies",
   "Machinery & Equipment",
+  "Other",
 ];
 
 const urgencies = [
@@ -40,10 +40,13 @@ const urgencies = [
 
 export default function CreateMissionPage() {
   const router = useRouter();
+  const { user: authUser, isConfigured, loading: authLoading } = useAuth();
+  // Remove user state, use authUser/localUser directly
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     product: "",
     category: "",
+    customCategory: "",
     quantity: "",
     budgetMin: "",
     budgetMax: "",
@@ -51,6 +54,26 @@ export default function CreateMissionPage() {
     location: "",
     description: "",
   });
+
+  // useEffect(() => {
+  //   settrue);
+  // }, []);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (isConfigured) {
+      if (!authUser) {
+        router.push("/onboarding");
+        return;
+      }
+    } else {
+      const localUser = getUserProfile();
+      if (!localUser) {
+        router.push("/onboarding");
+        return;
+      }
+    }
+  }, [authLoading, authUser, isConfigured, router]);
 
   const handleNext = () => {
     if (step < 5) setStep(step + 1);
@@ -66,6 +89,9 @@ export default function CreateMissionPage() {
       case 1:
         return formData.product.trim().length > 0;
       case 2:
+        if (formData.category === "Other") {
+          return formData.customCategory.trim().length > 0;
+        }
         return formData.category.length > 0;
       case 3:
         return (
@@ -83,12 +109,8 @@ export default function CreateMissionPage() {
   };
 
   const handleSubmit = async () => {
-    const isConfigured = isFirebaseConfigured();
-    const user = getUserProfile();
-    if (!user) {
-      router.push("/onboarding");
-      return;
-    }
+    const currentUser = isConfigured ? authUser : getUserProfile();
+    if (!currentUser) return;
 
     const missionId = isConfigured
       ? generateFirebaseId("mission")
@@ -96,9 +118,12 @@ export default function CreateMissionPage() {
 
     const mission: Mission = {
       id: missionId,
-      buyerId: user.id,
+      buyerId: currentUser.id,
       product: formData.product,
-      category: formData.category,
+      category:
+        formData.category === "Other"
+          ? formData.customCategory
+          : formData.category,
       quantity: formData.quantity,
       budgetMin: formData.budgetMin,
       budgetMax: formData.budgetMax,
@@ -223,6 +248,23 @@ export default function CreateMissionPage() {
                 </button>
               ))}
             </div>
+            {formData.category === "Other" && (
+              <div className="mt-4">
+                <label className="block text-xs font-semibold text-gray-700 mb-2">
+                  Please specify your category
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter your category"
+                  value={formData.customCategory}
+                  onChange={(e) =>
+                    setFormData({ ...formData, customCategory: e.target.value })
+                  }
+                  className="w-full px-4 py-3 border border-gray-200 rounded-md focus:border-slate-800 focus:ring-2 focus:ring-slate-100 focus:outline-none text-sm bg-white"
+                  autoFocus
+                />
+              </div>
+            )}
           </div>
         )}
 
