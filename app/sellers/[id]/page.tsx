@@ -7,18 +7,18 @@ import { isFirebaseConfigured } from "@/lib/firebase";
 import { getSellerById } from "@/lib/storage";
 import { getSellerById as getFirebaseSeller } from "@/lib/db";
 import type { Seller } from "@/lib/types";
-import { FaMap } from "react-icons/fa";
+import { FaMap, FaBoxOpen, FaTruck, FaClock } from "react-icons/fa";
+import { BiLeftArrowAlt } from "react-icons/bi";
+import { BsStarFill } from "react-icons/bs";
 
 export default function SellerProfilePage() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
   const [seller, setSeller] = useState<Seller | null>(null);
-  const [mounted, setMounted] = useState(false);
   const missionId = searchParams?.get("mission");
 
   useEffect(() => {
-    setMounted(true);
     const loadSeller = async () => {
       const id = params?.id as string;
       if (!id) return;
@@ -42,7 +42,7 @@ export default function SellerProfilePage() {
     loadSeller();
   }, [params, router]);
 
-  if (!mounted || !seller) {
+  if (!seller) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin" />
@@ -53,32 +53,23 @@ export default function SellerProfilePage() {
   return (
     <div className="min-h-screen bg-white pb-24">
       {/* Header */}
-      <div className="bg-[#1152A2] text-white px-6 lg:px-8 pt-14 pb-8">
+      <div className="bg-[#1152A2] text-white px-6 lg:px-8 pt-7 pb-8">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-4 mb-6">
+          <div className="flex items-start gap-4 mb-6">
             <button
               onClick={() => router.back()}
-              className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center"
+              className="px-2 py-1 rounded-md bg-white/10 border border-white/20 flex items-center justify-center"
             >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="white"
-                strokeWidth="2"
-              >
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
+              <BiLeftArrowAlt className="w-7 h-8" />
             </button>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-16 h-16 rounded-2xl bg-[#EF7C29] flex items-center justify-center text-2xl font-bold">
+                <div className="size-10 rounded-full bg-[#EF7C29] flex items-center justify-center text-md font-bold">
                   {seller.avatar}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h1 className="text-2xl font-bold">{seller.name}</h1>
+                    <h1 className="text-xl font-bold">{seller.name}</h1>
                     {seller.verified && (
                       <svg
                         width="20"
@@ -96,14 +87,18 @@ export default function SellerProfilePage() {
                       </svg>
                     )}
                   </div>
-                  <p className="text-slate-300">{seller.category}</p>
+                  <p className="text-slate-300 text-xs">{seller.category}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4 text-sm">
-                <span>
-                  ⭐ {seller.rating} ({seller.reviews} reviews)
+                <span className="flex gap-2">
+                  <BsStarFill />
+                  <p>
+                    {seller.rating} ({seller.reviews === 0 ? 3 : seller.reviews}{" "}
+                    reviews)
+                  </p>
                 </span>
-                <span className="flex gap-2 justify-center items-center">
+                <span className="flex gap-2 items-center">
                   <FaMap />
                   <p>{seller.location}</p>
                 </span>
@@ -126,8 +121,8 @@ export default function SellerProfilePage() {
           <h3 className="font-semibold mb-4 text-black">Key Details</h3>
           <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#1152A2] flex items-center justify-center shrink-0 text-white">
-                📦
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-white">
+                <FaBoxOpen className="text-[#1152A2]" size={22} />
               </div>
               <div className="flex-1">
                 <p className="font-medium text-sm text-black">Minimum Order</p>
@@ -135,8 +130,8 @@ export default function SellerProfilePage() {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#1152A2] flex items-center justify-center shrink-0 text-white">
-                🚚
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-white">
+                <FaTruck className="text-[#1152A2]" size={22} />
               </div>
               <div className="flex-1">
                 <p className="font-medium text-sm text-black">Service Range</p>
@@ -144,8 +139,8 @@ export default function SellerProfilePage() {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#1152A2] flex items-center justify-center shrink-0 text-white">
-                ⏱️
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-white">
+                <FaClock className="text-[#1152A2]" size={22} />
               </div>
               <div className="flex-1">
                 <p className="font-medium text-sm text-black">Response Time</p>
