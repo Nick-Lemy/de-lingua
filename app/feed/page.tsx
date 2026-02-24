@@ -226,7 +226,7 @@ export default function FeedPage() {
               <Link
                 key={post.id}
                 href={`/feed/${post.id}`}
-                className="block bg-white rounded-xl border border-gray-200 overflow-hidden"
+                className="block bg-white rounded-md border border-gray-200 overflow-hidden"
               >
                 {/* Post Header */}
                 <div className="p-4">
@@ -361,7 +361,7 @@ export default function FeedPage() {
                         {post.repliesCount === 1 ? "reply" : "replies"}
                       </span>
                     </div>
-                    <span className="text-sm text-[#1152A2] font-medium">
+                    <span className="text-xs text-[#1152A2] font-medium">
                       View Details →
                     </span>
                   </div>
