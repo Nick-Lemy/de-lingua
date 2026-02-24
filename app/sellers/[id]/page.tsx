@@ -7,6 +7,7 @@ import { isFirebaseConfigured } from "@/lib/firebase";
 import { getSellerById } from "@/lib/storage";
 import { getSellerById as getFirebaseSeller } from "@/lib/db";
 import type { Seller } from "@/lib/types";
+import { FaMap } from "react-icons/fa";
 
 export default function SellerProfilePage() {
   const router = useRouter();
@@ -102,7 +103,10 @@ export default function SellerProfilePage() {
                 <span>
                   ⭐ {seller.rating} ({seller.reviews} reviews)
                 </span>
-                <span>📍 {seller.location}</span>
+                <span className="flex gap-2 justify-center items-center">
+                  <FaMap />
+                  <p>{seller.location}</p>
+                </span>
               </div>
             </div>
           </div>
