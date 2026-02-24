@@ -27,6 +27,7 @@ const buyerSteps = [
       "Handicrafts & Art",
       "Office Supplies",
       "Machinery & Equipment",
+      "Other",
     ],
   },
   {
@@ -80,6 +81,7 @@ const sellerSteps = [
       "Handicrafts & Art",
       "Office Supplies",
       "Machinery & Equipment",
+      "Other",
     ],
   },
   {
@@ -123,6 +125,7 @@ const sellerSteps = [
 ];
 
 export default function OnboardingPage() {
+  const [customCategory, setCustomCategory] = useState("");
   const router = useRouter();
   const [role, setRole] = useState<"buyer" | "seller" | null>(null);
   const [step, setStep] = useState(0);
@@ -166,9 +169,24 @@ export default function OnboardingPage() {
     return (preferences[currentStep.key] || []).includes(option);
   };
 
-  const canContinue = (preferences[currentStep.key] || []).length > 0;
+  const isCategoryStep = currentStep.key === "categories";
+  const selectedCategories = preferences.categories || [];
+  const isOtherSelected =
+    isCategoryStep && selectedCategories.includes("Other");
+  const canContinue = isCategoryStep
+    ? selectedCategories.length > 0 &&
+      (!isOtherSelected || customCategory.trim().length > 0)
+    : (preferences[currentStep.key] || []).length > 0;
 
   const handleContinue = () => {
+    // If "Other" is selected, replace it with the custom value
+    if (isCategoryStep && isOtherSelected && customCategory.trim().length > 0) {
+      const filtered = selectedCategories.filter((cat) => cat !== "Other");
+      setPreferences({
+        ...preferences,
+        categories: [...filtered, customCategory.trim()],
+      });
+    }
     if (step < steps.length - 1) {
       setStep(step + 1);
     } else {
@@ -508,6 +526,21 @@ export default function OnboardingPage() {
             </button>
           ))}
         </div>
+        {isOtherSelected && (
+          <div className="mt-6">
+            <label className="block text-xs font-semibold text-gray-200 mb-2">
+              Please specify your category
+            </label>
+            <input
+              type="text"
+              placeholder="Enter your category"
+              value={customCategory}
+              onChange={(e) => setCustomCategory(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-200 rounded-md focus:border-slate-800 focus:ring-2 focus:ring-slate-100 focus:outline-none text-sm bg-white"
+              autoFocus
+            />
+          </div>
+        )}
       </div>
 
       <div className="px-6 lg:px-8 pb-10 max-w-2xl mx-auto w-full">
