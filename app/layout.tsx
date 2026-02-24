@@ -36,6 +36,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="manifest" href="/site.webmanifest" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="apple-touch-icon" sizes="192x192" href="/android-chrome-192x192.png" />
+        <link rel="apple-touch-icon" sizes="512x512" href="/android-chrome-512x512.png" />
+        <meta name="theme-color" content="#ffffff" />
+      </head>
       <body className={`${inter.variable} antialiased font-sans`}>
         <AuthProvider>{children}</AuthProvider>
       </body>
