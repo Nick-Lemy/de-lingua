@@ -37,6 +37,7 @@ export default function InventoryPage() {
     stock: "",
     moq: "",
     leadTime: "",
+    image: "",
   });
 
   useEffect(() => {
@@ -97,6 +98,7 @@ export default function InventoryPage() {
       stock: "",
       moq: "",
       leadTime: "",
+      image: "",
     });
     setEditingItem(null);
     setShowAddModal(true);
@@ -109,6 +111,7 @@ export default function InventoryPage() {
       stock: item.stock.toString(),
       moq: item.moq,
       leadTime: item.leadTime,
+      image: item.image || "",
     });
     setEditingItem(item);
     setShowAddModal(true);
@@ -129,6 +132,7 @@ export default function InventoryPage() {
       stock: parseInt(formData.stock) || 0,
       moq: formData.moq || "1 unit",
       leadTime: formData.leadTime || "1-2 weeks",
+      image: formData.image || undefined,
     };
 
     if (editingItem) {
@@ -239,9 +243,22 @@ export default function InventoryPage() {
                 className="bg-white rounded-md p-4 border border-gray-200"
               >
                 <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h4 className="font-semibold text-gray-900">{item.name}</h4>
-                    <p className="text-[#EF7C29] font-bold">{item.price} RWF</p>
+                  <div className="flex gap-3 items-center">
+                    {item.image && (
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-14 h-14 object-cover rounded-md border border-gray-200"
+                      />
+                    )}
+                    <div>
+                      <h4 className="font-semibold text-gray-900">
+                        {item.name}
+                      </h4>
+                      <p className="text-[#EF7C29] font-bold">
+                        {item.price} RWF
+                      </p>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <button
@@ -319,7 +336,7 @@ export default function InventoryPage() {
       {/* Add/Edit Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-50">
-          <div className="bg-white w-full max-w-lg rounded-t-3xl p-6 pb-10 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white w-full max-w-lg rounded-t-3xl p-6 pb-32 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold">
                 {editingItem ? "Edit Product" : "Add Product"}
@@ -345,6 +362,49 @@ export default function InventoryPage() {
                   }
                   placeholder="e.g., Office Chair Premium"
                   className="w-full px-4 py-3 border border-gray-200 rounded-md outline-none focus:border-slate-800"
+                />
+              </div>
+
+              {/* Image Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Product Image (optional)
+                </label>
+                {formData.image && (
+                  <div className="mb-2">
+                    <img
+                      src={formData.image}
+                      alt="Preview"
+                      className="w-20 h-20 object-cover rounded-md border border-gray-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, image: "" })}
+                      className="ml-2 text-xs text-red-500"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (file.size > 2 * 1024 * 1024) {
+                      alert("Image too large (max 2MB)");
+                      return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        image: event.target?.result as string,
+                      }));
+                    };
+                    reader.readAsDataURL(file);
+                  }}
                 />
               </div>
 
@@ -414,6 +474,14 @@ export default function InventoryPage() {
                 onClick={handleSaveItem}
                 disabled={!formData.name.trim() || !formData.price.trim()}
                 className="w-full bg-[#EF7C29] text-white py-4 rounded-md font-semibold mt-6 disabled:opacity-50 hover:bg-[#d96a1f]"
+                style={{
+                  position: "fixed",
+                  left: 0,
+                  right: 0,
+                  bottom: "72px",
+                  maxWidth: "28rem",
+                  margin: "0 auto",
+                }}
               >
                 {editingItem ? "Update Product" : "Add Product"}
               </button>

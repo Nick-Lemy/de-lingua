@@ -123,6 +123,7 @@ export default function FeedPostDetailPage() {
 
     setIsSending(true);
 
+    // Only include price if non-empty string
     const reply: FeedReply = {
       id: isConfigured ? generateFirebaseId("reply") : generateId("reply"),
       postId: post.id,
@@ -133,8 +134,8 @@ export default function FeedPostDetailPage() {
       type: replyType,
       message:
         replyType === "pass" ? "Passed on this request" : replyMessage.trim(),
-      price: replyPrice || undefined,
-      availability: replyAvailability || undefined,
+      ...(replyPrice.trim() ? { price: replyPrice } : {}),
+      ...(replyAvailability.trim() ? { availability: replyAvailability } : {}),
       createdAt: new Date().toISOString(),
     };
 

@@ -255,7 +255,7 @@ export async function updateSellerInventory(
   if (!isFirebaseConfigured() || !db) return;
 
   const sellerRef = doc(db, COLLECTIONS.SELLERS, sellerId);
-  await updateDoc(sellerRef, { inventory });
+  await setDoc(sellerRef, { inventory }, { merge: true });
 }
 
 // Create seller profile from user

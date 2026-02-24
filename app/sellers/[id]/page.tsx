@@ -179,24 +179,33 @@ export default function SellerProfilePage() {
                   key={item.id}
                   className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-4 border-b border-gray-100 last:border-0"
                 >
-                  <div className="flex-1 w-full">
-                    <h4 className="font-medium text-base mb-1 text-black">
-                      {item.name}
-                    </h4>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600 mb-2">
-                      <span>MOQ: {item.moq} units</span>
-                      <span className="hidden sm:inline">•</span>
-                      <span>Lead: {item.leadTime}</span>
-                      <span className="hidden sm:inline">•</span>
-                      <span
-                        className={
-                          item.stock > 0 ? "text-[#1152A2]" : "text-gray-400"
-                        }
-                      >
-                        {item.stock > 0
-                          ? `${item.stock} in stock`
-                          : "On request"}
-                      </span>
+                  <div className="flex items-center gap-3 w-full">
+                    {item.image && (
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-16 h-16 object-cover rounded-md border border-gray-200"
+                      />
+                    )}
+                    <div className="flex-1">
+                      <h4 className="font-medium text-base mb-1 text-black">
+                        {item.name}
+                      </h4>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600 mb-2">
+                        <span>MOQ: {item.moq} units</span>
+                        <span className="hidden sm:inline">•</span>
+                        <span>Lead: {item.leadTime}</span>
+                        <span className="hidden sm:inline">•</span>
+                        <span
+                          className={
+                            item.stock > 0 ? "text-[#1152A2]" : "text-gray-400"
+                          }
+                        >
+                          {item.stock > 0
+                            ? `${item.stock} in stock`
+                            : "On request"}
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <div className="w-full sm:w-auto flex flex-row sm:flex-col items-end sm:items-end justify-between sm:justify-end gap-1">

@@ -79,6 +79,7 @@ export interface InventoryItem {
   stock: number;
   moq: string;
   leadTime: string;
+  image?: string;
 }
 
 export interface ChatMessage {

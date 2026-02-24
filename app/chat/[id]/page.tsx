@@ -39,10 +39,13 @@ export default function ChatPage() {
 
   // Determine if current user is buyer or seller in this conversation
   const isBuyer = user?.role === "buyer";
-  const partnerName = isBuyer ? seller?.name : buyer?.name || "Buyer";
+  // Robust partner name/avatar logic
+  const partnerName = isBuyer
+    ? seller?.name || "Seller"
+    : buyer?.name || "Buyer";
   const partnerAvatar = isBuyer
-    ? seller?.avatar
-    : buyer?.avatar || buyer?.name?.charAt(0).toUpperCase() || "B";
+    ? seller?.avatar || (seller?.name?.charAt(0).toUpperCase() ?? "S")
+    : buyer?.avatar || (buyer?.name?.charAt(0).toUpperCase() ?? "B");
 
   useEffect(() => {
     // Use requestAnimationFrame to avoid cascading renders
@@ -146,15 +149,24 @@ export default function ChatPage() {
     loadData();
   }, [mounted, authLoading, authUser, params, router, sellerId]);
 
-  // Poll for new messages every 3 seconds
+  // Poll for new messages every 3 seconds using setTimeout for better control
   useEffect(() => {
     if (!mission || !sellerId) return;
 
-    const interval = setInterval(() => {
-      loadMessages();
-    }, 3000);
+    let isMounted = true;
+    let pollTimeout: NodeJS.Timeout;
+    const poll = async () => {
+      await loadMessages();
+      if (isMounted) {
+        pollTimeout = setTimeout(poll, 3000);
+      }
+    };
+    pollTimeout = setTimeout(poll, 3000);
 
-    return () => clearInterval(interval);
+    return () => {
+      isMounted = false;
+      clearTimeout(pollTimeout);
+    };
   }, [mission, sellerId, loadMessages]);
 
   useEffect(() => {
@@ -183,8 +195,8 @@ export default function ChatPage() {
       } else {
         saveChatMessage(message);
       }
-      setMessages([...messages, message]);
       setNewMessage("");
+      await loadMessages(); // Always reload from source to avoid duplicates
     } catch (error) {
       console.error("Failed to send message:", error);
     } finally {
@@ -192,6 +204,7 @@ export default function ChatPage() {
     }
   };
 
+  // Defensive checks for mission, seller, user before rendering chat UI
   if (!mounted || !user || !mission || !seller) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
