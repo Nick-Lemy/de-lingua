@@ -228,7 +228,7 @@ export default function FeedPostDetailPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.back()}
-              className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center"
+              className="w-9 h-9 rounded-md bg-white/20 flex items-center justify-center"
             >
               <IoArrowBack className="w-5 h-5" />
             </button>
@@ -244,7 +244,7 @@ export default function FeedPostDetailPage() {
 
       <div className="px-5 max-w-lg mx-auto mt-4">
         {/* Post Card */}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
+        <div className="bg-white rounded-md border border-gray-200 p-4 mb-4">
           {/* Author */}
           <div className="flex items-start gap-3 mb-4">
             <div className="w-12 h-12 rounded-full bg-[#1152A2] text-white flex items-center justify-center text-lg font-bold shrink-0">
@@ -352,7 +352,7 @@ export default function FeedPostDetailPage() {
 
         {/* AI Suggestions */}
         {post.aiSuggestions && post.aiSuggestions.length > 0 && (
-          <div className="bg-linear-to-br from-[#1152A2]/5 to-[#EF7C29]/5 rounded-xl border border-[#1152A2]/10 p-4 mb-4">
+          <div className="bg-linear-to-br from-[#1152A2]/5 to-[#EF7C29]/5 rounded-md border border-[#1152A2]/10 p-4 mb-4">
             <div className="flex items-center gap-2 mb-3">
               <HiSparkles className="w-5 h-5 text-[#EF7C29]" />
               <h3 className="font-semibold text-[#1152A2]">
@@ -364,7 +364,7 @@ export default function FeedPostDetailPage() {
                 <Link
                   key={i}
                   href={`/sellers/${suggestion.sellerId}`}
-                  className="flex items-center gap-3 bg-white rounded-xl p-3 border border-[#1152A2]/10"
+                  className="flex items-center gap-3 bg-white rounded-md p-3 border border-[#1152A2]/10"
                 >
                   <div className="w-10 h-10 rounded-full bg-[#1152A2] text-white flex items-center justify-center text-sm font-bold shrink-0">
                     {suggestion.sellerAvatar}
@@ -396,7 +396,7 @@ export default function FeedPostDetailPage() {
           </h3>
 
           {replies.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-200 p-6 text-center">
+            <div className="bg-white rounded-md border border-gray-200 p-6 text-center">
               <p className="text-gray-500">No responses yet</p>
               {canReply && !hasReplied && (
                 <p className="text-sm text-gray-400 mt-1">
@@ -409,7 +409,7 @@ export default function FeedPostDetailPage() {
               {replies.map((reply) => (
                 <div
                   key={reply.id}
-                  className="bg-white rounded-xl border border-gray-200 p-4"
+                  className="bg-white rounded-md border border-gray-200 p-4"
                 >
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-full bg-[#1152A2] text-white flex items-center justify-center text-sm font-bold shrink-0">
@@ -478,7 +478,7 @@ export default function FeedPostDetailPage() {
                     setReplyType("have-it");
                     setShowReplyForm(true);
                   }}
-                  className="flex-1 py-3 bg-green-500 text-white rounded-xl font-semibold flex items-center justify-center gap-2"
+                  className="flex-1 py-3 bg-green-500 text-white rounded-md font-semibold flex items-center justify-center gap-2"
                 >
                   <IoCheckmarkCircle className="w-5 h-5" />I Have This
                 </button>
@@ -487,7 +487,7 @@ export default function FeedPostDetailPage() {
                     setReplyType("pass");
                     handleSendReply();
                   }}
-                  className="px-5 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold flex items-center justify-center gap-2"
+                  className="px-5 py-3 bg-gray-200 text-gray-700 rounded-md font-semibold flex items-center justify-center gap-2"
                 >
                   <IoCloseCircle className="w-5 h-5" />
                   Pass
@@ -538,12 +538,12 @@ export default function FeedPostDetailPage() {
                     placeholder="Write your response..."
                     value={replyMessage}
                     onChange={(e) => setReplyMessage(e.target.value)}
-                    className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#1152A2] focus:outline-none"
+                    className="flex-1 px-4 py-3 border border-gray-200 rounded-md text-sm focus:border-[#1152A2] focus:outline-none"
                   />
                   <button
                     onClick={handleSendReply}
                     disabled={!replyMessage.trim() || isSending}
-                    className="px-4 py-3 bg-[#1152A2] text-white rounded-xl disabled:opacity-50"
+                    className="px-4 py-3 bg-[#1152A2] text-white rounded-md disabled:opacity-50"
                   >
                     <IoSend className="w-5 h-5" />
                   </button>

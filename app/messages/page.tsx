@@ -190,7 +190,7 @@ export default function MessagesPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.back()}
-              className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center"
+              className="w-9 h-9 rounded-md bg-white/20 flex items-center justify-center"
             >
               <IoArrowBack className="w-5 h-5" />
             </button>
@@ -209,7 +209,7 @@ export default function MessagesPage() {
         {/* Conversations List */}
         <div className="space-y-3">
           {conversations.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
+            <div className="text-center py-12 bg-white rounded-md border border-gray-200">
               <IoChatbubbles className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <p className="text-gray-500 font-medium">No conversations yet</p>
               <p className="text-sm text-gray-400 mt-1">
@@ -233,10 +233,10 @@ export default function MessagesPage() {
                 <Link
                   key={`${conv.missionId}_${conv.sellerId}`}
                   href={`/chat/${conv.missionId}?seller=${conv.sellerId}`}
-                  className="block bg-white rounded-xl p-4 border border-gray-200 hover:border-[#1152A2]/30 transition-colors"
+                  className="block bg-white rounded-md p-4 border border-gray-200 hover:border-[#1152A2]/30 transition-colors"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-[#1152A2] text-white flex items-center justify-center text-lg font-bold shrink-0">
+                    <div className="w-12 h-12 rounded-md bg-[#1152A2] text-white flex items-center justify-center text-lg font-bold shrink-0">
                       {partnerAvatar}
                     </div>
                     <div className="flex-1 min-w-0">

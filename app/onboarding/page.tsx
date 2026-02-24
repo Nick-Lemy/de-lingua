@@ -252,13 +252,13 @@ export default function OnboardingPage() {
       <div className="min-h-screen pt-8 lg:pt-0 bg-[#1152A2] flex flex-col">
         <div className="flex-1 flex flex-col justify-center px-6 lg:px-8 max-w-2xl mx-auto w-full">
           <div className="flex items-center gap-3 mb-12">
-            <div className="w-12 h-12 rounded-2xl flex items-center justify-center">
+            <div className="w-12 h-12 rounded-md flex items-center justify-center">
               <Image
                 src="/logo.png"
                 alt="DeLingua"
                 width={48}
                 height={48}
-                className="rounded-2xl"
+                className="rounded-md"
               />
             </div>
             <span className="text-2xl font-bold text-white">DeLingua</span>
@@ -275,7 +275,7 @@ export default function OnboardingPage() {
 
           <div className="space-y-4">
             <button onClick={() => setRole("buyer")} className="w-full">
-              <div className="bg-white/10 border border-white/20 rounded-2xl p-6">
+              <div className="bg-white/10 border border-white/20 rounded-md p-6">
                 <div className="flex items-center justify-between">
                   <div className="text-left">
                     <h3 className="text-xl font-bold text-white mb-2">
@@ -285,7 +285,7 @@ export default function OnboardingPage() {
                       Looking for suppliers and products
                     </p>
                   </div>
-                  <div className="w-14 h-14 rounded-2xl bg-[#EF7C29] flex items-center justify-center">
+                  <div className="w-14 h-14 rounded-md bg-[#EF7C29] flex items-center justify-center">
                     <svg
                       width="24"
                       height="24"
@@ -303,7 +303,7 @@ export default function OnboardingPage() {
             </button>
 
             <button onClick={() => setRole("seller")} className="w-full">
-              <div className="bg-white/10 border border-white/20 rounded-2xl p-6">
+              <div className="bg-white/10 border border-white/20 rounded-md p-6">
                 <div className="flex items-center justify-between">
                   <div className="text-left">
                     <h3 className="text-xl font-bold text-white mb-2">
@@ -313,7 +313,7 @@ export default function OnboardingPage() {
                       Ready to showcase my products
                     </p>
                   </div>
-                  <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center">
+                  <div className="w-14 h-14 rounded-md bg-white/20 flex items-center justify-center">
                     <svg
                       width="24"
                       height="24"
@@ -366,7 +366,7 @@ export default function OnboardingPage() {
           </p>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-2xl text-red-200 text-sm">
+            <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-md text-red-200 text-sm">
               {error}
             </div>
           )}
@@ -381,7 +381,7 @@ export default function OnboardingPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="John Doe"
-                className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-2xl text-white placeholder:text-gray-500 outline-none"
+                className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-md text-white placeholder:text-gray-500 outline-none"
               />
             </div>
             {role === "seller" && (
@@ -394,7 +394,7 @@ export default function OnboardingPage() {
                   value={storeName}
                   onChange={(e) => setStoreName(e.target.value)}
                   placeholder="e.g., Kigali Fresh Produce, TechHub Rwanda"
-                  className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-2xl text-white placeholder:text-gray-500 outline-none"
+                  className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-md text-white placeholder:text-gray-500 outline-none"
                 />
                 <p className="mt-2 text-xs text-slate-400">
                   This is how buyers will see your business
@@ -410,7 +410,7 @@ export default function OnboardingPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="john@company.com"
-                className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-2xl text-white placeholder:text-gray-500 outline-none"
+                className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-md text-white placeholder:text-gray-500 outline-none"
               />
             </div>
             {isConfigured && (
@@ -423,7 +423,7 @@ export default function OnboardingPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Min. 6 characters"
-                  className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-2xl text-white placeholder:text-gray-500 outline-none"
+                  className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-md text-white placeholder:text-gray-500 outline-none"
                 />
                 <p className="mt-2 text-xs text-slate-400">
                   Password must be at least 6 characters
@@ -441,14 +441,14 @@ export default function OnboardingPage() {
                 setError("");
               }}
               disabled={isSubmitting}
-              className="flex-1 py-4 border border-white/20 text-white font-semibold rounded-2xl disabled:opacity-50"
+              className="flex-1 py-4 border border-white/20 text-white font-semibold rounded-md disabled:opacity-50"
             >
               Back
             </button>
             <button
               onClick={handleFinish}
               disabled={!canSubmit || isSubmitting}
-              className={`flex-1 py-4 font-semibold rounded-2xl flex items-center justify-center gap-2 ${
+              className={`flex-1 py-4 font-semibold rounded-md flex items-center justify-center gap-2 ${
                 canSubmit && !isSubmitting
                   ? "bg-[#EF7C29] text-white hover:bg-[#d96a1f]"
                   : "bg-white/20 text-white/40 cursor-not-allowed"
@@ -498,7 +498,7 @@ export default function OnboardingPage() {
             <button
               key={option}
               onClick={() => handleSelect(option)}
-              className={`px-6 py-4 rounded-2xl text-sm font-medium ${
+              className={`px-6 py-4 rounded-md text-sm font-medium ${
                 isSelected(option)
                   ? "bg-[#EF7C29] text-white border border-[#EF7C29]"
                   : "bg-white/10 border border-white/20 text-white"
@@ -515,7 +515,7 @@ export default function OnboardingPage() {
           {step > 0 && (
             <button
               onClick={() => setStep(step - 1)}
-              className="flex-1 py-4 border border-white/20 text-white font-semibold rounded-2xl"
+              className="flex-1 py-4 border border-white/20 text-white font-semibold rounded-md"
             >
               Back
             </button>
@@ -523,7 +523,7 @@ export default function OnboardingPage() {
           <button
             onClick={handleContinue}
             disabled={!canContinue}
-            className={`flex-1 py-4 font-semibold rounded-2xl ${
+            className={`flex-1 py-4 font-semibold rounded-md ${
               canContinue
                 ? "bg-[#EF7C29] text-white hover:bg-[#d96a1f]"
                 : "bg-white/20 text-white/40 cursor-not-allowed"

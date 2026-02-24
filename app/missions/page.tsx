@@ -102,7 +102,7 @@ export default function MissionsPage() {
             </div>
             <Link
               href="/missions/create"
-              className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center"
+              className="w-11 h-11 rounded-md bg-white/20 flex items-center justify-center"
             >
               <IoAdd className="w-6 h-6" />
             </Link>
@@ -114,7 +114,7 @@ export default function MissionsPage() {
       <div className="px-5 max-w-lg mx-auto mt-6">
         {missions.length === 0 ? (
           <div className="text-center py-16">
-            <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 rounded-md bg-gray-100 flex items-center justify-center mx-auto mb-4">
               <IoRocket className="w-8 h-8 text-gray-400" />
             </div>
             <h3 className="font-bold text-base text-gray-900 mb-2">
@@ -125,7 +125,7 @@ export default function MissionsPage() {
             </p>
             <Link
               href="/missions/create"
-              className="inline-block px-5 py-2.5 bg-[#EF7C29] text-white rounded-xl text-sm font-semibold hover:bg-[#d96a1f]"
+              className="inline-block px-5 py-2.5 bg-[#EF7C29] text-white rounded-md text-sm font-semibold hover:bg-[#d96a1f]"
             >
               Create Mission
             </Link>
@@ -138,7 +138,7 @@ export default function MissionsPage() {
                 <Link
                   key={mission.id}
                   href={`/missions/${mission.id}`}
-                  className="block bg-white rounded-xl p-4 border border-gray-200"
+                  className="block bg-white rounded-md p-4 border border-gray-200"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">

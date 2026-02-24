@@ -25,7 +25,7 @@ export function Card({
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-2xl border border-gray-100 shadow-sm 
+      className={`bg-white rounded-md border border-gray-100 shadow-sm 
         ${paddingStyles[padding]}
         ${hover ? "hover:shadow-md hover:border-gray-200 transition-all cursor-pointer" : ""}
         ${onClick ? "cursor-pointer" : ""}

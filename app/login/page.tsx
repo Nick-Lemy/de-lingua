@@ -105,13 +105,13 @@ export default function LoginPage() {
       <div className="flex-1 flex flex-col justify-center px-6 lg:px-8 max-w-md mx-auto w-full">
         {/* Logo */}
         <div className="flex items-center gap-3 mb-12">
-          <div className="w-12 h-12 rounded-2xl flex items-center justify-center">
+          <div className="w-12 h-12 rounded-md flex items-center justify-center">
             <Image
               src="/logo.png"
               alt="DeLingua"
               width={48}
               height={48}
-              className="rounded-2xl"
+              className="rounded-md"
             />
           </div>
           <span className="text-2xl font-bold text-white">DeLingua</span>
@@ -121,16 +121,16 @@ export default function LoginPage() {
         <p className="text-slate-300 mb-8">Sign in to your DeLingua account</p>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-2xl text-red-200 text-sm">
+          <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-md text-red-200 text-sm">
             {error}
           </div>
         )}
 
         {/* Login Method Toggle */}
-        <div className="flex bg-white/10 rounded-2xl p-1 mb-6">
+        <div className="flex bg-white/10 rounded-md p-1 mb-6">
           <button
             onClick={() => setLoginMethod("email")}
-            className={`flex-1 py-3 rounded-xl text-sm font-medium ${
+            className={`flex-1 py-3 rounded-md text-sm font-medium ${
               loginMethod === "email"
                 ? "bg-[#EF7C29] text-white"
                 : "text-slate-300"
@@ -140,7 +140,7 @@ export default function LoginPage() {
           </button>
           <button
             onClick={() => setLoginMethod("phone")}
-            className={`flex-1 py-3 rounded-xl text-sm font-medium ${
+            className={`flex-1 py-3 rounded-md text-sm font-medium ${
               loginMethod === "phone"
                 ? "bg-[#EF7C29] text-white"
                 : "text-slate-300"
@@ -162,7 +162,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@company.rw"
-                  className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-2xl text-white placeholder:text-gray-500 outline-none"
+                  className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-md text-white placeholder:text-gray-500 outline-none"
                   autoFocus
                 />
               </div>
@@ -176,7 +176,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
-                    className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-2xl text-white placeholder:text-gray-500 outline-none"
+                    className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-md text-white placeholder:text-gray-500 outline-none"
                   />
                 </div>
               )}
@@ -187,7 +187,7 @@ export default function LoginPage() {
                 Phone number
               </label>
               <div className="flex gap-2">
-                <div className="h-14 px-4 bg-white/10 border border-white/20 rounded-2xl text-white flex items-center text-sm">
+                <div className="h-14 px-4 bg-white/10 border border-white/20 rounded-md text-white flex items-center text-sm">
                   +250
                 </div>
                 <input
@@ -195,7 +195,7 @@ export default function LoginPage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
                   placeholder="78X XXX XXX"
-                  className="flex-1 h-14 px-5 bg-white/10 border border-white/20 rounded-2xl text-white placeholder:text-gray-500 outline-none"
+                  className="flex-1 h-14 px-5 bg-white/10 border border-white/20 rounded-md text-white placeholder:text-gray-500 outline-none"
                   autoFocus
                 />
               </div>
@@ -206,7 +206,7 @@ export default function LoginPage() {
         <button
           onClick={handleLogin}
           disabled={!canSubmit || isSubmitting}
-          className={`w-full mt-6 py-4 font-semibold rounded-2xl flex items-center justify-center gap-2 ${
+          className={`w-full mt-6 py-4 font-semibold rounded-md flex items-center justify-center gap-2 ${
             canSubmit && !isSubmitting
               ? "bg-[#EF7C29] text-white hover:bg-[#d96a1f]"
               : "bg-slate-600 text-slate-400 cursor-not-allowed"
@@ -233,7 +233,7 @@ export default function LoginPage() {
         <button
           onClick={handleGoogleSignIn}
           disabled={isSubmitting || !isConfigured}
-          className="w-full py-4 font-medium rounded-2xl bg-white text-slate-800 flex items-center justify-center gap-3 disabled:opacity-50"
+          className="w-full py-4 font-medium rounded-md bg-white text-slate-800 flex items-center justify-center gap-3 disabled:opacity-50"
         >
           <svg width="20" height="20" viewBox="0 0 24 24">
             <path

@@ -54,7 +54,7 @@ export function BottomNav({ role = "buyer" }: BottomNavProps) {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl ${
+              className={`flex flex-col items-center gap-1 px-3 py-2 rounded-md ${
                 isActive ? "text-[#1152A2]" : "text-gray-400"
               }`}
             >

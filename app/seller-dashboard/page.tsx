@@ -186,7 +186,7 @@ export default function SellerDashboardPage() {
               <h1 className="text-xl font-bold">{user.name}</h1>
             </div>
             <div className="flex items-center gap-3">
-              <button className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center relative">
+              <button className="w-10 h-10 rounded-md bg-white/10 flex items-center justify-center relative">
                 <IoNotifications className="w-5 h-5" />
                 {pendingCount > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#EF7C29] rounded-full text-[10px] font-bold flex items-center justify-center">
@@ -196,7 +196,7 @@ export default function SellerDashboardPage() {
               </button>
               <Link
                 href="/account"
-                className="w-10 h-10 rounded-xl bg-[#EF7C29] flex items-center justify-center text-lg font-bold"
+                className="w-10 h-10 rounded-md bg-[#EF7C29] flex items-center justify-center text-lg font-bold"
               >
                 {user.avatar}
               </Link>
@@ -206,7 +206,7 @@ export default function SellerDashboardPage() {
           {/* Quick Stats */}
           <div className="grid grid-cols-2 gap-3">
             {stats.slice(0, 2).map((stat) => (
-              <div key={stat.label} className="bg-white/10 rounded-xl p-4">
+              <div key={stat.label} className="bg-white/10 rounded-md p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <div
                     className={`w-8 h-8 rounded-lg ${stat.color} flex items-center justify-center`}
@@ -229,7 +229,7 @@ export default function SellerDashboardPage() {
           {stats.slice(2).map((stat) => (
             <div
               key={stat.label}
-              className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm"
+              className="bg-white rounded-md p-4 border border-gray-100 shadow-sm"
             >
               <div className="flex items-center gap-2 mb-2">
                 <div
@@ -260,7 +260,7 @@ export default function SellerDashboardPage() {
 
           <div className="space-y-3">
             {requests.length === 0 ? (
-              <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm text-center">
+              <div className="bg-white rounded-md p-6 border border-gray-100 shadow-sm text-center">
                 <IoListOutline className="w-8 h-8 text-gray-300 mx-auto mb-2" />
                 <p className="text-sm text-gray-500">No pending requests yet</p>
                 <p className="text-xs text-gray-400 mt-1">
@@ -271,7 +271,7 @@ export default function SellerDashboardPage() {
               requests.map((request) => (
                 <div
                   key={request.id}
-                  className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm"
+                  className="bg-white rounded-md p-4 border border-gray-100 shadow-sm"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div>
@@ -316,9 +316,9 @@ export default function SellerDashboardPage() {
           <div className="grid grid-cols-2 gap-3">
             <Link
               href="/inventory"
-              className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center gap-3"
+              className="bg-white rounded-md p-4 border border-gray-100 shadow-sm flex items-center gap-3"
             >
-              <div className="w-10 h-10 rounded-xl bg-[#EF7C29]/10 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-md bg-[#EF7C29]/10 flex items-center justify-center">
                 <IoAdd className="w-5 h-5 text-[#EF7C29]" />
               </div>
               <div>
@@ -328,9 +328,9 @@ export default function SellerDashboardPage() {
             </Link>
             <Link
               href="/requests"
-              className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center gap-3"
+              className="bg-white rounded-md p-4 border border-gray-100 shadow-sm flex items-center gap-3"
             >
-              <div className="w-10 h-10 rounded-xl bg-[#1152A2]/10 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-md bg-[#1152A2]/10 flex items-center justify-center">
                 <IoChatbubbles className="w-5 h-5 text-[#1152A2]" />
               </div>
               <div>

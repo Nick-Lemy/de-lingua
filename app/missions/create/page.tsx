@@ -153,7 +153,7 @@ export default function CreateMissionPage() {
           <div className="flex items-center gap-3 mb-4">
             <button
               onClick={handleBack}
-              className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center"
+              className="w-9 h-9 rounded-md bg-white/20 flex items-center justify-center"
             >
               <IoArrowBack className="w-5 h-5" />
             </button>
@@ -191,7 +191,7 @@ export default function CreateMissionPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, product: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-slate-800 focus:ring-2 focus:ring-slate-100 focus:outline-none text-sm bg-white"
+                className="w-full px-4 py-3 border border-gray-200 rounded-md focus:border-slate-800 focus:ring-2 focus:ring-slate-100 focus:outline-none text-sm bg-white"
                 autoFocus
               />
             </div>
@@ -213,7 +213,7 @@ export default function CreateMissionPage() {
                 <button
                   key={cat}
                   onClick={() => setFormData({ ...formData, category: cat })}
-                  className={`p-3 rounded-xl text-left text-sm font-medium ${
+                  className={`p-3 rounded-md text-left text-sm font-medium ${
                     formData.category === cat
                       ? "bg-slate-800 text-white"
                       : "bg-white border border-gray-200 text-gray-700"
@@ -245,7 +245,7 @@ export default function CreateMissionPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, quantity: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-slate-800 focus:ring-2 focus:ring-slate-100 focus:outline-none text-sm bg-white"
+                className="w-full px-4 py-3 border border-gray-200 rounded-md focus:border-slate-800 focus:ring-2 focus:ring-slate-100 focus:outline-none text-sm bg-white"
               />
             </div>
             <div>
@@ -260,7 +260,7 @@ export default function CreateMissionPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, budgetMin: e.target.value })
                   }
-                  className="px-4 py-3 border border-gray-200 rounded-xl focus:border-slate-800 focus:ring-2 focus:ring-slate-100 focus:outline-none text-sm bg-white"
+                  className="px-4 py-3 border border-gray-200 rounded-md focus:border-slate-800 focus:ring-2 focus:ring-slate-100 focus:outline-none text-sm bg-white"
                 />
                 <input
                   type="number"
@@ -269,7 +269,7 @@ export default function CreateMissionPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, budgetMax: e.target.value })
                   }
-                  className="px-4 py-3 border border-gray-200 rounded-xl focus:border-slate-800 focus:ring-2 focus:ring-slate-100 focus:outline-none text-sm bg-white"
+                  className="px-4 py-3 border border-gray-200 rounded-md focus:border-slate-800 focus:ring-2 focus:ring-slate-100 focus:outline-none text-sm bg-white"
                 />
               </div>
             </div>
@@ -293,7 +293,7 @@ export default function CreateMissionPage() {
                   onClick={() =>
                     setFormData({ ...formData, urgency: urg.value })
                   }
-                  className={`w-full p-4 rounded-xl text-left flex items-center justify-between ${
+                  className={`w-full p-4 rounded-md text-left flex items-center justify-between ${
                     formData.urgency === urg.value
                       ? "bg-slate-800 text-white"
                       : "bg-white border border-gray-200 text-gray-900"
@@ -334,7 +334,7 @@ export default function CreateMissionPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, location: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-slate-800 focus:ring-2 focus:ring-slate-100 focus:outline-none text-sm bg-white"
+                className="w-full px-4 py-3 border border-gray-200 rounded-md focus:border-slate-800 focus:ring-2 focus:ring-slate-100 focus:outline-none text-sm bg-white"
                 autoFocus
               />
             </div>
@@ -349,7 +349,7 @@ export default function CreateMissionPage() {
                   setFormData({ ...formData, description: e.target.value })
                 }
                 rows={4}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-slate-800 focus:ring-2 focus:ring-slate-100 focus:outline-none text-sm resize-none bg-white"
+                className="w-full px-4 py-3 border border-gray-200 rounded-md focus:border-slate-800 focus:ring-2 focus:ring-slate-100 focus:outline-none text-sm resize-none bg-white"
               />
             </div>
           </div>
@@ -362,7 +362,7 @@ export default function CreateMissionPage() {
           <button
             onClick={step < 5 ? handleNext : handleSubmit}
             disabled={!canProceed()}
-            className="w-full py-3 rounded-xl bg-[#EF7C29] text-white font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#d96a1f]"
+            className="w-full py-3 rounded-md bg-[#EF7C29] text-white font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#d96a1f]"
           >
             {step < 5 ? "Continue" : "Find Suppliers"}
           </button>

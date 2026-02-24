@@ -121,7 +121,7 @@ export default function MatchesPage() {
             </p>
             <Link
               href="/missions/create"
-              className="inline-block px-6 py-3 bg-[#EF7C29] text-white rounded-2xl font-semibold hover:bg-[#d96a1f]"
+              className="inline-block px-6 py-3 bg-[#EF7C29] text-white rounded-md font-semibold hover:bg-[#d96a1f]"
             >
               Create Mission
             </Link>
@@ -137,12 +137,12 @@ export default function MatchesPage() {
                 <Link
                   key={match.id}
                   href={`/sellers/${match.sellerId}?mission=${match.missionId}`}
-                  className="block bg-white border border-gray-200 rounded-2xl p-5"
+                  className="block bg-white border border-gray-200 rounded-md p-5"
                 >
                   {/* Match Header */}
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-[#1152A2] text-white flex items-center justify-center text-xl font-bold">
+                      <div className="w-12 h-12 rounded-md bg-[#1152A2] text-white flex items-center justify-center text-xl font-bold">
                         {match.sellerAvatar}
                       </div>
                       <div>
@@ -163,7 +163,7 @@ export default function MatchesPage() {
                   </div>
 
                   {/* Mission Context */}
-                  <div className="bg-gray-50 rounded-xl p-3 mb-3">
+                  <div className="bg-gray-50 rounded-md p-3 mb-3">
                     <p className="text-xs text-gray-600 mb-1">For mission</p>
                     <p className="font-medium text-sm text-black">
                       {mission.product}
@@ -172,7 +172,7 @@ export default function MatchesPage() {
 
                   {/* Match Details */}
                   <div className="grid grid-cols-3 gap-3 text-center">
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-2">
+                    <div className="bg-slate-50 border border-slate-200 rounded-md p-2">
                       <p className="text-xs text-slate-600 mb-1 font-medium">
                         Distance
                       </p>
@@ -180,7 +180,7 @@ export default function MatchesPage() {
                         {match.distance}
                       </p>
                     </div>
-                    <div className="bg-[#1152A2]/10 border border-[#1152A2]/20 rounded-xl p-2">
+                    <div className="bg-[#1152A2]/10 border border-[#1152A2]/20 rounded-md p-2">
                       <p className="text-xs text-[#1152A2] mb-1 font-medium">
                         Budget
                       </p>
@@ -190,7 +190,7 @@ export default function MatchesPage() {
                         {match.budgetFit}
                       </p>
                     </div>
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-2">
+                    <div className="bg-slate-50 border border-slate-200 rounded-md p-2">
                       <p className="text-xs text-slate-600 mb-1 font-medium">
                         Stock
                       </p>

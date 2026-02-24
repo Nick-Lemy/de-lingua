@@ -128,7 +128,7 @@ export default function DiscoverPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search suppliers, products, locations..."
-              className="w-full h-12 pl-12 pr-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder:text-gray-400 outline-none"
+              className="w-full h-12 pl-12 pr-4 bg-white/10 border border-white/20 rounded-md text-white placeholder:text-gray-400 outline-none"
             />
           </div>
         </div>
@@ -167,7 +167,7 @@ export default function DiscoverPage() {
         {/* Supplier List */}
         <div className="space-y-3">
           {filteredSellers.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
+            <div className="text-center py-12 bg-white rounded-md border border-gray-200">
               <IoStorefront className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <p className="text-gray-500 font-medium">No suppliers found</p>
               <p className="text-sm text-gray-400 mt-1">
@@ -181,10 +181,10 @@ export default function DiscoverPage() {
               <Link
                 key={seller.id}
                 href={`/sellers/${seller.id}`}
-                className="block bg-white rounded-xl p-4 border border-gray-200"
+                className="block bg-white rounded-md p-4 border border-gray-200"
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-[#1152A2] text-white flex items-center justify-center text-lg font-bold shrink-0">
+                  <div className="w-12 h-12 rounded-md bg-[#1152A2] text-white flex items-center justify-center text-lg font-bold shrink-0">
                     {seller.avatar}
                   </div>
                   <div className="flex-1 min-w-0">

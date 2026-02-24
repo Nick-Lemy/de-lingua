@@ -208,11 +208,11 @@ export default function ChatPage() {
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.back()}
-              className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center"
+              className="w-10 h-10 rounded-md bg-white/10 border border-white/20 flex items-center justify-center"
             >
               <IoArrowBack className="w-5 h-5" />
             </button>
-            <div className="w-12 h-12 rounded-2xl bg-[#EF7C29] flex items-center justify-center text-xl font-bold">
+            <div className="w-12 h-12 rounded-md bg-[#EF7C29] flex items-center justify-center text-xl font-bold">
               {partnerAvatar}
             </div>
             <div className="flex-1">
@@ -227,7 +227,7 @@ export default function ChatPage() {
       <div className="flex-1 overflow-y-auto px-6 lg:px-8 py-6">
         <div className="max-w-4xl mx-auto space-y-4">
           {/* Mission Context */}
-          <div className="bg-slate-100 border border-slate-200 rounded-2xl p-4 text-center">
+          <div className="bg-slate-100 border border-slate-200 rounded-md p-4 text-center">
             <p className="text-xs text-slate-600 mb-2 font-medium">
               Mission Details
             </p>
@@ -258,7 +258,7 @@ export default function ChatPage() {
                   className={`flex ${isOwnMessage ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[75%] rounded-2xl px-4 py-3 ${
+                    className={`max-w-[75%] rounded-md px-4 py-3 ${
                       isOwnMessage
                         ? "bg-[#1152A2] text-white"
                         : "bg-white border border-gray-200 text-black"
@@ -291,12 +291,12 @@ export default function ChatPage() {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleSend()}
-            className="flex-1 px-5 py-3 border-2 border-gray-200 rounded-2xl focus:border-[#1152A2] focus:outline-none text-base"
+            className="flex-1 px-5 py-3 border-2 border-gray-200 rounded-md focus:border-[#1152A2] focus:outline-none text-base"
           />
           <button
             onClick={handleSend}
             disabled={!newMessage.trim() || isSending}
-            className="w-12 h-12 rounded-2xl bg-[#EF7C29] text-white flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#d96a1f]"
+            className="w-12 h-12 rounded-md bg-[#EF7C29] text-white flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#d96a1f]"
           >
             {isSending ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

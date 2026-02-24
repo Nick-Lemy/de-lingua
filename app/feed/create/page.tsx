@@ -213,7 +213,7 @@ export default function CreateFeedPostPage() {
           <div className="flex items-center gap-3 mb-4">
             <button
               onClick={handleBack}
-              className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center"
+              className="w-9 h-9 rounded-md bg-white/20 flex items-center justify-center"
             >
               <IoArrowBack className="w-5 h-5" />
             </button>
@@ -250,7 +250,7 @@ export default function CreateFeedPostPage() {
                 onClick={() =>
                   setFormData({ ...formData, type: "looking-for" })
                 }
-                className={`p-4 rounded-xl border-2 text-left ${
+                className={`p-4 rounded-md border-2 text-left ${
                   formData.type === "looking-for"
                     ? "border-[#EF7C29] bg-[#EF7C29]/5"
                     : "border-gray-200"
@@ -262,7 +262,7 @@ export default function CreateFeedPostPage() {
               </button>
               <button
                 onClick={() => setFormData({ ...formData, type: "offering" })}
-                className={`p-4 rounded-xl border-2 text-left ${
+                className={`p-4 rounded-md border-2 text-left ${
                   formData.type === "offering"
                     ? "border-[#1152A2] bg-[#1152A2]/5"
                     : "border-gray-200"
@@ -290,7 +290,7 @@ export default function CreateFeedPostPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-[#1152A2] focus:ring-2 focus:ring-[#1152A2]/10 focus:outline-none text-sm bg-white"
+                className="w-full px-4 py-3 border border-gray-200 rounded-md focus:border-[#1152A2] focus:ring-2 focus:ring-[#1152A2]/10 focus:outline-none text-sm bg-white"
               />
             </div>
 
@@ -306,7 +306,7 @@ export default function CreateFeedPostPage() {
                   setFormData({ ...formData, description: e.target.value })
                 }
                 rows={4}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-[#1152A2] focus:ring-2 focus:ring-[#1152A2]/10 focus:outline-none text-sm bg-white resize-none"
+                className="w-full px-4 py-3 border border-gray-200 rounded-md focus:border-[#1152A2] focus:ring-2 focus:ring-[#1152A2]/10 focus:outline-none text-sm bg-white resize-none"
               />
             </div>
 
@@ -346,7 +346,7 @@ export default function CreateFeedPostPage() {
 
                 {/* Upload Button */}
                 {formData.images.length < 4 && (
-                  <label className="flex items-center gap-3 p-4 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-[#1152A2] hover:bg-[#1152A2]/5 transition-colors">
+                  <label className="flex items-center gap-3 p-4 border-2 border-dashed border-gray-300 rounded-md cursor-pointer hover:border-[#1152A2] hover:bg-[#1152A2]/5 transition-colors">
                     <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
                       <IoCamera className="w-5 h-5 text-gray-500" />
                     </div>
@@ -413,7 +413,7 @@ export default function CreateFeedPostPage() {
                 <button
                   key={cat}
                   onClick={() => setFormData({ ...formData, category: cat })}
-                  className={`p-4 rounded-xl border-2 text-left ${
+                  className={`p-4 rounded-md border-2 text-left ${
                     formData.category === cat
                       ? "border-[#1152A2] bg-[#1152A2]/5"
                       : "border-gray-200"
@@ -456,7 +456,7 @@ export default function CreateFeedPostPage() {
                 onChange={(e) =>
                   setFormData({ ...formData, location: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-[#1152A2] focus:ring-2 focus:ring-[#1152A2]/10 focus:outline-none text-sm bg-white"
+                className="w-full px-4 py-3 border border-gray-200 rounded-md focus:border-[#1152A2] focus:ring-2 focus:ring-[#1152A2]/10 focus:outline-none text-sm bg-white"
               />
             </div>
 
@@ -473,7 +473,7 @@ export default function CreateFeedPostPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, budget: e.target.value })
                   }
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-[#1152A2] focus:ring-2 focus:ring-[#1152A2]/10 focus:outline-none text-sm bg-white"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-md focus:border-[#1152A2] focus:ring-2 focus:ring-[#1152A2]/10 focus:outline-none text-sm bg-white"
                 />
               </div>
             )}
@@ -497,7 +497,7 @@ export default function CreateFeedPostPage() {
                               : (u.value as "urgent" | "normal" | "flexible"),
                         })
                       }
-                      className={`p-3 rounded-xl border-2 text-center ${
+                      className={`p-3 rounded-md border-2 text-center ${
                         formData.urgency === u.value
                           ? u.value === "urgent"
                             ? "border-red-500 bg-red-50"
@@ -517,7 +517,7 @@ export default function CreateFeedPostPage() {
 
             {/* AI Suggestion Info */}
             {formData.type === "looking-for" && (
-              <div className="bg-linear-to-r from-[#1152A2]/5 to-[#EF7C29]/5 rounded-xl p-4 border border-[#1152A2]/10">
+              <div className="bg-linear-to-r from-[#1152A2]/5 to-[#EF7C29]/5 rounded-md p-4 border border-[#1152A2]/10">
                 <div className="flex items-center gap-2 mb-2">
                   <HiSparkles className="w-5 h-5 text-[#EF7C29]" />
                   <span className="font-semibold text-[#1152A2]">
@@ -540,7 +540,7 @@ export default function CreateFeedPostPage() {
           {step > 1 && (
             <button
               onClick={handleBack}
-              className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold"
+              className="px-6 py-3 bg-gray-100 text-gray-700 rounded-md font-semibold"
             >
               Back
             </button>
@@ -549,7 +549,7 @@ export default function CreateFeedPostPage() {
             <button
               onClick={handleNext}
               disabled={!canProceed()}
-              className="flex-1 py-3 bg-[#1152A2] text-white rounded-xl font-semibold disabled:opacity-50"
+              className="flex-1 py-3 bg-[#1152A2] text-white rounded-md font-semibold disabled:opacity-50"
             >
               Continue
             </button>
@@ -557,7 +557,7 @@ export default function CreateFeedPostPage() {
             <button
               onClick={handleSubmit}
               disabled={!canProceed() || isSubmitting}
-              className="flex-1 py-3 bg-[#EF7C29] text-white rounded-xl font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 py-3 bg-[#EF7C29] text-white rounded-md font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>

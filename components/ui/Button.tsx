@@ -26,7 +26,7 @@ export function Button({
   fullWidth = false,
 }: ButtonProps) {
   const baseStyles =
-    "inline-flex items-center justify-center font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed";
+    "inline-flex items-center justify-center font-semibold rounded-md disabled:opacity-50 disabled:cursor-not-allowed";
 
   const variants = {
     primary: "bg-[#1152A2] text-white hover:bg-[#0d3f7a]",

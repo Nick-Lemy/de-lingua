@@ -111,17 +111,17 @@ export default function SellerProfilePage() {
       {/* Main Content */}
       <div className="px-6 lg:px-8 max-w-4xl mx-auto mt-6 space-y-6">
         {/* About */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-5">
+        <div className="bg-white border border-gray-200 rounded-md p-5">
           <h3 className="font-semibold mb-3 text-black">About</h3>
           <p className="text-sm text-gray-600">{seller.description}</p>
         </div>
 
         {/* Key Details */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-5">
+        <div className="bg-white border border-gray-200 rounded-md p-5">
           <h3 className="font-semibold mb-4 text-black">Key Details</h3>
           <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-white">
+              <div className="w-10 h-10 rounded-md flex items-center justify-center shrink-0 text-white">
                 <FaBoxOpen className="text-[#1152A2]" size={22} />
               </div>
               <div className="flex-1">
@@ -130,7 +130,7 @@ export default function SellerProfilePage() {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-white">
+              <div className="w-10 h-10 rounded-md flex items-center justify-center shrink-0 text-white">
                 <FaTruck className="text-[#1152A2]" size={22} />
               </div>
               <div className="flex-1">
@@ -139,7 +139,7 @@ export default function SellerProfilePage() {
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-white">
+              <div className="w-10 h-10 rounded-md flex items-center justify-center shrink-0 text-white">
                 <FaClock className="text-[#1152A2]" size={22} />
               </div>
               <div className="flex-1">
@@ -152,13 +152,13 @@ export default function SellerProfilePage() {
 
         {/* Certifications */}
         {seller.certifications.length > 0 && (
-          <div className="bg-white border border-gray-200 rounded-2xl p-5">
+          <div className="bg-white border border-gray-200 rounded-md p-5">
             <h3 className="font-semibold mb-3 text-black">Certifications</h3>
             <div className="flex flex-wrap gap-2">
               {seller.certifications.map((cert, i) => (
                 <span
                   key={i}
-                  className="px-3 py-2 bg-[#1152A2] text-white rounded-xl text-sm font-medium"
+                  className="px-3 py-2 bg-[#1152A2] text-white rounded-md text-sm font-medium"
                 >
                   {cert}
                 </span>
@@ -169,7 +169,7 @@ export default function SellerProfilePage() {
 
         {/* Inventory */}
         {seller.inventory.length > 0 && (
-          <div className="bg-white border border-gray-200 rounded-2xl p-5">
+          <div className="bg-white border border-gray-200 rounded-md p-5">
             <h3 className="font-semibold mb-4 text-black">
               Available Products
             </h3>
@@ -177,17 +177,17 @@ export default function SellerProfilePage() {
               {seller.inventory.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0"
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 py-4 border-b border-gray-100 last:border-0"
                 >
-                  <div className="flex-1">
-                    <h4 className="font-medium text-sm mb-1 text-black">
+                  <div className="flex-1 w-full">
+                    <h4 className="font-medium text-base mb-1 text-black">
                       {item.name}
                     </h4>
-                    <div className="flex items-center gap-3 text-xs text-gray-600">
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600 mb-2">
                       <span>MOQ: {item.moq} units</span>
-                      <span>•</span>
+                      <span className="hidden sm:inline">•</span>
                       <span>Lead: {item.leadTime}</span>
-                      <span>•</span>
+                      <span className="hidden sm:inline">•</span>
                       <span
                         className={
                           item.stock > 0 ? "text-[#1152A2]" : "text-gray-400"
@@ -199,11 +199,15 @@ export default function SellerProfilePage() {
                       </span>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-black">
-                      {Number(item.price)} RWF
-                    </p>
-                    <p className="text-xs text-gray-600">per unit</p>
+                  <div className="w-full sm:w-auto flex flex-row sm:flex-col items-end sm:items-end justify-between sm:justify-end gap-1">
+                    <div>
+                      <p className="font-semibold text-black text-base sm:text-right">
+                        {Number(item.price)} RWF
+                      </p>
+                      <p className="text-xs text-gray-600 sm:text-right">
+                        per unit
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -218,7 +222,7 @@ export default function SellerProfilePage() {
           <div className="max-w-4xl mx-auto px-6 py-4">
             <Link
               href={`/chat/${missionId}?seller=${seller.id}`}
-              className="block w-full py-4 rounded-2xl bg-[#EF7C29] text-white text-center font-semibold hover:bg-[#d96a1f]"
+              className="block w-full py-4 rounded-md bg-[#EF7C29] text-white text-center font-semibold hover:bg-[#d96a1f]"
             >
               Start Conversation
             </Link>

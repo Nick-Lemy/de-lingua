@@ -108,10 +108,7 @@ export default function HomePage() {
 
           {/* Active Missions Card */}
           {activeMissionCount > 0 && (
-            <Link
-              href="/missions"
-              className="block bg-white/10 rounded-2xl p-4"
-            >
+            <Link href="/missions" className="block bg-white/10 rounded-md p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
@@ -144,11 +141,11 @@ export default function HomePage() {
         {/* Create Mission Button */}
         <Link
           href="/missions/create"
-          className="block bg-[#EF7C29] text-white rounded-2xl p-4 hover:bg-[#d96a1f]"
+          className="block bg-[#EF7C29] text-white rounded-md p-4 hover:bg-[#d96a1f]"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center">
+              <div className="w-11 h-11 rounded-md bg-white/20 flex items-center justify-center">
                 <IoAdd className="w-6 h-6" />
               </div>
               <div>
@@ -171,17 +168,17 @@ export default function HomePage() {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-3 gap-3 mt-5">
-          <div className="bg-white rounded-xl p-3 border border-gray-200">
+          <div className="bg-white rounded-md p-3 border border-gray-200">
             <p className="text-gray-500 text-xs mb-1 font-medium">Missions</p>
             <p className="text-lg font-bold text-[#1152A2]">
               {missions.length}
             </p>
           </div>
-          <div className="bg-white rounded-xl p-3 border border-gray-200">
+          <div className="bg-white rounded-md p-3 border border-gray-200">
             <p className="text-gray-500 text-xs mb-1 font-medium">Suppliers</p>
             <p className="text-lg font-bold text-[#1152A2]">{sellers.length}</p>
           </div>
-          <div className="bg-white rounded-xl p-3 border border-gray-200">
+          <div className="bg-white rounded-md p-3 border border-gray-200">
             <p className="text-gray-500 text-xs mb-1 font-medium">Active</p>
             <p className="text-lg font-bold text-[#1152A2]">
               {activeMissionCount}
@@ -204,7 +201,7 @@ export default function HomePage() {
           </div>
           <div className="space-y-3">
             {sellers.length === 0 ? (
-              <div className="bg-white rounded-xl p-6 border border-gray-200 text-center">
+              <div className="bg-white rounded-md p-6 border border-gray-200 text-center">
                 <IoStorefront className="w-10 h-10 text-gray-300 mx-auto mb-2" />
                 <p className="text-sm text-gray-500">No suppliers yet</p>
                 <p className="text-xs text-gray-400 mt-1">
@@ -216,10 +213,10 @@ export default function HomePage() {
                 <Link
                   key={seller.id}
                   href={`/sellers/${seller.id}`}
-                  className="block bg-white rounded-xl p-4 border border-gray-200"
+                  className="block bg-white rounded-md p-4 border border-gray-200"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-11 h-11 rounded-xl bg-[#1152A2] text-white flex items-center justify-center text-base font-bold shrink-0">
+                    <div className="w-11 h-11 rounded-md bg-[#1152A2] text-white flex items-center justify-center text-base font-bold shrink-0">
                       {seller.avatar}
                     </div>
                     <div className="flex-1 min-w-0">

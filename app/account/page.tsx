@@ -107,7 +107,7 @@ export default function AccountPage() {
           <div className="flex items-center gap-3 mb-6">
             <button
               onClick={() => router.back()}
-              className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center"
+              className="w-10 h-10 rounded-md bg-white/10 flex items-center justify-center"
             >
               <IoArrowBack className="w-5 h-5" />
             </button>
@@ -115,9 +115,9 @@ export default function AccountPage() {
           </div>
 
           {/* User Card */}
-          <div className="bg-white/10 rounded-2xl p-5 border border-white/10">
+          <div className="bg-white/10 rounded-md p-5 border border-white/10">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-[#EF7C29] flex items-center justify-center text-2xl font-bold">
+              <div className="w-16 h-16 rounded-md bg-[#EF7C29] flex items-center justify-center text-2xl font-bold">
                 {user.avatar}
               </div>
               <div className="flex-1">
@@ -137,7 +137,7 @@ export default function AccountPage() {
 
       {/* Menu Items */}
       <div className="px-5 max-w-lg mx-auto mt-6">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-md border border-gray-100 shadow-sm overflow-hidden">
           {menuItems.map((item, index) => (
             <Link
               key={item.label}
@@ -146,7 +146,7 @@ export default function AccountPage() {
                 index !== menuItems.length - 1 ? "border-b border-gray-100" : ""
               }`}
             >
-              <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center">
                 <item.icon className="w-5 h-5 text-gray-600" />
               </div>
               <div className="flex-1">
@@ -162,7 +162,7 @@ export default function AccountPage() {
 
         {/* Preferences Summary */}
         {user.preferences && (
-          <div className="mt-6 bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+          <div className="mt-6 bg-white rounded-md border border-gray-100 shadow-sm p-4">
             <h3 className="font-semibold text-sm text-gray-900 mb-3">
               Your Preferences
             </h3>
@@ -204,7 +204,7 @@ export default function AccountPage() {
 
         {/* Business Profile Summary */}
         {user.businessProfile && (
-          <div className="mt-6 bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+          <div className="mt-6 bg-white rounded-md border border-gray-100 shadow-sm p-4">
             <h3 className="font-semibold text-sm text-gray-900 mb-3">
               Business Profile
             </h3>

@@ -145,14 +145,14 @@ export default function FeedPage() {
             </div>
             <Link
               href="/feed/create"
-              className="w-11 h-11 rounded-xl bg-[#EF7C29] flex items-center justify-center"
+              className="w-11 h-11 rounded-md bg-[#EF7C29] flex items-center justify-center"
             >
               <IoAdd className="w-6 h-6" />
             </Link>
           </div>
 
           {/* Tabs */}
-          <div className="flex bg-white/10 rounded-xl p-1">
+          <div className="flex bg-white/10 rounded-md p-1">
             <button
               onClick={() => setActiveTab("all")}
               className={`flex-1 py-2 rounded-lg text-sm font-medium ${
@@ -208,7 +208,7 @@ export default function FeedPage() {
         {/* Posts */}
         <div className="space-y-4 mt-4">
           {filteredPosts.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
+            <div className="text-center py-12 bg-white rounded-md border border-gray-200">
               <HiSparkles className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <p className="text-gray-500 font-medium">No posts yet</p>
               <p className="text-sm text-gray-400 mt-1 mb-4">
@@ -216,7 +216,7 @@ export default function FeedPage() {
               </p>
               <Link
                 href="/feed/create"
-                className="inline-block px-5 py-2.5 bg-[#EF7C29] text-white rounded-xl text-sm font-semibold"
+                className="inline-block px-5 py-2.5 bg-[#EF7C29] text-white rounded-md text-sm font-semibold"
               >
                 Create Post
               </Link>
@@ -326,7 +326,7 @@ export default function FeedPage() {
 
                   {/* AI Suggestions Preview */}
                   {post.aiSuggestions && post.aiSuggestions.length > 0 && (
-                    <div className="bg-linear-to-r from-[#1152A2]/5 to-[#EF7C29]/5 rounded-xl p-3 mb-3 border border-[#1152A2]/10">
+                    <div className="bg-linear-to-r from-[#1152A2]/5 to-[#EF7C29]/5 rounded-md p-3 mb-3 border border-[#1152A2]/10">
                       <div className="flex items-center gap-2 mb-2">
                         <HiSparkles className="w-4 h-4 text-[#EF7C29]" />
                         <span className="text-xs font-semibold text-[#1152A2]">

@@ -95,7 +95,7 @@ export default function MissionDetailPage() {
           <div className="flex items-center gap-4 mb-6">
             <button
               onClick={() => router.back()}
-              className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center"
+              className="w-10 h-10 rounded-md bg-white/10 border border-white/20 flex items-center justify-center"
             >
               <svg
                 width="20"
@@ -127,10 +127,10 @@ export default function MissionDetailPage() {
 
       {/* Mission Details */}
       <div className="px-6 lg:px-8 max-w-4xl mx-auto mt-6">
-        <div className="bg-gray-50 rounded-2xl p-5 border border-gray-200">
+        <div className="bg-gray-50 rounded-md p-5 border border-gray-200">
           <h3 className="font-semibold mb-4 text-black">Mission Details</h3>
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+            <div className="bg-slate-50 border border-slate-200 rounded-md p-3">
               <p className="text-slate-600 text-xs mb-1 font-medium">
                 Quantity
               </p>
@@ -138,19 +138,19 @@ export default function MissionDetailPage() {
                 {mission.quantity} units
               </p>
             </div>
-            <div className="bg-[#EF7C29]/10 border border-[#EF7C29]/20 rounded-xl p-3">
+            <div className="bg-[#EF7C29]/10 border border-[#EF7C29]/20 rounded-md p-3">
               <p className="text-[#EF7C29] text-xs mb-1 font-medium">Budget</p>
               <p className="font-semibold text-[#EF7C29]">
                 {mission.budgetMin} RWF - {mission.budgetMax} RWF
               </p>
             </div>
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+            <div className="bg-slate-50 border border-slate-200 rounded-md p-3">
               <p className="text-slate-600 text-xs mb-1 font-medium">Urgency</p>
               <p className="font-semibold capitalize text-slate-800">
                 {mission.urgency}
               </p>
             </div>
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+            <div className="bg-slate-50 border border-slate-200 rounded-md p-3">
               <p className="text-slate-600 text-xs mb-1 font-medium">
                 Location
               </p>
@@ -175,7 +175,7 @@ export default function MissionDetailPage() {
         </div>
 
         {matches.length === 0 ? (
-          <div className="bg-gray-50 rounded-2xl p-8 text-center border border-gray-200">
+          <div className="bg-gray-50 rounded-md p-8 text-center border border-gray-200">
             <p className="text-gray-600">Looking for suppliers...</p>
           </div>
         ) : (
@@ -184,12 +184,12 @@ export default function MissionDetailPage() {
               <Link
                 key={match.id}
                 href={`/sellers/${match.sellerId}?mission=${mission.id}`}
-                className="block bg-white border border-gray-200 rounded-2xl p-5"
+                className="block bg-white border border-gray-200 rounded-md p-5"
               >
                 {/* Match Score Header */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-[#1152A2] text-white flex items-center justify-center text-xl font-bold">
+                    <div className="w-12 h-12 rounded-md bg-[#1152A2] text-white flex items-center justify-center text-xl font-bold">
                       {match.sellerAvatar}
                     </div>
                     <div>
@@ -211,7 +211,7 @@ export default function MissionDetailPage() {
 
                 {/* Match Attributes */}
                 <div className="grid grid-cols-2 gap-3 mb-4">
-                  <div className="bg-gray-50 rounded-xl p-3">
+                  <div className="bg-gray-50 rounded-md p-3">
                     <p className="text-xs text-gray-600 mb-1">Budget Fit</p>
                     <p
                       className={`font-semibold text-sm capitalize ${getBudgetFitColor(match.budgetFit)}`}
@@ -219,7 +219,7 @@ export default function MissionDetailPage() {
                       {match.budgetFit}
                     </p>
                   </div>
-                  <div className="bg-gray-50 rounded-xl p-3">
+                  <div className="bg-gray-50 rounded-md p-3">
                     <p className="text-xs text-gray-600 mb-1">Availability</p>
                     <p className="font-semibold text-sm capitalize">
                       {match.stockStatus.replace("-", " ")}
@@ -228,7 +228,7 @@ export default function MissionDetailPage() {
                 </div>
 
                 {/* Why This Match */}
-                <div className="bg-gray-50 rounded-xl p-3">
+                <div className="bg-gray-50 rounded-md p-3">
                   <p className="text-xs text-gray-600 mb-1">Why this match?</p>
                   <p className="text-sm text-black">{match.whyMatch}</p>
                 </div>

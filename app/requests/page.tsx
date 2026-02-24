@@ -154,7 +154,7 @@ export default function RequestsPage() {
           <div className="flex items-center gap-3 mb-4">
             <button
               onClick={() => router.back()}
-              className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center"
+              className="w-9 h-9 rounded-md bg-white/20 flex items-center justify-center"
             >
               <IoArrowBack className="w-5 h-5" />
             </button>
@@ -171,7 +171,7 @@ export default function RequestsPage() {
 
       <div className="px-5 max-w-lg mx-auto mt-4">
         {/* Tabs */}
-        <div className="flex bg-gray-200 rounded-xl p-1 mb-5">
+        <div className="flex bg-gray-200 rounded-md p-1 mb-5">
           <button
             onClick={() => setActiveTab("pending")}
             className={`flex-1 py-2 rounded-lg text-sm font-medium ${
@@ -208,7 +208,7 @@ export default function RequestsPage() {
         {/* Requests List */}
         <div className="space-y-3">
           {filteredRequests.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
+            <div className="text-center py-12 bg-white rounded-md border border-gray-200">
               <p className="text-gray-500">No {activeTab} requests</p>
               <p className="text-sm text-gray-400 mt-1">
                 {activeTab === "pending"
@@ -220,7 +220,7 @@ export default function RequestsPage() {
             filteredRequests.map((request) => (
               <div
                 key={request.id}
-                className="bg-white rounded-xl p-4 border border-gray-200"
+                className="bg-white rounded-md p-4 border border-gray-200"
               >
                 {/* Match Score */}
                 <div className="flex items-center justify-between mb-3">
@@ -279,14 +279,14 @@ export default function RequestsPage() {
                   <div className="flex gap-2 mt-4">
                     <button
                       onClick={() => handleDecline(request.id)}
-                      className="flex-1 py-2 border border-gray-200 rounded-xl text-gray-600 font-medium flex items-center justify-center gap-2"
+                      className="flex-1 py-2 border border-gray-200 rounded-md text-gray-600 font-medium flex items-center justify-center gap-2"
                     >
                       <IoCloseCircle className="w-4 h-4" />
                       Decline
                     </button>
                     <button
                       onClick={() => handleAccept(request.id)}
-                      className="flex-1 py-2 bg-[#EF7C29] text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-[#d96a1f]"
+                      className="flex-1 py-2 bg-[#EF7C29] text-white rounded-md font-medium flex items-center justify-center gap-2 hover:bg-[#d96a1f]"
                     >
                       <IoCheckmarkCircle className="w-4 h-4" />
                       Accept
@@ -297,7 +297,7 @@ export default function RequestsPage() {
                 {activeTab === "connected" && (
                   <Link
                     href={`/chat/${request.missionId}?seller=${request.sellerId}`}
-                    className="w-full py-2 bg-[#1152A2] text-white rounded-xl font-medium flex items-center justify-center gap-2 mt-4 hover:bg-[#0d3f7a]"
+                    className="w-full py-2 bg-[#1152A2] text-white rounded-md font-medium flex items-center justify-center gap-2 mt-4 hover:bg-[#0d3f7a]"
                   >
                     <IoChatbubbles className="w-4 h-4" />
                     Open Chat
