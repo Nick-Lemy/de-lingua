@@ -165,7 +165,7 @@ export default function MissionsPage() {
                     <div>
                       <p className="text-gray-500 mb-0.5">Budget</p>
                       <p className="font-semibold text-gray-900">
-                        €{mission.budgetMin}-€{mission.budgetMax}
+                        {mission.budgetMin} RWF-{mission.budgetMax} RWF
                       </p>
                     </div>
                   </div>

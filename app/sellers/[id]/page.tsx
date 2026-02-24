@@ -202,7 +202,7 @@ export default function SellerProfilePage() {
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-black">
-                      €{Number(item.price).toFixed(2)}
+                      {Number(item.price)} RWF
                     </p>
                     <p className="text-xs text-gray-600">per unit</p>
                   </div>

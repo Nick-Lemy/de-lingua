@@ -141,7 +141,7 @@ export default function MissionDetailPage() {
             <div className="bg-[#EF7C29]/10 border border-[#EF7C29]/20 rounded-xl p-3">
               <p className="text-[#EF7C29] text-xs mb-1 font-medium">Budget</p>
               <p className="font-semibold text-[#EF7C29]">
-                €{mission.budgetMin} - €{mission.budgetMax}
+                {mission.budgetMin} RWF - {mission.budgetMax} RWF
               </p>
             </div>
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">

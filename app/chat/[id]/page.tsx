@@ -235,7 +235,7 @@ export default function ChatPage() {
               {mission.product}
             </p>
             <p className="text-sm text-slate-600">
-              {mission.quantity} units • €{mission.budgetMin}-€
+              {mission.quantity} units • RWF{mission.budgetMin}-RWF
               {mission.budgetMax} • {mission.location}
             </p>
           </div>
