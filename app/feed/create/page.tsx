@@ -28,6 +28,8 @@ import {
   IoCheckmarkCircle,
   IoCamera,
   IoClose,
+  IoSearchOutline,
+  IoStorefrontOutline,
 } from "react-icons/io5";
 import { HiSparkles } from "react-icons/hi2";
 
@@ -256,7 +258,9 @@ export default function CreateFeedPostPage() {
                     : "border-gray-200"
                 }`}
               >
-                <div className="text-2xl mb-2">🔍</div>
+                <div className="text-2xl mb-2">
+                  <IoSearchOutline className="w-7 h-7 text-[#EF7C29]" />
+                </div>
                 <h3 className="font-semibold text-gray-900">Looking For</h3>
                 <p className="text-xs text-gray-500 mt-1">Something you need</p>
               </button>
@@ -268,7 +272,9 @@ export default function CreateFeedPostPage() {
                     : "border-gray-200"
                 }`}
               >
-                <div className="text-2xl mb-2">🏪</div>
+                <div className="text-2xl mb-2">
+                  <IoStorefrontOutline className="w-7 h-7 text-[#1152A2]" />
+                </div>
                 <h3 className="font-semibold text-gray-900">Offering</h3>
                 <p className="text-xs text-gray-500 mt-1">Something you have</p>
               </button>
