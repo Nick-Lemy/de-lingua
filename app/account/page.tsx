@@ -8,17 +8,7 @@ import { getUserProfile, clearUserProfile } from "@/lib/storage";
 import type { UserProfile } from "@/lib/types";
 import { Button } from "@/components/ui";
 import { BottomNav } from "@/components/BottomNav";
-import {
-  IoArrowBack,
-  IoPersonCircle,
-  IoMail,
-  IoSettings,
-  IoLogOut,
-  IoShield,
-  IoNotifications,
-  IoHelpCircle,
-  IoChevronForward,
-} from "react-icons/io5";
+import { IoArrowBack, IoMail, IoLogOut } from "react-icons/io5";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -66,39 +56,6 @@ export default function AccountPage() {
     );
   }
 
-  const menuItems = [
-    {
-      icon: IoPersonCircle,
-      label: "Edit Profile",
-      description: "Update your personal information",
-      href: "#",
-    },
-    {
-      icon: IoNotifications,
-      label: "Notifications",
-      description: "Manage notification preferences",
-      href: "#",
-    },
-    {
-      icon: IoShield,
-      label: "Privacy & Security",
-      description: "Password and security settings",
-      href: "#",
-    },
-    {
-      icon: IoSettings,
-      label: "Preferences",
-      description: "App settings and customization",
-      href: "#",
-    },
-    {
-      icon: IoHelpCircle,
-      label: "Help & Support",
-      description: "FAQs and contact support",
-      href: "#",
-    },
-  ];
-
   return (
     <div className="min-h-screen bg-white pb-24">
       {/* Header */}
@@ -117,7 +74,7 @@ export default function AccountPage() {
           {/* User Card */}
           <div className="bg-white/10 rounded-md p-5 border border-white/10">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-md bg-[#EF7C29] flex items-center justify-center text-2xl font-bold">
+              <div className="w-16 h-16 rounded-full bg-[#EF7C29] flex items-center justify-center text-2xl font-bold">
                 {user.avatar}
               </div>
               <div className="flex-1">
@@ -136,30 +93,7 @@ export default function AccountPage() {
       </div>
 
       {/* Menu Items */}
-      <div className="px-5 max-w-lg mx-auto mt-6">
-        <div className="bg-white rounded-md border border-gray-100 shadow-sm overflow-hidden">
-          {menuItems.map((item, index) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className={`flex items-center gap-4 px-4 py-4 hover:bg-gray-50 transition-colors ${
-                index !== menuItems.length - 1 ? "border-b border-gray-100" : ""
-              }`}
-            >
-              <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center">
-                <item.icon className="w-5 h-5 text-gray-600" />
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-sm text-gray-900">
-                  {item.label}
-                </p>
-                <p className="text-xs text-gray-500">{item.description}</p>
-              </div>
-              <IoChevronForward className="w-5 h-5 text-gray-400" />
-            </Link>
-          ))}
-        </div>
-
+      <div className="px-5 max-w-xl mx-auto mt-6">
         {/* Preferences Summary */}
         {user.preferences && (
           <div className="mt-6 bg-white rounded-md border border-gray-100 shadow-sm p-4">
