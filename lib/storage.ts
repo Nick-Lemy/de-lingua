@@ -1,3 +1,13 @@
+// Utility: Remove all chat messages with missionId === "mission"
+export function cleanupInvalidChatMessages(): void {
+  const chats = getChatMessages();
+  const cleaned = chats.filter((m) => m.missionId && m.missionId !== "mission");
+  if (cleaned.length !== chats.length) {
+    localStorage.setItem(KEYS.CHATS, JSON.stringify(cleaned));
+    // Optionally, log how many were removed
+    console.log(`Removed ${chats.length - cleaned.length} invalid chat messages.`);
+  }
+}
 // LocalStorage utilities for data persistence
 // Re-export types for backwards compatibility
 export type {

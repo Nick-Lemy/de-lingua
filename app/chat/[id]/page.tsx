@@ -102,7 +102,9 @@ export default function ChatPage() {
       }
 
       if (!foundMission) {
-        router.push(currentUser.role === "buyer" ? "/missions" : "/requests");
+        router.push(
+          currentUser.role === "buyer" ? "/missions" : "/seller-dashboard",
+        );
         return;
       }
       setMission(foundMission);
@@ -116,7 +118,9 @@ export default function ChatPage() {
       }
 
       if (!foundSeller) {
-        router.push(currentUser.role === "buyer" ? "/missions" : "/requests");
+        router.push(
+          currentUser.role === "buyer" ? "/missions" : "/seller-dashboard",
+        );
         return;
       }
       setSeller(foundSeller);
@@ -175,6 +179,11 @@ export default function ChatPage() {
 
   const handleSend = async () => {
     if (!newMessage.trim() || !mission || !seller || !user || isSending) return;
+    // Prevent sending messages with invalid missionId
+    if (!mission.id || mission.id === "mission") {
+      alert("Invalid mission. Cannot send message.");
+      return;
+    }
 
     setIsSending(true);
     const isConfigured = isFirebaseConfigured();

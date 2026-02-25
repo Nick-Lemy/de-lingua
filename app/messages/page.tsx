@@ -147,6 +147,7 @@ export default function MessagesPage() {
       );
 
       setConversations(convList);
+      console.log(convList);
     };
 
     loadData();
@@ -231,8 +232,8 @@ export default function MessagesPage() {
 
               return (
                 <Link
-                  key={`${conv.missionId}_${conv.sellerId}`}
-                  href={`/chat/${conv.missionId}?seller=${conv.sellerId}`}
+                  key={`${conv.lastMessage.missionId}_${conv.lastMessage.sellerId}`}
+                  href={`/chat/${conv.lastMessage.missionId}?seller=${conv.lastMessage.sellerId}`}
                   className="block bg-white rounded-md p-4 border border-gray-200 hover:border-[#1152A2]/30 transition-colors"
                 >
                   <div className="flex items-start gap-3">

@@ -315,6 +315,7 @@ export async function getChatsForBuyer(
     orderBy("time", "desc"),
   );
   const querySnapshot = await getDocs(q);
+  console.log(querySnapshot);
 
   return querySnapshot.docs.map((doc) => doc.data() as ChatMessage);
 }
