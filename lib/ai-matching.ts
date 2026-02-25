@@ -2,8 +2,7 @@
 
 import type { Mission, Seller, Match } from "./types";
 
-const GEMINI_API_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 interface MatchResult {
   sellerId: string;
@@ -17,48 +16,53 @@ export async function generateMatchesWithAI(
   mission: Mission,
   sellers: Seller[],
 ): Promise<MatchResult[]> {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
 
   if (!apiKey) {
-    console.warn("GEMINI_API_KEY not set, falling back to basic matching");
+    console.warn("GROQ_API_KEY not set, falling back to basic matching");
     return fallbackMatching(mission, sellers);
   }
 
   const prompt = buildMatchingPrompt(mission, sellers);
 
   try {
-    const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+    const response = await fetch(GROQ_API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        contents: [
+        model: "llama-3.3-70b-versatile",
+        messages: [
           {
-            parts: [{ text: prompt }],
+            role: "system",
+            content:
+              "You are a supplier matching expert for the Rwandan market. Analyze the buyer's mission and available sellers to find the best matches. Return ONLY a JSON array as described in the instructions.",
+          },
+          {
+            role: "user",
+            content: prompt,
           },
         ],
-        generationConfig: {
-          temperature: 0.2,
-          topP: 0.8,
-          maxOutputTokens: 2048,
-        },
+        temperature: 0.2,
+        max_tokens: 2048,
       }),
     });
 
     if (!response.ok) {
-      console.error("Gemini API error:", await response.text());
+      console.error("Groq API error:", await response.text());
       return fallbackMatching(mission, sellers);
     }
 
     const data = await response.json();
-    const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const textResponse = data.choices?.[0]?.message?.content;
 
     if (!textResponse) {
       return fallbackMatching(mission, sellers);
     }
 
-    // Parse the JSON response from Gemini
+    // Parse the JSON response from Groq
     const jsonMatch = textResponse.match(/\[[\s\S]*\]/);
     if (!jsonMatch) {
       return fallbackMatching(mission, sellers);
