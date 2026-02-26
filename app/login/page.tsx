@@ -7,9 +7,11 @@ import Image from "next/image";
 import { isFirebaseConfigured } from "@/lib/firebase";
 import { signIn, signInWithGoogle } from "@/lib/auth";
 import { getUserProfile } from "@/lib/storage";
+import { useTranslation } from "@/lib/i18n";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [loginMethod, setLoginMethod] = useState<"email" | "phone">("email");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -26,7 +28,7 @@ export default function LoginPage() {
       if (isConfigured) {
         if (loginMethod === "email") {
           if (!email.trim() || !password.trim()) {
-            setError("Email and password are required");
+            setError(t("login.errorEmailPassword"));
             setIsSubmitting(false);
             return;
           }
@@ -34,14 +36,12 @@ export default function LoginPage() {
           if (user) {
             router.push("/");
           } else {
-            setError("Login failed. Please try again.");
+            setError(t("login.errorLoginFailed"));
             setIsSubmitting(false);
           }
         } else {
           // Phone auth - for now show info message
-          setError(
-            "Phone authentication coming soon. Please use email or Google sign-in.",
-          );
+          setError(t("login.errorPhoneSoon"));
           setIsSubmitting(false);
         }
       } else {
@@ -50,7 +50,7 @@ export default function LoginPage() {
         if (profile && profile.email === email.trim()) {
           router.push("/");
         } else {
-          setError("No account found. Please sign up first.");
+          setError(t("login.errorNoAccount"));
           setIsSubmitting(false);
         }
       }
@@ -64,14 +64,14 @@ export default function LoginPage() {
       } else if (err.code === "auth/invalid-email") {
         setError("Invalid email address.");
       } else {
-        setError(err.message || "Failed to sign in. Please try again.");
+        setError(err.message || t("login.errorLoginFailed"));
       }
     }
   };
 
   const handleGoogleSignIn = async () => {
     if (!isConfigured) {
-      setError("Google sign-in requires Firebase configuration.");
+      setError(t("login.errorGoogleConfig"));
       return;
     }
 
@@ -83,13 +83,13 @@ export default function LoginPage() {
       if (user) {
         router.push("/");
       } else {
-        setError("Google sign-in failed. Please try again.");
+        setError(t("login.errorGoogleFailed"));
         setIsSubmitting(false);
       }
     } catch (err: any) {
       console.error("Google sign-in error:", err);
       setIsSubmitting(false);
-      setError(err.message || "Google sign-in failed. Please try again.");
+      setError(err.message || t("login.errorGoogleFailed"));
     }
   };
 
@@ -117,8 +117,10 @@ export default function LoginPage() {
           <span className="text-2xl font-bold text-white">DeLingua</span>
         </div>
 
-        <h1 className="text-3xl font-bold text-white mb-2">Murakaza neza</h1>
-        <p className="text-slate-300 mb-8">Sign in to your DeLingua account</p>
+        <h1 className="text-3xl font-bold text-white mb-2">
+          {t("login.title")}
+        </h1>
+        <p className="text-slate-300 mb-8">{t("login.subtitle")}</p>
 
         {error && (
           <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-md text-red-200 text-sm">
@@ -136,7 +138,7 @@ export default function LoginPage() {
                 : "text-slate-300"
             }`}
           >
-            Email
+            {t("login.email")}
           </button>
           <button
             onClick={() => setLoginMethod("phone")}
@@ -146,7 +148,7 @@ export default function LoginPage() {
                 : "text-slate-300"
             }`}
           >
-            Phone
+            {t("login.phone")}
           </button>
         </div>
 
@@ -155,13 +157,13 @@ export default function LoginPage() {
             <>
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Email address
+                  {t("login.emailAddress")}
                 </label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@company.rw"
+                  placeholder={t("login.emailAddress")}
                   className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-md text-white placeholder:text-gray-500 outline-none"
                   autoFocus
                 />
@@ -169,13 +171,13 @@ export default function LoginPage() {
               {isConfigured && (
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Password
+                    {t("login.password")}
                   </label>
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
+                    placeholder={t("login.password")}
                     className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-md text-white placeholder:text-gray-500 outline-none"
                   />
                 </div>
@@ -184,7 +186,7 @@ export default function LoginPage() {
           ) : (
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
-                Phone number
+                {t("login.phoneNumber")}
               </label>
               <div className="flex gap-2">
                 <div className="h-14 px-4 bg-white/10 border border-white/20 rounded-md text-white flex items-center text-sm">
@@ -194,7 +196,7 @@ export default function LoginPage() {
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-                  placeholder="78X XXX XXX"
+                  placeholder={t("login.phoneNumber")}
                   className="flex-1 h-14 px-5 bg-white/10 border border-white/20 rounded-md text-white placeholder:text-gray-500 outline-none"
                   autoFocus
                 />
@@ -215,17 +217,17 @@ export default function LoginPage() {
           {isSubmitting ? (
             <>
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Signing in...
+              {t("login.signingIn")}
             </>
           ) : (
-            "Sign In"
+            t("login.signIn")
           )}
         </button>
 
         <p className="text-center text-slate-300 mt-8">
-          Don&apos;t have an account?{" "}
+          {t("login.noAccount")}{" "}
           <Link href="/onboarding" className="text-white font-semibold">
-            Sign up
+            {t("login.signUp")}
           </Link>
         </p>
       </div>
@@ -233,9 +235,7 @@ export default function LoginPage() {
       {/* Footer indicator */}
       <div className="px-6 pb-8 max-w-md mx-auto w-full">
         <p className="text-center text-xs text-slate-400">
-          {isConfigured
-            ? "Secure login with Firebase"
-            : "Demo mode - Local storage only"}
+          {isConfigured ? t("login.secureFirebase") : t("login.demoMode")}
         </p>
       </div>
     </div>

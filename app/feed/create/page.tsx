@@ -32,26 +32,29 @@ import {
   IoStorefrontOutline,
 } from "react-icons/io5";
 import { HiSparkles } from "react-icons/hi2";
+import { useTranslation } from "@/lib/i18n";
 
+// category identifiers correspond to translation keys under feed.categories
 const categories = [
-  "Agricultural Products",
-  "Construction Materials",
-  "Electronics & Tech",
-  "Textiles & Garments",
-  "Food & Beverages",
-  "Handicrafts & Art",
-  "Office Supplies",
-  "Machinery & Equipment",
+  "agriculture",
+  "construction",
+  "electronics",
+  "textiles",
+  "food",
+  "handicrafts",
+  "office",
+  "machinery",
 ];
 
 const urgencies = [
-  { value: "urgent", label: "Urgent", sublabel: "1-3 days" },
-  { value: "normal", label: "Normal", sublabel: "1-2 weeks" },
-  { value: "flexible", label: "Flexible", sublabel: "1+ month" },
+  { value: "urgent", labelKey: "feedCreate.urgency.urgent", sublabelKey: "feedCreate.urgency.urgent.sublabel" },
+  { value: "normal", labelKey: "feedCreate.urgency.normal", sublabelKey: "feedCreate.urgency.normal.sublabel" },
+  { value: "flexible", labelKey: "feedCreate.urgency.flexible", sublabelKey: "feedCreate.urgency.flexible.sublabel" },
 ];
 
 export default function CreateFeedPostPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user: authUser, isConfigured, loading: authLoading } = useAuth();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [seller, setSeller] = useState<Seller | null>(null);
@@ -220,8 +223,8 @@ export default function CreateFeedPostPage() {
               <IoArrowBack className="w-5 h-5" />
             </button>
             <div className="flex-1">
-              <h1 className="text-lg font-bold">Create Post</h1>
-              <p className="text-slate-300 text-xs">Step {step} of 3</p>
+              <h1 className="text-lg font-bold">{t("feed.createPost")}</h1>
+              <p className="text-slate-300 text-xs">{t("feedCreate.step", { step })}</p>
             </div>
           </div>
           <div className="h-1 bg-white/20 rounded-full overflow-hidden">
@@ -239,13 +242,10 @@ export default function CreateFeedPostPage() {
           <div className="space-y-5">
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-1">
-                What would you like to post?
+                {t("feedCreate.whatToPost")}
               </h2>
               <p className="text-sm text-gray-500">
-                Share what you&apos;re looking for or offering
-              </p>
-            </div>
-
+                {t("feedCreate.share")}
             {/* Post Type */}
             <div className="grid grid-cols-2 gap-3">
               <button
@@ -261,8 +261,8 @@ export default function CreateFeedPostPage() {
                 <div className="text-2xl mb-2">
                   <IoSearchOutline className="w-7 h-7 text-[#EF7C29]" />
                 </div>
-                <h3 className="font-semibold text-gray-900">Looking For</h3>
-                <p className="text-xs text-gray-500 mt-1">Something you need</p>
+                <h3 className="font-semibold text-gray-900">{t("feed.lookingFor")}</h3>
+                <p className="text-xs text-gray-500 mt-1">{t("feedCreate.somethingYouNeed")}</p>
               </button>
               <button
                 onClick={() => setFormData({ ...formData, type: "offering" })}
@@ -275,22 +275,22 @@ export default function CreateFeedPostPage() {
                 <div className="text-2xl mb-2">
                   <IoStorefrontOutline className="w-7 h-7 text-[#1152A2]" />
                 </div>
-                <h3 className="font-semibold text-gray-900">Offering</h3>
-                <p className="text-xs text-gray-500 mt-1">Something you have</p>
+                <h3 className="font-semibold text-gray-900">{t("feed.offering")}</h3>
+                <p className="text-xs text-gray-500 mt-1">{t("feedCreate.somethingYouHave")}</p>
               </button>
             </div>
 
             {/* Title */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Title
+                {t("feedCreate.title")}
               </label>
               <input
                 type="text"
                 placeholder={
                   formData.type === "looking-for"
-                    ? "e.g., Looking for office chairs"
-                    : "e.g., Fresh vegetables available"
+                    ? t("feedCreate.titlePlaceholderLooking")
+                    : t("feedCreate.titlePlaceholderOffering")
                 }
                 value={formData.title}
                 onChange={(e) =>
@@ -303,10 +303,10 @@ export default function CreateFeedPostPage() {
             {/* Description */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description
+                {t("feedCreate.description")}
               </label>
               <textarea
-                placeholder="Describe what you need or what you're offering in detail..."
+                placeholder={t("feedCreate.descriptionPlaceholder")}
                 value={formData.description}
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
@@ -319,7 +319,7 @@ export default function CreateFeedPostPage() {
             {/* Images Upload */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Photos (optional)
+                {t("feedCreate.photosOptional")}
               </label>
               <div className="space-y-3">
                 {/* Image Previews */}
@@ -358,10 +358,10 @@ export default function CreateFeedPostPage() {
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-700">
-                        Add photos
+                        {t("feedCreate.addPhotos")}
                       </p>
                       <p className="text-xs text-gray-500">
-                        Up to 4 images, max 2MB each
+                        {t("feedCreate.maxImages")}
                       </p>
                     </div>
                     <input
@@ -406,11 +406,9 @@ export default function CreateFeedPostPage() {
         {step === 2 && (
           <div className="space-y-5">
             <div>
-              <h2 className="text-lg font-bold text-gray-900 mb-1">
-                Select a category
-              </h2>
-              <p className="text-sm text-gray-500">
-                Help others find your post
+              <h2 className="text-lg font-bold text_gray-900 mb-1">
+                {t("feedCreate.selectCategory")}
+                {t("feedCreate.helpFind")}
               </p>
             </div>
 
@@ -430,7 +428,7 @@ export default function CreateFeedPostPage() {
                       <IoCheckmarkCircle className="w-5 h-5 text-[#1152A2]" />
                     )}
                     <span className="font-medium text-sm text-gray-900">
-                      {cat}
+                      {t(`feed.categories.${cat}`)}
                     </span>
                   </div>
                 </button>
@@ -443,17 +441,17 @@ export default function CreateFeedPostPage() {
           <div className="space-y-5">
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-1">
-                Additional details
+                {t("feedCreate.additionalDetails")}
               </h2>
               <p className="text-sm text-gray-500">
-                Optional info to help with matching
+                {t("feedCreate.additionalDetailsDesc")}
               </p>
             </div>
 
             {/* Location */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Location *
+                {t("feedCreate.location")}
               </label>
               <input
                 type="text"
@@ -474,7 +472,7 @@ export default function CreateFeedPostPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g., 50,000 - 100,000 RWF"
+                  placeholder={t("feedCreate.budgetPlaceholder")}
                   value={formData.budget}
                   onChange={(e) =>
                     setFormData({ ...formData, budget: e.target.value })
@@ -488,7 +486,7 @@ export default function CreateFeedPostPage() {
             {formData.type === "looking-for" && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Urgency (optional)
+                  {t("feedCreate.urgencyOptional")}
                 </label>
                 <div className="grid grid-cols-3 gap-3">
                   {urgencies.map((u) => (
@@ -512,9 +510,9 @@ export default function CreateFeedPostPage() {
                       }`}
                     >
                       <p className="font-semibold text-sm text-gray-900">
-                        {u.label}
+                        {t(u.labelKey)}
                       </p>
-                      <p className="text-[10px] text-gray-500">{u.sublabel}</p>
+                      <p className="text-[10px] text-gray-500">{t(u.sublabelKey)}</p>
                     </button>
                   ))}
                 </div>
@@ -548,7 +546,7 @@ export default function CreateFeedPostPage() {
               onClick={handleBack}
               className="px-6 py-3 bg-gray-100 text-gray-700 rounded-md font-semibold"
             >
-              Back
+              {t("feedCreate.back")}
             </button>
           )}
           {step < 3 ? (
@@ -557,7 +555,7 @@ export default function CreateFeedPostPage() {
               disabled={!canProceed()}
               className="flex-1 py-3 bg-[#1152A2] text-white rounded-md font-semibold disabled:opacity-50"
             >
-              Continue
+              {t("feedCreate.continue")}
             </button>
           ) : (
             <button
@@ -568,12 +566,12 @@ export default function CreateFeedPostPage() {
               {isSubmitting ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Creating...
+                  {t("feedCreate.creating")}
                 </>
               ) : (
                 <>
                   <HiSparkles className="w-5 h-5" />
-                  Post to Feed
+                  {t("feedCreate.postToFeed")}
                 </>
               )}
             </button>

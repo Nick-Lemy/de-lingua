@@ -30,6 +30,7 @@ import {
   IoListOutline,
 } from "react-icons/io5";
 import { HiSparkles } from "react-icons/hi2";
+import { useTranslation } from "@/lib/i18n";
 
 interface RequestWithMission extends Match {
   mission?: Mission;
@@ -37,6 +38,7 @@ interface RequestWithMission extends Match {
 
 export default function SellerDashboardPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user: authUser, loading } = useAuth();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [seller, setSeller] = useState<Seller | null>(null);
@@ -132,31 +134,28 @@ export default function SellerDashboardPage() {
   const stats = [
     {
       icon: IoChatbubbles,
-      label: "Pending Requests",
+      label: t("sellerDashboard.pendingRequests"),
       value: pendingCount,
       color: "bg-[#EF7C29]",
       textColor: "text-[#EF7C29]",
     },
     {
       icon: IoStorefront,
-      label: "Products Listed",
+      label: t("sellerDashboard.productsListed"),
       value: productCount,
       color: "bg-[#1152A2]",
       textColor: "text-[#1152A2]",
     },
     {
       icon: IoCheckmarkCircle,
-      label: "Completed Deals",
+      label: t("sellerDashboard.completedDeals"),
       value: 0,
       color: "bg-[#1152A2]",
       textColor: "text-[#1152A2]",
     },
     {
       icon: IoTrendingUp,
-      label: "This Month",
-      value: "0 RWF",
-      color: "bg-[#1152A2]",
-      textColor: "text-[#1152A2]",
+      label: t("sellerDashboard.thisMonth"),
     },
   ];
 
@@ -181,7 +180,7 @@ export default function SellerDashboardPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <p className="text-slate-300 text-xs font-medium mb-1">
-                Welcome back
+                {t("sellerDashboard.welcomeBack")}
               </p>
               <h1 className="text-xl font-bold">{user.name}</h1>
             </div>
@@ -249,12 +248,12 @@ export default function SellerDashboardPage() {
         {/* Recent Requests */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-bold text-gray-900">New Match Requests</h2>
+            <h2 className="font-bold text-gray-900">{t("sellerDashboard.newMatchRequests")}</h2>
             <Link
               href="/requests"
               className="text-sm text-slate-600 font-medium"
             >
-              View All
+              {t("sellerDashboard.viewAll")}
             </Link>
           </div>
 
@@ -276,7 +275,7 @@ export default function SellerDashboardPage() {
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <h3 className="font-semibold text-sm text-gray-900">
-                        {request.mission?.product || "Buyer Request"}
+                        {request.mission?.product || t("sellerDashboard.buyerRequest")}
                       </h3>
                       <p className="text-xs text-gray-500">
                         {request.mission?.description?.slice(0, 50) ||
@@ -295,13 +294,13 @@ export default function SellerDashboardPage() {
                     <span className="text-gray-600">
                       {request.mission?.budgetMin && request.mission?.budgetMax
                         ? `${parseInt(request.mission.budgetMin).toLocaleString()} - ${parseInt(request.mission.budgetMax).toLocaleString()} RWF`
-                        : "Budget TBD"}
+                        : t("sellerDashboard.budgetTbd")}
                     </span>
                     <span className="text-gray-400 flex items-center gap-1">
                       <IoTime className="w-3 h-3" />
                       {request.createdAt
                         ? new Date(request.createdAt).toLocaleDateString()
-                        : "Recently"}
+                        : t("sellerDashboard.recently")}
                     </span>
                   </div>
                 </div>
@@ -322,8 +321,8 @@ export default function SellerDashboardPage() {
                 <IoAdd className="w-5 h-5 text-[#EF7C29]" />
               </div>
               <div>
-                <p className="font-medium text-sm text-gray-900">Add Product</p>
-                <p className="text-xs text-gray-500">Update inventory</p>
+                <p className="font-medium text-sm text-gray-900">{t("sellerDashboard.addProduct")}</p>
+                <p className="text-xs text-gray-500">{t("sellerDashboard.updateInventory")}</p>
               </div>
             </Link>
             <Link
@@ -335,9 +334,9 @@ export default function SellerDashboardPage() {
               </div>
               <div>
                 <p className="font-medium text-sm text-gray-900">
-                  View Requests
+                  {t("sellerDashboard.viewRequests")}
                 </p>
-                <p className="text-xs text-gray-500">Buyer inquiries</p>
+                <p className="text-xs text-gray-500">{t("sellerDashboard.buyerInquiries")}</p>
               </div>
             </Link>
           </div>

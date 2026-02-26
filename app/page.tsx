@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/AuthContext";
@@ -21,6 +22,7 @@ import { HiStar } from "react-icons/hi2";
 
 export default function HomePage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user: authUser, isConfigured, loading } = useAuth();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [sellers, setSellers] = useState<Seller[]>([]);
@@ -94,7 +96,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <p className="text-slate-300 text-xs font-medium mb-1">
-                Murakaza neza
+                {t("home.greeting")}
               </p>
               <h1 className="text-xl font-bold">{user.name}</h1>
             </div>
@@ -116,7 +118,7 @@ export default function HomePage() {
                   </div>
                   <div>
                     <p className="text-slate-300 text-xs font-medium">
-                      Active Missions
+                      {t("home.activeMissions")}
                     </p>
                     <p className="text-lg font-bold">{activeMissionCount}</p>
                   </div>

@@ -20,9 +20,11 @@ import {
 } from "@/lib/db";
 import type { ChatMessage, Mission, Seller, UserProfile } from "@/lib/types";
 import { IoArrowBack, IoSend } from "react-icons/io5";
+import { useTranslation } from "@/lib/i18n";
 
 export default function ChatPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const params = useParams();
   const searchParams = useSearchParams();
   const { user: authUser, loading: authLoading } = useAuth();
@@ -267,8 +269,8 @@ export default function ChatPage() {
             <div className="text-center py-8">
               <p className="text-gray-600 text-sm">
                 {isBuyer
-                  ? "Start the conversation with the seller"
-                  : "Wait for the buyer to start the conversation or send a message"}
+                  ? t("chat.startConversationSeller")
+                  : t("chat.waitForBuyer")}
               </p>
             </div>
           ) : (
@@ -309,7 +311,7 @@ export default function ChatPage() {
         <div className="max-w-4xl mx-auto flex items-center gap-3">
           <input
             type="text"
-            placeholder="Type a message..."
+            placeholder={t("chat.input.placeholder")}
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleSend()}

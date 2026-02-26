@@ -17,9 +17,11 @@ import {
 import type { UserProfile, Seller, InventoryItem } from "@/lib/types";
 import { BottomNav } from "@/components/BottomNav";
 import { IoArrowBack, IoAdd, IoTrash, IoSave, IoClose } from "react-icons/io5";
+import { useTranslation } from "@/lib/i18n";
 
 export default function InventoryPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user: authUser, isConfigured, loading } = useAuth();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [seller, setSeller] = useState<Seller | null>(null);
@@ -186,9 +188,9 @@ export default function InventoryPage() {
               <IoArrowBack className="w-5 h-5" />
             </button>
             <div className="flex-1">
-              <h1 className="text-xl font-bold">Inventory Management</h1>
+              <h1 className="text-xl font-bold">{t("inventory.title")}</h1>
               <p className="text-slate-300 text-sm">
-                Manage your products and stock levels
+                {t("inventory.manage")}
               </p>
             </div>
           </div>
@@ -224,7 +226,7 @@ export default function InventoryPage() {
           className="w-full bg-[#EF7C29] text-white rounded-md p-4 flex items-center justify-center gap-2 mb-5 hover:bg-[#d96a1f]"
         >
           <IoAdd className="w-5 h-5" />
-          Add New Product
+          {t("inventory.addNewProduct")}
         </button>
 
         {/* Inventory List */}
@@ -233,7 +235,7 @@ export default function InventoryPage() {
             <div className="text-center py-12 bg-white rounded-md border border-gray-200">
               <p className="text-gray-500">No products in inventory</p>
               <p className="text-sm text-gray-400 mt-1">
-                Add your first product to get started
+                {t("inventory.addFirstProduct")}
               </p>
             </div>
           ) : (
@@ -339,7 +341,7 @@ export default function InventoryPage() {
           <div className="bg-white w-full max-w-lg rounded-t-3xl p-6 pb-32 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold">
-                {editingItem ? "Edit Product" : "Add Product"}
+                {editingItem ? t("inventory.editProduct") : t("inventory.addProduct")}
               </h2>
               <button
                 onClick={() => setShowAddModal(false)}
@@ -360,7 +362,7 @@ export default function InventoryPage() {
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  placeholder="e.g., Office Chair Premium"
+                  placeholder={t("inventory.namePlaceholder")}
                   className="w-full px-4 py-3 border border-gray-200 rounded-md outline-none focus:border-slate-800"
                 />
               </div>
@@ -419,7 +421,7 @@ export default function InventoryPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, price: e.target.value })
                     }
-                    placeholder="50000"
+                    placeholder={t("inventory.priceExample")}
                     className="w-full px-4 py-3 border border-gray-200 rounded-md outline-none focus:border-slate-800"
                   />
                 </div>
@@ -433,7 +435,7 @@ export default function InventoryPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, stock: e.target.value })
                     }
-                    placeholder="100"
+                    placeholder={t("inventory.stockPlaceholder")}
                     className="w-full px-4 py-3 border border-gray-200 rounded-md outline-none focus:border-slate-800"
                   />
                 </div>
@@ -450,7 +452,7 @@ export default function InventoryPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, moq: e.target.value })
                     }
-                    placeholder="10 units"
+                    placeholder={t("inventory.moqPlaceholder")}
                     className="w-full px-4 py-3 border border-gray-200 rounded-md outline-none focus:border-slate-800"
                   />
                 </div>
@@ -464,7 +466,7 @@ export default function InventoryPage() {
                     onChange={(e) =>
                       setFormData({ ...formData, leadTime: e.target.value })
                     }
-                    placeholder="1-2 weeks"
+                    placeholder={t("inventory.leadTimePlaceholder")}
                     className="w-full px-4 py-3 border border-gray-200 rounded-md outline-none focus:border-slate-800"
                   />
                 </div>
@@ -483,7 +485,7 @@ export default function InventoryPage() {
                   margin: "0 auto",
                 }}
               >
-                {editingItem ? "Update Product" : "Add Product"}
+                {editingItem ? t("inventory.updateProduct") : t("inventory.addProduct")}
               </button>
             </div>
           </div>

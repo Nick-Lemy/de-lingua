@@ -21,6 +21,7 @@ import {
 import type { UserProfile, ChatMessage, Mission, Seller } from "@/lib/types";
 import { BottomNav } from "@/components/BottomNav";
 import { IoArrowBack, IoChatbubbles, IoTime } from "react-icons/io5";
+import { useTranslation } from "@/lib/i18n";
 
 interface Conversation {
   missionId: string;
@@ -35,6 +36,7 @@ interface Conversation {
 
 export default function MessagesPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user: authUser, isConfigured, loading } = useAuth();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -164,7 +166,7 @@ export default function MessagesPage() {
         minute: "2-digit",
       });
     } else if (diffInHours < 48) {
-      return "Yesterday";
+      return t("time.yesterday");
     } else {
       return date.toLocaleDateString([], {
         month: "short",
@@ -196,10 +198,9 @@ export default function MessagesPage() {
               <IoArrowBack className="w-5 h-5" />
             </button>
             <div className="flex-1">
-              <h1 className="text-xl font-bold">Messages</h1>
+              <h1 className="text-xl font-bold">{t("messages.title")}</h1>
               <p className="text-slate-300 text-sm">
-                {conversations.length} conversation
-                {conversations.length !== 1 ? "s" : ""}
+                {t("messages.conversationsCount", { count: conversations.length })}
               </p>
             </div>
           </div>
@@ -251,10 +252,10 @@ export default function MessagesPage() {
                         </span>
                       </div>
                       <p className="text-sm text-[#1152A2] mb-1 truncate">
-                        Re: {conv.mission?.product || "Mission"}
+                        {t("messages.re")} {conv.mission?.product || t("messages.mission")}
                       </p>
                       <p className="text-sm text-gray-500 truncate">
-                        {conv.lastMessage.sender === user.role ? "You: " : ""}
+                        {conv.lastMessage.sender === user.role ? t("messages.you") + " " : ""}
                         {conv.lastMessage.text}
                       </p>
                     </div>

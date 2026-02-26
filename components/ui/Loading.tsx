@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslation } from "@/lib/i18n";
+
 interface LoadingSpinnerProps {
   size?: "sm" | "md" | "lg";
   className?: string;
@@ -27,10 +29,13 @@ interface LoadingScreenProps {
 }
 
 export function LoadingScreen({ message }: LoadingScreenProps) {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-4">
       <LoadingSpinner size="lg" />
-      {message && <p className="text-sm text-gray-500">{message}</p>}
+      <p className="text-sm text-gray-500">
+        {message ? t(message) : t("loading.message")}
+      </p>
     </div>
   );
 }

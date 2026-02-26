@@ -30,10 +30,12 @@ import {
   IoChatbubbles,
 } from "react-icons/io5";
 import { HiSparkles } from "react-icons/hi2";
+import { useTranslation } from "@/lib/i18n";
 
 export default function FeedPostDetailPage() {
   const router = useRouter();
   const params = useParams();
+  const { t } = useTranslation();
   const { user: authUser, isConfigured, loading: authLoading } = useAuth();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [seller, setSeller] = useState<Seller | null>(null);
@@ -133,7 +135,7 @@ export default function FeedPostDetailPage() {
       userRole: user.role,
       type: replyType,
       message:
-        replyType === "pass" ? "Passed on this request" : replyMessage.trim(),
+        replyType === "pass" ? t("feed.reply.passed") : replyMessage.trim(),
       ...(replyPrice.trim() ? { price: replyPrice } : {}),
       ...(replyAvailability.trim() ? { availability: replyAvailability } : {}),
       createdAt: new Date().toISOString(),
@@ -196,13 +198,13 @@ export default function FeedPostDetailPage() {
   const getReplyTypeLabel = (type: string) => {
     switch (type) {
       case "have-it":
-        return "I have this!";
+        return t("feed.reply.haveIt");
       case "interested":
-        return "Interested";
+        return t("feed.reply.interested");
       case "pass":
-        return "Passed";
+        return t("feed.reply.pass");
       case "comment":
-        return "Comment";
+        return t("feed.reply.comment");
       default:
         return type;
     }
@@ -234,7 +236,7 @@ export default function FeedPostDetailPage() {
               <IoArrowBack className="w-5 h-5" />
             </button>
             <div className="flex-1">
-              <h1 className="text-lg font-bold">Post Details</h1>
+              <h1 className="text-lg font-bold">{t("feed.postDetails")}</h1>
               <p className="text-slate-300 text-xs">
                 {replies.length} {replies.length === 1 ? "reply" : "replies"}
               </p>
@@ -518,14 +520,14 @@ export default function FeedPostDetailPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <input
                       type="text"
-                      placeholder="Your price (optional)"
+                      placeholder={t("feed.reply.pricePlaceholder")}
                       value={replyPrice}
                       onChange={(e) => setReplyPrice(e.target.value)}
                       className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#1152A2] focus:outline-none"
                     />
                     <input
                       type="text"
-                      placeholder="Availability (optional)"
+                      placeholder={t("feed.reply.availabilityPlaceholder")}
                       value={replyAvailability}
                       onChange={(e) => setReplyAvailability(e.target.value)}
                       className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#1152A2] focus:outline-none"
@@ -536,7 +538,7 @@ export default function FeedPostDetailPage() {
                 <div className="flex gap-3">
                   <input
                     type="text"
-                    placeholder="Write your response..."
+                    placeholder={t("feed.reply.messagePlaceholder")}
                     value={replyMessage}
                     onChange={(e) => setReplyMessage(e.target.value)}
                     className="flex-1 px-4 py-3 border border-gray-200 rounded-md text-sm focus:border-[#1152A2] focus:outline-none"
@@ -554,7 +556,7 @@ export default function FeedPostDetailPage() {
                   onClick={() => setShowReplyForm(false)}
                   className="w-full text-sm text-gray-500 py-2"
                 >
-                  Cancel
+                  {t("feed.reply.cancel")}
                 </button>
               </div>
             )}
@@ -568,7 +570,7 @@ export default function FeedPostDetailPage() {
           <div className="max-w-lg mx-auto text-center">
             <p className="text-gray-500 text-sm">
               <IoCheckmarkCircle className="w-4 h-4 inline mr-1 text-green-500" />
-              You&apos;ve already responded to this post
+              {t("feed.reply.alreadyReplied")}
             </p>
           </div>
         </div>

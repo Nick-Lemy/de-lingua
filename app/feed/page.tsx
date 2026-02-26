@@ -10,21 +10,24 @@ import type { UserProfile, FeedPost } from "@/lib/types";
 import { BottomNav } from "@/components/BottomNav";
 import { IoAdd, IoTime, IoLocationSharp, IoChatbubbles } from "react-icons/io5";
 import { HiSparkles } from "react-icons/hi2";
+import { useTranslation } from "@/lib/i18n";
 
+// category identifiers correspond to translation keys under feed.categories
 const categories = [
-  "All",
-  "Agricultural Products",
-  "Construction Materials",
-  "Electronics & Tech",
-  "Textiles & Garments",
-  "Food & Beverages",
-  "Handicrafts & Art",
-  "Office Supplies",
-  "Machinery & Equipment",
+  "all",
+  "agriculture",
+  "construction",
+  "electronics",
+  "textiles",
+  "food",
+  "handicrafts",
+  "office",
+  "machinery",
 ];
 
 export default function FeedPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user: authUser, isConfigured, loading } = useAuth();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [posts, setPosts] = useState<FeedPost[]>([]);
@@ -97,11 +100,11 @@ export default function FeedPage() {
 
     if (diffInHours < 1) {
       const minutes = Math.floor(diffInHours * 60);
-      return `${minutes}m ago`;
+      return t("time.minutesAgo", { count: minutes });
     } else if (diffInHours < 24) {
-      return `${Math.floor(diffInHours)}h ago`;
+      return t("time.hoursAgo", { count: Math.floor(diffInHours) });
     } else if (diffInHours < 48) {
-      return "Yesterday";
+      return t("time.yesterday");
     } else {
       return date.toLocaleDateString([], {
         month: "short",
@@ -138,9 +141,9 @@ export default function FeedPage() {
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-xl font-bold">Community Feed</h1>
+              <h1 className="text-xl font-bold">{t("feed.title")}</h1>
               <p className="text-slate-300 text-sm">
-                {posts.length} active posts
+                {t("feed.activePosts", { count: posts.length })}
               </p>
             </div>
             <Link
@@ -161,7 +164,7 @@ export default function FeedPage() {
                   : "text-white/80"
               }`}
             >
-              All
+              {t("feed.tabs.all")}
             </button>
             <button
               onClick={() => setActiveTab("looking")}
@@ -171,7 +174,7 @@ export default function FeedPage() {
                   : "text-white/80"
               }`}
             >
-              Looking For
+              {t("feed.tabs.looking")}
             </button>
             <button
               onClick={() => setActiveTab("offering")}
@@ -181,7 +184,7 @@ export default function FeedPage() {
                   : "text-white/80"
               }`}
             >
-              Offering
+              {t("feed.tabs.offering")}
             </button>
           </div>
         </div>

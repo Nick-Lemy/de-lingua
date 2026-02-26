@@ -9,6 +9,7 @@ import type { UserProfile } from "@/lib/types";
 import { Button } from "@/components/ui";
 import { BottomNav } from "@/components/BottomNav";
 import { IoArrowBack, IoMail, IoLogOut } from "react-icons/io5";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -58,6 +59,9 @@ export default function AccountPage() {
 
   return (
     <div className="min-h-screen bg-white pb-24">
+      <div className="absolute top-4 right-4 z-10">
+        <LanguageSwitcher />
+      </div>
       {/* Header */}
       <div className="bg-[#1152A2] text-white px-5 pt-12 pb-8">
         <div className="max-w-lg mx-auto">

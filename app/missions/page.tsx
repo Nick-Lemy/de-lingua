@@ -14,9 +14,11 @@ import { getMissionsByBuyer as getFirebaseMissions } from "@/lib/db";
 import type { UserProfile, Mission } from "@/lib/types";
 import { IoRocket, IoAdd, IoTime } from "react-icons/io5";
 import { BottomNav } from "@/components/BottomNav";
+import { useTranslation } from "@/lib/i18n";
 
 export default function MissionsPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user: authUser, loading: authLoading } = useAuth();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [missions, setMissions] = useState<Mission[]>([]);
@@ -95,9 +97,9 @@ export default function MissionsPage() {
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h1 className="text-xl font-bold">My Missions</h1>
+              <h1 className="text-xl font-bold">{t("missions.title")}</h1>
               <p className="text-slate-300 text-xs mt-1">
-                {missions.length} total missions
+                {t("missions.total", { count: missions.length })}
               </p>
             </div>
             <Link
@@ -118,16 +120,16 @@ export default function MissionsPage() {
               <IoRocket className="w-8 h-8 text-gray-400" />
             </div>
             <h3 className="font-bold text-base text-gray-900 mb-2">
-              No missions yet
+              {t("missions.noMissions")}
             </h3>
             <p className="text-sm text-gray-500 mb-6">
-              Create your first mission to find suppliers
+              {t("missions.createFirst")}
             </p>
             <Link
               href="/missions/create"
               className="inline-block px-5 py-2.5 bg-[#EF7C29] text-white rounded-md text-sm font-semibold hover:bg-[#d96a1f]"
             >
-              Create Mission
+              {t("missions.createMission")}
             </Link>
           </div>
         ) : (
@@ -157,13 +159,13 @@ export default function MissionsPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-xs mb-3">
                     <div>
-                      <p className="text-gray-500 mb-0.5">Quantity</p>
+                      <p className="text-gray-500 mb-0.5">{t("missions.quantity")}</p>
                       <p className="font-semibold text-gray-900">
-                        {mission.quantity} units
+                        {mission.quantity} {t("missions.units")}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-500 mb-0.5">Budget</p>
+                      <p className="text-gray-500 mb-0.5">{t("missions.budget")}</p>
                       <p className="font-semibold text-gray-900">
                         {mission.budgetMin} RWF-{mission.budgetMax} RWF
                       </p>

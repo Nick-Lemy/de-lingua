@@ -18,6 +18,7 @@ import {
   IoStorefront,
 } from "react-icons/io5";
 import { HiStar } from "react-icons/hi2";
+import { useTranslation } from "@/lib/i18n";
 
 const categories = [
   "All",
@@ -33,12 +34,13 @@ const categories = [
 
 export default function DiscoverPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user: authUser, isConfigured, loading } = useAuth();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [filteredSellers, setFilteredSellers] = useState<Seller[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -118,7 +120,7 @@ export default function DiscoverPage() {
       {/* Header */}
       <div className="bg-[#1152A2] text-white px-5 pt-12 pb-6">
         <div className="max-w-lg mx-auto">
-          <h1 className="text-xl font-bold mb-4">Discover Suppliers</h1>
+          <h1 className="text-xl font-bold mb-4">{t("discover.title")}</h1>
 
           {/* Search Bar */}
           <div className="relative">
@@ -127,7 +129,7 @@ export default function DiscoverPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search suppliers, products, locations..."
+              placeholder={t("discover.searchPlaceholder")}
               className="w-full h-12 pl-12 pr-4 bg-white/10 border border-white/20 rounded-md text-white placeholder:text-gray-400 outline-none"
             />
           </div>
@@ -147,7 +149,7 @@ export default function DiscoverPage() {
                   : "bg-white border border-gray-200 text-gray-700"
               }`}
             >
-              {cat}
+              {t(`feed.categories.${cat}`)}
             </button>
           ))}
         </div>
@@ -155,12 +157,11 @@ export default function DiscoverPage() {
         {/* Results Count */}
         <div className="flex items-center justify-between mt-4 mb-3">
           <p className="text-sm text-gray-500">
-            {filteredSellers.length} supplier
-            {filteredSellers.length !== 1 ? "s" : ""} found
+            {t("discover.resultsCount", { count: filteredSellers.length })}
           </p>
           <button className="flex items-center gap-1 text-sm text-[#1152A2] font-medium">
             <IoFilter className="w-4 h-4" />
-            Filter
+            {t("discover.filter")}
           </button>
         </div>
 
@@ -169,11 +170,11 @@ export default function DiscoverPage() {
           {filteredSellers.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-md border border-gray-200">
               <IoStorefront className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500 font-medium">No suppliers found</p>
+              <p className="text-gray-500 font-medium">{t("discover.noSuppliers")}</p>
               <p className="text-sm text-gray-400 mt-1">
                 {sellers.length === 0
-                  ? "Suppliers will appear here when they join DeLingua"
-                  : "Try adjusting your search or filters"}
+                  ? t("discover.noSuppliersExplain")
+                  : t("discover.tryAdjust")}
               </p>
             </div>
           ) : (

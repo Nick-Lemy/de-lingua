@@ -20,26 +20,28 @@ import { generateAIMatches } from "@/app/actions/matching";
 import type { Mission } from "@/lib/types";
 import { IoArrowBack, IoCheckmarkCircle } from "react-icons/io5";
 
+// identifiers correspond to feed.categories / missions-specific category keys
 const categories = [
-  "Agricultural Products",
-  "Construction Materials",
-  "Electronics & Tech",
-  "Textiles & Garments",
-  "Food & Beverages",
-  "Handicrafts & Art",
-  "Office Supplies",
-  "Machinery & Equipment",
-  "Other",
+  "agriculture",
+  "construction",
+  "electronics",
+  "textiles",
+  "food",
+  "handicrafts",
+  "office",
+  "machinery",
+  "other",
 ];
 
 const urgencies = [
-  { value: "urgent", label: "Urgent", sublabel: "1-3 days" },
-  { value: "normal", label: "Normal", sublabel: "1-2 weeks" },
-  { value: "flexible", label: "Flexible", sublabel: "1+ month" },
+  { value: "urgent", labelKey: "feedCreate.urgency.urgent", sublabelKey: "feedCreate.urgency.urgent.sublabel" },
+  { value: "normal", labelKey: "feedCreate.urgency.normal", sublabelKey: "feedCreate.urgency.normal.sublabel" },
+  { value: "flexible", labelKey: "feedCreate.urgency.flexible", sublabelKey: "feedCreate.urgency.flexible.sublabel" },
 ];
 
 export default function CreateMissionPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user: authUser, isConfigured, loading: authLoading } = useAuth();
   // Remove user state, use authUser/localUser directly
   const [step, setStep] = useState(1);
@@ -183,8 +185,8 @@ export default function CreateMissionPage() {
               <IoArrowBack className="w-5 h-5" />
             </button>
             <div className="flex-1">
-              <h1 className="text-lg font-bold">Create Mission</h1>
-              <p className="text-slate-300 text-xs">Step {step} of 5</p>
+              <h1 className="text-lg font-bold">{t("missions.createMission")}</h1>
+              <p className="text-slate-300 text-xs">{t("feedCreate.step", { step, total: 5 })}</p>
             </div>
           </div>
           <div className="h-1 bg-white/20 rounded-full overflow-hidden">
@@ -202,16 +204,16 @@ export default function CreateMissionPage() {
           <div className="space-y-5">
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-1">
-                What do you need?
+                {t("missions.step1.title")}
               </h2>
               <p className="text-sm text-gray-500">
-                Describe the product or service
+                {t("missions.step1.desc")}
               </p>
             </div>
             <div>
               <input
                 type="text"
-                placeholder="e.g., Office chairs, USB cables..."
+                placeholder={t("missions.titlePlaceholder")}
                 value={formData.product}
                 onChange={(e) =>
                   setFormData({ ...formData, product: e.target.value })
@@ -227,10 +229,10 @@ export default function CreateMissionPage() {
           <div className="space-y-5">
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-1">
-                Select category
+                {t("missions.step2.title")}
               </h2>
               <p className="text-sm text-gray-500">
-                Helps us find the right suppliers
+                {t("missions.step2.desc")}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -244,7 +246,7 @@ export default function CreateMissionPage() {
                       : "bg-white border border-gray-200 text-gray-700"
                   }`}
                 >
-                  {cat}
+                  {t(`feed.categories.${cat}`)}
                 </button>
               ))}
             </div>
@@ -255,7 +257,7 @@ export default function CreateMissionPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="Enter your category"
+                  placeholder={t("onboarding.enterCategory")}
                   value={formData.customCategory}
                   onChange={(e) =>
                     setFormData({ ...formData, customCategory: e.target.value })
@@ -272,9 +274,9 @@ export default function CreateMissionPage() {
           <div className="space-y-5">
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-1">
-                Quantity & Budget
+                {t("missions.step3.title")}
               </h2>
-              <p className="text-sm text-gray-500">How much do you need?</p>
+              <p className="text-sm text-gray-500">{t("missions.step3.desc")}</p>
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-2">
@@ -282,7 +284,7 @@ export default function CreateMissionPage() {
               </label>
               <input
                 type="number"
-                placeholder="e.g., 50"
+                placeholder={t("missions.quantityPlaceholder")}
                 value={formData.quantity}
                 onChange={(e) =>
                   setFormData({ ...formData, quantity: e.target.value })
@@ -297,7 +299,7 @@ export default function CreateMissionPage() {
               <div className="grid grid-cols-2 gap-3">
                 <input
                   type="number"
-                  placeholder="Min"
+                  placeholder={t("missions.budgetMinPlaceholder")}
                   value={formData.budgetMin}
                   onChange={(e) =>
                     setFormData({ ...formData, budgetMin: e.target.value })
@@ -306,7 +308,7 @@ export default function CreateMissionPage() {
                 />
                 <input
                   type="number"
-                  placeholder="Max"
+                  placeholder={t("missions.budgetMaxPlaceholder")}
                   value={formData.budgetMax}
                   onChange={(e) =>
                     setFormData({ ...formData, budgetMax: e.target.value })
@@ -322,10 +324,10 @@ export default function CreateMissionPage() {
           <div className="space-y-5">
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-1">
-                How urgent?
+                {t("missions.step4.title")}
               </h2>
               <p className="text-sm text-gray-500">
-                Helps suppliers prioritize
+                {t("missions.step4.desc")}
               </p>
             </div>
             <div className="space-y-2">
@@ -342,11 +344,11 @@ export default function CreateMissionPage() {
                   }`}
                 >
                   <div>
-                    <p className="font-semibold text-sm">{urg.label}</p>
+                    <p className="font-semibold text-sm">{t(urg.labelKey)}</p>
                     <p
                       className={`text-xs ${formData.urgency === urg.value ? "text-slate-300" : "text-gray-500"}`}
                     >
-                      {urg.sublabel}
+                      {t(urg.sublabelKey)}
                     </p>
                   </div>
                   {formData.urgency === urg.value && (
@@ -362,16 +364,16 @@ export default function CreateMissionPage() {
           <div className="space-y-5">
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-1">
-                Delivery location
+                {t("missions.deliveryLocation")}
               </h2>
               <p className="text-sm text-gray-500">
-                Where should they deliver?
+                {t("missions.deliveryLocationDesc")}
               </p>
             </div>
             <div>
               <input
                 type="text"
-                placeholder="e.g., Kigali, Musanze, Rubavu..."
+                placeholder={t("missions.locationPlaceholder")}
                 value={formData.location}
                 onChange={(e) =>
                   setFormData({ ...formData, location: e.target.value })
@@ -382,10 +384,10 @@ export default function CreateMissionPage() {
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-2">
-                Additional details (optional)
+                {t("missions.additionalDetailsOptional")}
               </label>
               <textarea
-                placeholder="Any specific requirements..."
+                placeholder={t("missions.requirementsPlaceholder")}
                 value={formData.description}
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
@@ -406,7 +408,7 @@ export default function CreateMissionPage() {
             disabled={!canProceed()}
             className="w-full py-3 rounded-md bg-[#EF7C29] text-white font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#d96a1f]"
           >
-            {step < 5 ? "Continue" : "Find Suppliers"}
+            {step < 5 ? t("missions.continue") : t("missions.findSuppliers")}
           </button>
         </div>
       </div>

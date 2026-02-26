@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslation } from "@/lib/i18n";
 import { isFirebaseConfigured } from "@/lib/firebase";
 import { signUp } from "@/lib/auth";
 import {
@@ -11,6 +12,7 @@ import {
   generateId,
   createSellerFromUser,
 } from "@/lib/storage";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const buyerSteps = [
   {
@@ -125,6 +127,7 @@ const sellerSteps = [
 ];
 
 export default function OnboardingPage() {
+  const { t } = useTranslation();
   const [customCategory, setCustomCategory] = useState("");
   const router = useRouter();
   const [role, setRole] = useState<"buyer" | "seller" | null>(null);
@@ -283,12 +286,10 @@ export default function OnboardingPage() {
           </div>
 
           <h1 className="text-3xl lg:text-4xl font-bold text-white leading-tight mb-4">
-            Welcome to
-            <br />
-            DeLingua
+            {t("onboarding.title")}
           </h1>
           <p className="text-slate-300 text-base lg:text-lg mb-16">
-            Choose your role to get started
+            {t("onboarding.chooseRole")}
           </p>
 
           <div className="space-y-4">
@@ -297,10 +298,10 @@ export default function OnboardingPage() {
                 <div className="flex items-center justify-between">
                   <div className="text-left">
                     <h3 className="text-xl font-bold text-white mb-2">
-                      I&apos;m a Buyer
+                      {t("onboarding.buyer")}
                     </h3>
                     <p className="text-slate-300">
-                      Looking for suppliers and products
+                      {t("onboarding.buyerDesc")}
                     </p>
                   </div>
                   <div className="w-14 h-14 rounded-md bg-[#EF7C29] flex items-center justify-center">
@@ -325,10 +326,10 @@ export default function OnboardingPage() {
                 <div className="flex items-center justify-between">
                   <div className="text-left">
                     <h3 className="text-xl font-bold text-white mb-2">
-                      I&apos;m a Seller
+                      {t("onboarding.seller")}
                     </h3>
                     <p className="text-slate-300">
-                      Ready to showcase my products
+                      {t("onboarding.sellerDesc")}
                     </p>
                   </div>
                   <div className="w-14 h-14 rounded-md bg-white/20 flex items-center justify-center">
@@ -355,7 +356,7 @@ export default function OnboardingPage() {
             href="/login"
             className="block w-full py-4 text-slate-300 text-center text-sm"
           >
-            I already have an account
+            {t("onboarding.haveAccount")}
           </Link>
         </div>
       </div>
@@ -375,12 +376,12 @@ export default function OnboardingPage() {
       <div className="min-h-screen bg-[#1152A2] flex flex-col">
         <div className="flex-1 px-6 lg:px-8 pt-14 max-w-2xl mx-auto w-full">
           <h1 className="text-2xl lg:text-3xl font-bold text-white mb-3">
-            Almost done!
+            {t("onboarding.almostDone")}
           </h1>
           <p className="text-slate-300 text-base mb-10">
             {isConfigured
-              ? "Create your account to get started"
-              : "Tell us who you are"}
+              ? t("onboarding.createAccount")
+              : t("onboarding.tellUs")}
           </p>
 
           {error && (
@@ -392,59 +393,59 @@ export default function OnboardingPage() {
           <div className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
-                Your name
+                {t("onboarding.yourName")}
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="John Doe"
+                placeholder={t("onboarding.namePlaceholder")}
                 className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-md text-white placeholder:text-gray-500 outline-none"
               />
             </div>
             {role === "seller" && (
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Store / Business name
+                  {t("onboarding.storeName")}
                 </label>
                 <input
                   type="text"
                   value={storeName}
                   onChange={(e) => setStoreName(e.target.value)}
-                  placeholder="e.g., Kigali Fresh Produce, TechHub Rwanda"
+                  placeholder={t("onboarding.storePlaceholder")}
                   className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-md text-white placeholder:text-gray-500 outline-none"
                 />
                 <p className="mt-2 text-xs text-slate-400">
-                  This is how buyers will see your business
+                  {t("onboarding.storeNameDesc")}
                 </p>
               </div>
             )}
             <div>
               <label className="block text-sm font-medium text-slate-300 mb-2">
-                Email address
+                {t("onboarding.email")}
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="john@company.com"
+                placeholder={t("onboarding.emailPlaceholder")}
                 className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-md text-white placeholder:text-gray-500 outline-none"
               />
             </div>
             {isConfigured && (
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Password
+                  {t("onboarding.password")}
                 </label>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Min. 6 characters"
+                  placeholder={t("onboarding.passwordMin")}
                   className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-md text-white placeholder:text-gray-500 outline-none"
                 />
                 <p className="mt-2 text-xs text-slate-400">
-                  Password must be at least 6 characters
+                  {t("onboarding.passwordMin")}
                 </p>
               </div>
             )}
@@ -489,7 +490,10 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-[#1152A2] flex flex-col">
-      <div className="px-6 lg:px-8 pt-14 max-w-2xl mx-auto w-full">
+      <div className="absolute top-4 right-4 z-10">
+        <LanguageSwitcher />
+      </div>
+      <div className="flex-1 px-6 lg:px-8 pt-14 max-w-2xl mx-auto w-full">
         <div className="flex gap-2 mb-4">
           {steps.map((_, i) => (
             <div
@@ -533,7 +537,7 @@ export default function OnboardingPage() {
             </label>
             <input
               type="text"
-              placeholder="Enter your category"
+              placeholder={t("onboarding.enterCategory")}
               value={customCategory}
               onChange={(e) => setCustomCategory(e.target.value)}
               className="w-full px-4 py-3 border border-gray-200 rounded-md focus:border-slate-800 focus:ring-2 focus:ring-slate-100 focus:outline-none text-sm bg-white"

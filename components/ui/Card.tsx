@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslation } from "@/lib/i18n";
+
 interface CardProps {
   children: React.ReactNode;
   className?: string;
@@ -55,8 +57,11 @@ interface CardTitleProps {
 }
 
 export function CardTitle({ children, className = "" }: CardTitleProps) {
+  const { t } = useTranslation();
   return (
-    <h3 className={`font-semibold text-gray-900 ${className}`}>{children}</h3>
+    <h3 className={`font-semibold text-gray-900 ${className}`}>
+      {t("card.title")}
+    </h3>
   );
 }
 
@@ -69,5 +74,10 @@ export function CardDescription({
   children,
   className = "",
 }: CardDescriptionProps) {
-  return <p className={`text-sm text-gray-500 ${className}`}>{children}</p>;
+  const { t } = useTranslation();
+  return (
+    <p className={`text-sm text-gray-500 ${className}`}>
+      {t("card.description")}
+    </p>
+  );
 }

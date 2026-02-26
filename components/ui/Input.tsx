@@ -1,6 +1,7 @@
 "use client";
 
 import { InputHTMLAttributes, forwardRef } from "react";
+import { useTranslation } from "@/lib/i18n";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -10,11 +11,12 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, helperText, className = "", ...props }, ref) => {
+    const { t } = useTranslation();
     return (
       <div className="w-full">
         {label && (
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            {label}
+            {t(label)}
           </label>
         )}
         <input
@@ -31,9 +33,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ${className}`}
           {...props}
         />
-        {error && <p className="mt-1.5 text-sm text-red-500">{error}</p>}
+        {error && (
+          <p className="mt-1.5 text-sm text-red-500">{t("input.error")}</p>
+        )}
         {helperText && !error && (
-          <p className="mt-1.5 text-sm text-gray-500">{helperText}</p>
+          <p className="mt-1.5 text-sm text-gray-500">
+            {t("input.helperText")}
+          </p>
         )}
       </div>
     );

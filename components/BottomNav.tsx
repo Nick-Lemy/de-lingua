@@ -12,6 +12,7 @@ import {
   IoPeople,
 } from "react-icons/io5";
 import { HiSparkles } from "react-icons/hi2";
+import { useTranslation } from "@/lib/i18n";
 
 interface BottomNavProps {
   role?: "buyer" | "seller";
@@ -19,20 +20,21 @@ interface BottomNavProps {
 
 export function BottomNav({ role = "buyer" }: BottomNavProps) {
   const pathname = usePathname();
+  const { t } = useTranslation();
 
   const buyerItems = [
-    { href: "/", icon: IoHome, label: "Home" },
-    { href: "/feed", icon: IoPeople, label: "Feed" },
-    { href: "/missions", icon: IoRocket, label: "Missions" },
-    { href: "/messages", icon: IoChatbubbles, label: "Messages" },
-    { href: "/account", icon: IoPerson, label: "Account" },
+    { href: "/", icon: IoHome, label: t("nav.home") },
+    { href: "/feed", icon: IoPeople, label: t("nav.feed") },
+    { href: "/missions", icon: IoRocket, label: t("nav.missions") },
+    { href: "/messages", icon: IoChatbubbles, label: t("nav.messages") },
+    { href: "/account", icon: IoPerson, label: t("nav.account") },
   ];
 
   const sellerItems = [
-    { href: "/seller-dashboard", icon: IoHome, label: "Dashboard" },
-    { href: "/feed", icon: IoPeople, label: "Feed" },
-    { href: "/messages", icon: IoChatbubbles, label: "Messages" },
-    { href: "/account", icon: IoPerson, label: "Account" },
+    { href: "/seller-dashboard", icon: IoHome, label: t("nav.dashboard") },
+    { href: "/feed", icon: IoPeople, label: t("nav.feed") },
+    { href: "/messages", icon: IoChatbubbles, label: t("nav.messages") },
+    { href: "/account", icon: IoPerson, label: t("nav.account") },
   ];
 
   const items = role === "seller" ? sellerItems : buyerItems;
