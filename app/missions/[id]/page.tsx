@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { isFirebaseConfigured } from "@/lib/firebase";
@@ -14,6 +15,7 @@ import { BottomNav } from "@/components/BottomNav";
 
 export default function MissionDetailPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const params = useParams();
   const [mission, setMission] = useState<Mission | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
@@ -128,31 +130,31 @@ export default function MissionDetailPage() {
       {/* Mission Details */}
       <div className="px-6 lg:px-8 max-w-4xl mx-auto mt-6">
         <div className="bg-gray-50 rounded-md p-5 border border-gray-200">
-          <h3 className="font-semibold mb-4 text-black">Mission Details</h3>
+          <h3 className="font-semibold mb-4 text-black">{t("missionDetails.title")}</h3>
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="bg-slate-50 border border-slate-200 rounded-md p-3">
               <p className="text-slate-600 text-xs mb-1 font-medium">
-                Quantity
+                {t("missionDetails.quantity")}
               </p>
               <p className="font-semibold text-slate-800">
                 {mission.quantity} units
               </p>
             </div>
             <div className="bg-[#EF7C29]/10 border border-[#EF7C29]/20 rounded-md p-3">
-              <p className="text-[#EF7C29] text-xs mb-1 font-medium">Budget</p>
+              <p className="text-[#EF7C29] text-xs mb-1 font-medium">{t("missionDetails.budget")}</p>
               <p className="font-semibold text-[#EF7C29]">
                 {mission.budgetMin} RWF - {mission.budgetMax} RWF
               </p>
             </div>
             <div className="bg-slate-50 border border-slate-200 rounded-md p-3">
-              <p className="text-slate-600 text-xs mb-1 font-medium">Urgency</p>
+              <p className="text-slate-600 text-xs mb-1 font-medium">{t("missionDetails.urgency")}</p>
               <p className="font-semibold capitalize text-slate-800">
                 {mission.urgency}
               </p>
             </div>
             <div className="bg-slate-50 border border-slate-200 rounded-md p-3">
               <p className="text-slate-600 text-xs mb-1 font-medium">
-                Location
+                {t("missionDetails.location")}
               </p>
               <p className="font-semibold text-slate-800">{mission.location}</p>
             </div>
@@ -170,13 +172,13 @@ export default function MissionDetailPage() {
       <div className="px-6 lg:px-8 max-w-4xl mx-auto mt-8">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold">
-            {matches.length} {matches.length === 1 ? "Match" : "Matches"} Found
+            {t("missionDetails.matchesFound", { count: matches.length })}
           </h3>
         </div>
 
         {matches.length === 0 ? (
           <div className="bg-gray-50 rounded-md p-8 text-center border border-gray-200">
-            <p className="text-gray-600">Looking for suppliers...</p>
+            <p className="text-gray-600">{t("missionDetails.looking")}</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -212,7 +214,7 @@ export default function MissionDetailPage() {
                 {/* Match Attributes */}
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <div className="bg-gray-50 rounded-md p-3">
-                    <p className="text-xs text-gray-600 mb-1">Budget Fit</p>
+                    <p className="text-xs text-gray-600 mb-1">{t("missionDetails.budgetFit")}</p>
                     <p
                       className={`font-semibold text-sm capitalize ${getBudgetFitColor(match.budgetFit)}`}
                     >
@@ -220,7 +222,7 @@ export default function MissionDetailPage() {
                     </p>
                   </div>
                   <div className="bg-gray-50 rounded-md p-3">
-                    <p className="text-xs text-gray-600 mb-1">Availability</p>
+                    <p className="text-xs text-gray-600 mb-1">{t("missionDetails.availability")}</p>
                     <p className="font-semibold text-sm capitalize">
                       {match.stockStatus.replace("-", " ")}
                     </p>
@@ -229,14 +231,14 @@ export default function MissionDetailPage() {
 
                 {/* Why This Match */}
                 <div className="bg-gray-50 rounded-md p-3">
-                  <p className="text-xs text-gray-600 mb-1">Why this match?</p>
+                  <p className="text-xs text-gray-600 mb-1">{t("missionDetails.why")}</p>
                   <p className="text-sm text-black">{match.whyMatch}</p>
                 </div>
 
                 {/* View Profile CTA */}
                 <div className="mt-4 flex items-center justify-between">
                   <span className="text-sm font-semibold">
-                    View Full Profile
+                    {t("missionDetails.viewProfile")}
                   </span>
                   <svg
                     width="20"

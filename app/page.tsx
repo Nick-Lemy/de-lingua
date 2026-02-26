@@ -151,8 +151,8 @@ export default function HomePage() {
                 <IoAdd className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-base font-bold">Create Mission</h2>
-                <p className="text-white/80 text-xs">Find suppliers quickly</p>
+                <h2 className="text-base font-bold">{t("home.createMission")}</h2>
+                <p className="text-white/80 text-xs">{t("home.findSuppliers")}</p>
               </div>
             </div>
             <svg
@@ -171,17 +171,17 @@ export default function HomePage() {
         {/* Quick Stats */}
         <div className="grid grid-cols-3 gap-3 mt-5">
           <div className="bg-white rounded-md p-3 border border-gray-200">
-            <p className="text-gray-500 text-xs mb-1 font-medium">Missions</p>
+            <p className="text-gray-500 text-xs mb-1 font-medium">{t("home.stats.missions")}</p>
             <p className="text-lg font-bold text-[#1152A2]">
               {missions.length}
             </p>
           </div>
           <div className="bg-white rounded-md p-3 border border-gray-200">
-            <p className="text-gray-500 text-xs mb-1 font-medium">Suppliers</p>
+            <p className="text-gray-500 text-xs mb-1 font-medium">{t("home.stats.suppliers")}</p>
             <p className="text-lg font-bold text-[#1152A2]">{sellers.length}</p>
           </div>
           <div className="bg-white rounded-md p-3 border border-gray-200">
-            <p className="text-gray-500 text-xs mb-1 font-medium">Active</p>
+            <p className="text-gray-500 text-xs mb-1 font-medium">{t("home.stats.active")}</p>
             <p className="text-lg font-bold text-[#1152A2]">
               {activeMissionCount}
             </p>
@@ -192,22 +192,22 @@ export default function HomePage() {
         <div className="mt-6">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-base font-bold text-gray-900">
-              Suggested Suppliers
+              {t("home.suggestedSuppliers")}
             </h3>
             <Link
               href="/discover"
               className="text-xs font-medium text-[#1152A2]"
             >
-              See all
+              {t("home.seeAll")}
             </Link>
           </div>
           <div className="space-y-3">
             {sellers.length === 0 ? (
               <div className="bg-white rounded-md p-6 border border-gray-200 text-center">
                 <IoStorefront className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">No suppliers yet</p>
+                <p className="text-sm text-gray-500">{t("home.noSuppliersYet")}</p>
                 <p className="text-xs text-gray-400 mt-1">
-                  Suppliers will appear when they join DeLingua
+                  {t("home.suppliersWillAppear")}
                 </p>
               </div>
             ) : (

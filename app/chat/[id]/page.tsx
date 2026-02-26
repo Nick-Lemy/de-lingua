@@ -43,8 +43,8 @@ export default function ChatPage() {
   const isBuyer = user?.role === "buyer";
   // Robust partner name/avatar logic
   const partnerName = isBuyer
-    ? seller?.name || "Seller"
-    : buyer?.name || "Buyer";
+    ? seller?.name || t("chat.seller")
+    : buyer?.name || t("chat.buyer");
   const partnerAvatar = isBuyer
     ? seller?.avatar || (seller?.name?.charAt(0).toUpperCase() ?? "S")
     : buyer?.avatar || (buyer?.name?.charAt(0).toUpperCase() ?? "B");
@@ -135,7 +135,7 @@ export default function ChatPage() {
         // For local storage, we create a placeholder buyer
         setBuyer({
           id: foundMission.buyerId,
-          name: "Buyer",
+          name: t("chat.buyer"),
           email: "",
           role: "buyer",
           avatar: "B",
@@ -153,7 +153,7 @@ export default function ChatPage() {
     };
 
     loadData();
-  }, [mounted, authLoading, authUser, params, router, sellerId]);
+  }, [mounted, authLoading, authUser, params, router, sellerId, t]);
 
   // Poll for new messages every 3 seconds using setTimeout for better control
   useEffect(() => {
@@ -183,10 +183,9 @@ export default function ChatPage() {
     if (!newMessage.trim() || !mission || !seller || !user || isSending) return;
     // Prevent sending messages with invalid missionId
     if (!mission.id || mission.id === "mission") {
-      alert("Invalid mission. Cannot send message.");
-      return;
+        alert(t("chat.invalidMission"));
+        return; // don't proceed if mission is invalid
     }
-
     setIsSending(true);
     const isConfigured = isFirebaseConfigured();
 
@@ -241,7 +240,7 @@ export default function ChatPage() {
             </div>
             <div className="flex-1">
               <h1 className="text-lg font-bold">{partnerName}</h1>
-              <p className="text-sm text-slate-300">Re: {mission.product}</p>
+              <p className="text-sm text-slate-300">{t("chat.re")} {mission.product}</p>
             </div>
           </div>
         </div>
@@ -253,13 +252,13 @@ export default function ChatPage() {
           {/* Mission Context */}
           <div className="bg-slate-100 border border-slate-200 rounded-md p-4 text-center">
             <p className="text-xs text-slate-600 mb-2 font-medium">
-              Mission Details
+              {t("chat.missionDetailsHeader")}
             </p>
             <p className="font-semibold text-sm text-slate-800">
               {mission.product}
             </p>
             <p className="text-sm text-slate-600">
-              {mission.quantity} units • RWF{mission.budgetMin}-RWF
+              {mission.quantity} {t("chat.units")} • RWF{mission.budgetMin}-RWF
               {mission.budgetMax} • {mission.location}
             </p>
           </div>

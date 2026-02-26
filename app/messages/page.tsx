@@ -200,7 +200,9 @@ export default function MessagesPage() {
             <div className="flex-1">
               <h1 className="text-xl font-bold">{t("messages.title")}</h1>
               <p className="text-slate-300 text-sm">
-                {t("messages.conversationsCount", { count: conversations.length })}
+                {t("messages.conversationsCount", {
+                  count: conversations.length,
+                })}
               </p>
             </div>
           </div>
@@ -213,11 +215,13 @@ export default function MessagesPage() {
           {conversations.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-md border border-gray-200">
               <IoChatbubbles className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500 font-medium">No conversations yet</p>
+              <p className="text-gray-500 font-medium">
+                {t("messages.noConversations")}
+              </p>
               <p className="text-sm text-gray-400 mt-1">
                 {isBuyer
-                  ? "Start a conversation by connecting with a seller"
-                  : "Conversations with buyers will appear here"}
+                  ? t("messages.startConversationBuyer")
+                  : t("messages.conversationsAppear")}
               </p>
             </div>
           ) : (
@@ -252,10 +256,13 @@ export default function MessagesPage() {
                         </span>
                       </div>
                       <p className="text-sm text-[#1152A2] mb-1 truncate">
-                        {t("messages.re")} {conv.mission?.product || t("messages.mission")}
+                        {t("messages.re")}{" "}
+                        {conv.mission?.product || t("messages.mission")}
                       </p>
                       <p className="text-sm text-gray-500 truncate">
-                        {conv.lastMessage.sender === user.role ? t("messages.you") + " " : ""}
+                        {conv.lastMessage.sender === user.role
+                          ? t("messages.you") + " "
+                          : ""}
                         {conv.lastMessage.text}
                       </p>
                     </div>
