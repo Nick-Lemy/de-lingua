@@ -47,9 +47,21 @@ const categories = [
 ];
 
 const urgencies = [
-  { value: "urgent", labelKey: "feedCreate.urgency.urgent", sublabelKey: "feedCreate.urgency.urgent.sublabel" },
-  { value: "normal", labelKey: "feedCreate.urgency.normal", sublabelKey: "feedCreate.urgency.normal.sublabel" },
-  { value: "flexible", labelKey: "feedCreate.urgency.flexible", sublabelKey: "feedCreate.urgency.flexible.sublabel" },
+  {
+    value: "urgent",
+    labelKey: "feedCreate.urgency.urgent",
+    sublabelKey: "feedCreate.urgency.urgent.sublabel",
+  },
+  {
+    value: "normal",
+    labelKey: "feedCreate.urgency.normal",
+    sublabelKey: "feedCreate.urgency.normal.sublabel",
+  },
+  {
+    value: "flexible",
+    labelKey: "feedCreate.urgency.flexible",
+    sublabelKey: "feedCreate.urgency.flexible.sublabel",
+  },
 ];
 
 export default function CreateFeedPostPage() {
@@ -224,7 +236,9 @@ export default function CreateFeedPostPage() {
             </button>
             <div className="flex-1">
               <h1 className="text-lg font-bold">{t("feed.createPost")}</h1>
-              <p className="text-slate-300 text-xs">{t("feedCreate.step", { step })}</p>
+              <p className="text-slate-300 text-xs">
+                {t("feedCreate.step", { step })}
+              </p>
             </div>
           </div>
           <div className="h-1 bg-white/20 rounded-full overflow-hidden">
@@ -244,8 +258,8 @@ export default function CreateFeedPostPage() {
               <h2 className="text-lg font-bold text-gray-900 mb-1">
                 {t("feedCreate.whatToPost")}
               </h2>
-              <p className="text-sm text-gray-500">
-                {t("feedCreate.share")}
+              <p className="text-sm text-gray-500">{t("feedCreate.share")}</p>
+            </div>
             {/* Post Type */}
             <div className="grid grid-cols-2 gap-3">
               <button
@@ -261,8 +275,12 @@ export default function CreateFeedPostPage() {
                 <div className="text-2xl mb-2">
                   <IoSearchOutline className="w-7 h-7 text-[#EF7C29]" />
                 </div>
-                <h3 className="font-semibold text-gray-900">{t("feed.lookingFor")}</h3>
-                <p className="text-xs text-gray-500 mt-1">{t("feedCreate.somethingYouNeed")}</p>
+                <h3 className="font-semibold text-gray-900">
+                  {t("feed.lookingFor")}
+                </h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  {t("feedCreate.somethingYouNeed")}
+                </p>
               </button>
               <button
                 onClick={() => setFormData({ ...formData, type: "offering" })}
@@ -275,8 +293,12 @@ export default function CreateFeedPostPage() {
                 <div className="text-2xl mb-2">
                   <IoStorefrontOutline className="w-7 h-7 text-[#1152A2]" />
                 </div>
-                <h3 className="font-semibold text-gray-900">{t("feed.offering")}</h3>
-                <p className="text-xs text-gray-500 mt-1">{t("feedCreate.somethingYouHave")}</p>
+                <h3 className="font-semibold text-gray-900">
+                  {t("feed.offering")}
+                </h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  {t("feedCreate.somethingYouHave")}
+                </p>
               </button>
             </div>
 
@@ -406,8 +428,10 @@ export default function CreateFeedPostPage() {
         {step === 2 && (
           <div className="space-y-5">
             <div>
-              <h2 className="text-lg font-bold text_gray-900 mb-1">
+              <h2 className="text-lg font-bold text-gray-900 mb-1">
                 {t("feedCreate.selectCategory")}
+              </h2>
+              <p className="text-sm text-gray-500">
                 {t("feedCreate.helpFind")}
               </p>
             </div>
@@ -512,7 +536,9 @@ export default function CreateFeedPostPage() {
                       <p className="font-semibold text-sm text-gray-900">
                         {t(u.labelKey)}
                       </p>
-                      <p className="text-[10px] text-gray-500">{t(u.sublabelKey)}</p>
+                      <p className="text-[10px] text-gray-500">
+                        {t(u.sublabelKey)}
+                      </p>
                     </button>
                   ))}
                 </div>
