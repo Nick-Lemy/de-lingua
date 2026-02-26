@@ -41,6 +41,7 @@ export default function MessagesPage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [loadingChats, setLoadingChats] = useState(false);
 
   useEffect(() => {
     // Use requestAnimationFrame to avoid cascading renders
@@ -51,6 +52,7 @@ export default function MessagesPage() {
     if (!mounted || loading) return;
 
     const loadData = async () => {
+      setLoadingChats(true);
       let currentUser: UserProfile | null = null;
 
       if (isConfigured) {
@@ -151,8 +153,7 @@ export default function MessagesPage() {
       setConversations(convList);
       console.log(convList);
     };
-
-    loadData();
+    loadData().finally(() => setLoadingChats(false));
   }, [mounted, loading, authUser, isConfigured, router]);
 
   const formatTime = (time: string) => {
@@ -212,7 +213,14 @@ export default function MessagesPage() {
       <div className="px-5 max-w-lg mx-auto mt-4">
         {/* Conversations List */}
         <div className="space-y-3">
-          {conversations.length === 0 ? (
+          {loadingChats ? (
+            <div className="text-center py-12 bg-white rounded-md border border-gray-200">
+              {/* <IoTime className="w-12 h-12 text-gray-300 mx-auto mb-3 animate-spin" /> */}
+              <p className="text-gray-500 font-medium">
+                {t("messages.loading")}
+              </p>
+            </div>
+          ) : conversations.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-md border border-gray-200">
               <IoChatbubbles className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <p className="text-gray-500 font-medium">

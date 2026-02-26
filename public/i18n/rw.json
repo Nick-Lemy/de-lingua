@@ -48,6 +48,7 @@
   "chat.translating": "Birimo guhindurwa…",
   "chat.translationError": "Guhindura byanze",
   "language.label": "Ururimi",
+  "messages.loading": "Gukurura ubutumwa...",
   "messages.title": "Ubutumwa",
   "messages.noConversations": "Nta biganiro biraboneka",
   "messages.startConversationBuyer": "Tangiza ikiganiro uhuza n'umucuruzi",

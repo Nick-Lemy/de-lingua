@@ -48,6 +48,7 @@
   "chat.translating": "翻译中…",
   "chat.translationError": "翻译失败",
   "language.label": "语言",
+  "messages.loading": "加载消息中...",
   "messages.title": "消息",
   "messages.noConversations": "暂无对话",
   "messages.startConversationBuyer": "通过联系卖家开始对话",

@@ -48,6 +48,7 @@
   "chat.translating": "Translating...",
   "chat.translationError": "Translation failed",
   "language.label": "Language",
+  "messages.loading": "Loading messages...",
   "messages.title": "Messages",
   "messages.noConversations": "No conversations yet",
   "messages.startConversationBuyer": "Start a conversation by contacting a seller",

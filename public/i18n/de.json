@@ -48,6 +48,7 @@
   "chat.translating": "Übersetzung…",
   "chat.translationError": "Übersetzung fehlgeschlagen",
   "language.label": "Sprache",
+  "messages.loading": "Nachrichten werden geladen...",
   "messages.title": "Nachrichten",
   "messages.noConversations": "Noch keine Gespräche",
   "messages.startConversationBuyer": "Beginnen Sie ein Gespräch, indem Sie einen Verkäufer kontaktieren",

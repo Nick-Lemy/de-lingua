@@ -48,6 +48,7 @@
   "chat.translating": "Traduciendo…",
   "chat.translationError": "Error en la traducción",
   "language.label": "Idioma",
+  "messages.loading": "Cargando mensajes...",
   "messages.title": "Mensajes",
   "messages.noConversations": "No hay conversaciones todavía",
   "messages.startConversationBuyer": "Inicia una conversación contactando a un vendedor",
