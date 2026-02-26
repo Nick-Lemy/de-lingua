@@ -19,6 +19,7 @@ import {
 import { generateAIMatches } from "@/app/actions/matching";
 import type { Mission } from "@/lib/types";
 import { IoArrowBack, IoCheckmarkCircle } from "react-icons/io5";
+import { useTranslation } from "@/lib/i18n";
 
 // identifiers correspond to feed.categories / missions-specific category keys
 const categories = [
@@ -34,9 +35,21 @@ const categories = [
 ];
 
 const urgencies = [
-  { value: "urgent", labelKey: "feedCreate.urgency.urgent", sublabelKey: "feedCreate.urgency.urgent.sublabel" },
-  { value: "normal", labelKey: "feedCreate.urgency.normal", sublabelKey: "feedCreate.urgency.normal.sublabel" },
-  { value: "flexible", labelKey: "feedCreate.urgency.flexible", sublabelKey: "feedCreate.urgency.flexible.sublabel" },
+  {
+    value: "urgent",
+    labelKey: "feedCreate.urgency.urgent",
+    sublabelKey: "feedCreate.urgency.urgent.sublabel",
+  },
+  {
+    value: "normal",
+    labelKey: "feedCreate.urgency.normal",
+    sublabelKey: "feedCreate.urgency.normal.sublabel",
+  },
+  {
+    value: "flexible",
+    labelKey: "feedCreate.urgency.flexible",
+    sublabelKey: "feedCreate.urgency.flexible.sublabel",
+  },
 ];
 
 export default function CreateMissionPage() {
@@ -185,8 +198,12 @@ export default function CreateMissionPage() {
               <IoArrowBack className="w-5 h-5" />
             </button>
             <div className="flex-1">
-              <h1 className="text-lg font-bold">{t("missions.createMission")}</h1>
-              <p className="text-slate-300 text-xs">{t("feedCreate.step", { step, total: 5 })}</p>
+              <h1 className="text-lg font-bold">
+                {t("missions.createMission")}
+              </h1>
+              <p className="text-slate-300 text-xs">
+                {t("feedCreate.step", { step, total: 5 })}
+              </p>
             </div>
           </div>
           <div className="h-1 bg-white/20 rounded-full overflow-hidden">
@@ -276,7 +293,9 @@ export default function CreateMissionPage() {
               <h2 className="text-lg font-bold text-gray-900 mb-1">
                 {t("missions.step3.title")}
               </h2>
-              <p className="text-sm text-gray-500">{t("missions.step3.desc")}</p>
+              <p className="text-sm text-gray-500">
+                {t("missions.step3.desc")}
+              </p>
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-2">
