@@ -490,9 +490,6 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-[#1152A2] flex flex-col">
-      <div className="absolute top-4 right-4 z-10">
-        <LanguageSwitcher />
-      </div>
       <div className="flex-1 px-6 lg:px-8 pt-14 max-w-2xl mx-auto w-full">
         <div className="flex gap-2 mb-4">
           {steps.map((_, i) => (
@@ -507,6 +504,9 @@ export default function OnboardingPage() {
         <p className="text-sm text-slate-300">
           Step {step + 1} of {steps.length}
         </p>
+        <div className="mt-4">
+          <LanguageSwitcher />
+        </div>
       </div>
 
       <div className="flex-1 px-6 lg:px-8 pt-12 max-w-2xl mx-auto w-full">

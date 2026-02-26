@@ -47,6 +47,7 @@
   "chat.hideTranslation": "Übersetzung verbergen",
   "chat.translating": "Übersetzung…",
   "chat.translationError": "Übersetzung fehlgeschlagen",
+  "language.label": "Sprache",
   "messages.title": "Nachrichten",
   "messages.noConversations": "Noch keine Gespräche",
   "messages.startConversationBuyer": "Beginnen Sie ein Gespräch, indem Sie einen Verkäufer kontaktieren",

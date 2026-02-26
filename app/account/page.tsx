@@ -60,9 +60,6 @@ export default function AccountPage() {
 
   return (
     <div className="min-h-screen bg-white pb-24">
-      <div className="absolute top-4 right-4 z-10">
-        <LanguageSwitcher />
-      </div>
       {/* Header */}
       <div className="bg-[#1152A2] text-white px-5 pt-12 pb-8">
         <div className="max-w-lg mx-auto">
@@ -98,7 +95,8 @@ export default function AccountPage() {
       </div>
 
       {/* Menu Items */}
-      <div className="px-5 max-w-xl mx-auto mt-6">
+      <div className="px-5 max-w-xl mx-auto mt-6 space-y-6">
+        <LanguageSwitcher />
         {/* Preferences Summary */}
         {user.preferences && (
           <div className="mt-6 bg-white rounded-md border border-gray-100 shadow-sm p-4">
