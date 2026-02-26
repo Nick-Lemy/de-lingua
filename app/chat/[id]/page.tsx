@@ -21,10 +21,11 @@ import {
 import type { ChatMessage, Mission, Seller, UserProfile } from "@/lib/types";
 import { IoArrowBack, IoSend } from "react-icons/io5";
 import { useTranslation } from "@/lib/i18n";
+import { translateText } from "@/lib/translate";
 
 export default function ChatPage() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const params = useParams();
   const searchParams = useSearchParams();
   const { user: authUser, loading: authLoading } = useAuth();
@@ -36,6 +37,10 @@ export default function ChatPage() {
   const [newMessage, setNewMessage] = useState("");
   const [mounted, setMounted] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [translations, setTranslations] = useState<Record<string, string>>({});
+  const [showOriginal, setShowOriginal] = useState<Record<string, boolean>>({});
+  const [translatingId, setTranslatingId] = useState<string | null>(null);
+  const [translationErrors, setTranslationErrors] = useState<Record<string, boolean>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const sellerId = searchParams?.get("seller");
 
@@ -214,6 +219,29 @@ export default function ChatPage() {
     }
   };
 
+  const handleTranslate = async (msg: ChatMessage) => {
+    // toggle visibility if we already have a translation
+    if (translations[msg.id]) {
+      setShowOriginal((prev) => ({
+        ...prev,
+        [msg.id]: !prev[msg.id],
+      }));
+      return;
+    }
+
+    setTranslatingId(msg.id);
+    try {
+      const tr = await translateText(msg.text, lang);
+      setTranslations((prev) => ({ ...prev, [msg.id]: tr }));
+      setShowOriginal((prev) => ({ ...prev, [msg.id]: false }));
+    } catch (err) {
+      console.error("translation error", err);
+      setTranslationErrors((prev) => ({ ...prev, [msg.id]: true }));
+    } finally {
+      setTranslatingId(null);
+    }
+  };
+
   // Defensive checks for mission, seller, user before rendering chat UI
   if (!mounted || !user || !mission || !seller) {
     return (
@@ -288,14 +316,36 @@ export default function ChatPage() {
                     }`}
                   >
                     <p className="text-sm">{msg.text}</p>
-                    <p
-                      className={`text-xs mt-1 ${isOwnMessage ? "text-gray-400" : "text-gray-500"}`}
-                    >
-                      {new Date(msg.time).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                  {translations[msg.id] && !showOriginal[msg.id] && (
+                    <p className="text-sm italic text-gray-500 mt-1">
+                      {translations[msg.id]}
                     </p>
+                  )}
+                  {translationErrors[msg.id] && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {t("chat.translationError")}
+                    </p>
+                  )}
+                  <button
+                    onClick={() => handleTranslate(msg)}
+                    className="text-xs text-[#1152A2] mt-1 hover:underline"
+                  >
+                    {translatingId === msg.id
+                      ? t("chat.translating")
+                      : translations[msg.id]
+                      ? showOriginal[msg.id]
+                        ? t("chat.showOriginal")
+                        : t("chat.hideTranslation")
+                      : t("chat.translate")}
+                  </button>
+                  <p
+                    className={`text-xs mt-1 ${isOwnMessage ? "text-gray-400" : "text-gray-500"}`}
+                  >
+                    {new Date(msg.time).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
                   </div>
                 </div>
               );
