@@ -2,17 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useAuth } from "@/lib/AuthContext";
 import { getUserProfile, clearUserProfile } from "@/lib/storage";
 import type { UserProfile } from "@/lib/types";
 import { Button } from "@/components/ui";
 import { BottomNav } from "@/components/BottomNav";
 import { IoArrowBack, IoMail, IoLogOut } from "react-icons/io5";
+import { useTranslation } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export default function AccountPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user: authUser, signOut, isConfigured, loading } = useAuth();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -72,7 +73,7 @@ export default function AccountPage() {
             >
               <IoArrowBack className="w-5 h-5" />
             </button>
-            <h1 className="text-xl font-bold">Account</h1>
+            <h1 className="text-xl font-bold">{t("account.title")}</h1>
           </div>
 
           {/* User Card */}
@@ -102,12 +103,14 @@ export default function AccountPage() {
         {user.preferences && (
           <div className="mt-6 bg-white rounded-md border border-gray-100 shadow-sm p-4">
             <h3 className="font-semibold text-sm text-gray-900 mb-3">
-              Your Preferences
+              {t("account.preferences")}
             </h3>
             <div className="space-y-3 text-sm">
               {user.preferences.categories.length > 0 && (
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Categories</p>
+                  <p className="text-xs text-gray-500 mb-1">
+                    {t("account.categories")}
+                  </p>
                   <div className="flex flex-wrap gap-1.5">
                     {user.preferences.categories.map((cat) => (
                       <span
@@ -122,7 +125,9 @@ export default function AccountPage() {
               )}
               {user.preferences.budgetBehavior && (
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Budget Behavior</p>
+                  <p className="text-xs text-gray-500 mb-1">
+                    {t("account.budgetBehavior")}
+                  </p>
                   <span className="px-2 py-1 bg-[#1152A2]/10 text-[#1152A2] rounded-lg text-xs">
                     {user.preferences.budgetBehavior}
                   </span>
@@ -130,7 +135,9 @@ export default function AccountPage() {
               )}
               {user.preferences.locationRadius && (
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Location Radius</p>
+                  <p className="text-xs text-gray-500 mb-1">
+                    {t("account.locationRadius")}
+                  </p>
                   <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs">
                     {user.preferences.locationRadius}
                   </span>
@@ -144,23 +151,29 @@ export default function AccountPage() {
         {user.businessProfile && (
           <div className="mt-6 bg-white rounded-md border border-gray-100 shadow-sm p-4">
             <h3 className="font-semibold text-sm text-gray-900 mb-3">
-              Business Profile
+              {t("account.businessProfile")}
             </h3>
             <div className="space-y-3 text-sm">
               <div>
-                <p className="text-xs text-gray-500 mb-1">Category</p>
+                <p className="text-xs text-gray-500 mb-1">
+                  {t("account.category")}
+                </p>
                 <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs">
                   {user.businessProfile.category}
                 </span>
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">Service Range</p>
+                <p className="text-xs text-gray-500 mb-1">
+                  {t("account.serviceRange")}
+                </p>
                 <span className="px-2 py-1 bg-[#1152A2]/10 text-[#1152A2] rounded-lg text-xs">
                   {user.businessProfile.serviceRange}
                 </span>
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">Capacity</p>
+                <p className="text-xs text-gray-500 mb-1">
+                  {t("account.capacity")}
+                </p>
                 <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs">
                   {user.businessProfile.capacity}
                 </span>
