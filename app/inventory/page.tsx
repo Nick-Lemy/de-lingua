@@ -9,11 +9,17 @@ import {
   getSellerById,
   saveSeller,
   createSellerFromUser,
+  getWishlistItemsForSeller,
+  saveWishlistAlert,
+  generateId,
 } from "@/lib/storage";
 import {
   getSellerById as getFirebaseSeller,
   updateSellerInventory,
+  getWishlistItemsForSeller as getFirebaseWishlistItems,
+  createWishlistAlert,
 } from "@/lib/db";
+import type { InventoryItem as InventoryItemType } from "@/lib/types";
 import type { UserProfile, Seller, InventoryItem } from "@/lib/types";
 import { BottomNav } from "@/components/BottomNav";
 import { IoArrowBack, IoAdd, IoTrash, IoSave, IoClose } from "react-icons/io5";
@@ -149,6 +155,39 @@ export default function InventoryPage() {
     setIsEditing(true);
   };
 
+  const checkWishlistAlerts = async (sellerId: string, newInventory: InventoryItemType[]) => {
+    try {
+      const wishlistItems = isConfigured
+        ? await getFirebaseWishlistItems(sellerId)
+        : getWishlistItemsForSeller(sellerId);
+
+      for (const wItem of wishlistItems) {
+        if (!wItem.alertEnabled || !wItem.alertKeyword) continue;
+        const kw = wItem.alertKeyword.toLowerCase();
+        const matched = newInventory.find((inv) => inv.name.toLowerCase().includes(kw));
+        if (matched) {
+          const alert = {
+            id: generateId("wa"),
+            buyerId: wItem.buyerId,
+            sellerId,
+            sellerName: wItem.sellerName,
+            keyword: wItem.alertKeyword,
+            matchedItem: matched.name,
+            seen: false,
+            createdAt: new Date().toISOString(),
+          };
+          if (isConfigured) {
+            await createWishlistAlert(alert);
+          } else {
+            saveWishlistAlert(alert);
+          }
+        }
+      }
+    } catch {
+      // Non-critical, fail silently
+    }
+  };
+
   const handleSaveInventory = async () => {
     if (!seller) return;
 
@@ -161,6 +200,8 @@ export default function InventoryPage() {
         saveSeller(updatedSeller);
       }
       setIsEditing(false);
+      // Fire wishlist alert check in background
+      checkWishlistAlerts(seller.id, inventory);
     } catch (error) {
       console.error("Error saving inventory:", error);
     }

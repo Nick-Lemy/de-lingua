@@ -10,6 +10,11 @@ import {
   getSellerById,
   getChatByMissionAndSeller,
   saveChatMessage,
+  hasReviewedSeller,
+  getPaymentsByChat as getLocalPayments,
+  savePaymentRequest,
+  updatePaymentStatus as updateLocalPaymentStatus,
+  generateId,
 } from "@/lib/storage";
 import {
   getMissionById as getFirebaseMission,
@@ -17,9 +22,21 @@ import {
   getChatMessages,
   sendChatMessage as saveFirebaseMessage,
   getUserById,
+  hasReviewedSeller as firebaseHasReviewed,
+  getPaymentsByChat as getFirebasePayments,
+  createPaymentRequest,
+  updatePaymentStatus as updateFirebasePaymentStatus,
 } from "@/lib/db";
-import type { ChatMessage, Mission, Seller, UserProfile } from "@/lib/types";
-import { IoArrowBack, IoSend } from "react-icons/io5";
+import type {
+  ChatMessage,
+  Mission,
+  Seller,
+  UserProfile,
+  PaymentRequest,
+  PaymentProvider,
+} from "@/lib/types";
+import { PaymentModal } from "@/components/PaymentModal";
+import { IoArrowBack, IoSend, IoCardOutline } from "react-icons/io5";
 import { useTranslation } from "@/lib/i18n";
 import { translateText } from "@/lib/translate";
 
@@ -41,12 +58,13 @@ export default function ChatPage() {
   const [showOriginal, setShowOriginal] = useState<Record<string, boolean>>({});
   const [translatingId, setTranslatingId] = useState<string | null>(null);
   const [translationErrors, setTranslationErrors] = useState<Record<string, boolean>>({});
+  const [showPayment, setShowPayment] = useState(false);
+  const [payments, setPayments] = useState<PaymentRequest[]>([]);
+  const [alreadyReviewed, setAlreadyReviewed] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const sellerId = searchParams?.get("seller");
 
-  // Determine if current user is buyer or seller in this conversation
   const isBuyer = user?.role === "buyer";
-  // Robust partner name/avatar logic
   const partnerName = isBuyer
     ? seller?.name || t("chat.seller")
     : buyer?.name || t("chat.buyer");
@@ -55,7 +73,6 @@ export default function ChatPage() {
     : buyer?.avatar || (buyer?.name?.charAt(0).toUpperCase() ?? "B");
 
   useEffect(() => {
-    // Use requestAnimationFrame to avoid cascading renders
     requestAnimationFrame(() => setMounted(true));
   }, []);
 
@@ -100,7 +117,6 @@ export default function ChatPage() {
 
       setUser(currentUser);
 
-      // Load mission
       let foundMission: Mission | null = null;
       if (isConfigured) {
         foundMission = await getFirebaseMission(missionId);
@@ -109,14 +125,11 @@ export default function ChatPage() {
       }
 
       if (!foundMission) {
-        router.push(
-          currentUser.role === "buyer" ? "/missions" : "/seller-dashboard",
-        );
+        router.push(currentUser.role === "buyer" ? "/missions" : "/seller-dashboard");
         return;
       }
       setMission(foundMission);
 
-      // Load seller
       let foundSeller: Seller | null = null;
       if (isConfigured) {
         foundSeller = await getFirebaseSeller(sellerId);
@@ -125,19 +138,15 @@ export default function ChatPage() {
       }
 
       if (!foundSeller) {
-        router.push(
-          currentUser.role === "buyer" ? "/missions" : "/seller-dashboard",
-        );
+        router.push(currentUser.role === "buyer" ? "/missions" : "/seller-dashboard");
         return;
       }
       setSeller(foundSeller);
 
-      // Load buyer info (for seller view)
       if (currentUser.role === "seller" && isConfigured) {
         const buyerProfile = await getUserById(foundMission.buyerId);
         setBuyer(buyerProfile);
       } else if (currentUser.role === "seller") {
-        // For local storage, we create a placeholder buyer
         setBuyer({
           id: foundMission.buyerId,
           name: t("chat.buyer"),
@@ -147,32 +156,47 @@ export default function ChatPage() {
         });
       }
 
-      // Load messages
-      let chat: ChatMessage[] = [];
-      if (isConfigured) {
-        chat = await getChatMessages(missionId, sellerId);
-      } else {
-        chat = getChatByMissionAndSeller(missionId, sellerId);
+      // Load messages and payments concurrently
+      const [chatResult, paymentsResult] = await Promise.all([
+        isConfigured
+          ? getChatMessages(missionId, sellerId)
+          : Promise.resolve(getChatByMissionAndSeller(missionId, sellerId)),
+        isConfigured
+          ? getFirebasePayments(missionId, sellerId)
+          : Promise.resolve(getLocalPayments(missionId, sellerId)),
+      ]);
+
+      setMessages(chatResult);
+      setPayments(paymentsResult);
+
+      // Check if buyer has already reviewed this seller
+      if (currentUser.role === "buyer") {
+        const reviewed = isConfigured
+          ? await firebaseHasReviewed(currentUser.id, sellerId, missionId)
+          : hasReviewedSeller(currentUser.id, sellerId, missionId);
+        setAlreadyReviewed(reviewed);
       }
-      setMessages(chat);
     };
 
     loadData();
   }, [mounted, authLoading, authUser, params, router, sellerId, t]);
 
-  // Poll for new messages every 3 seconds using setTimeout for better control
+  // Poll for new messages — first poll immediately, then every 3s
   useEffect(() => {
     if (!mission || !sellerId) return;
 
     let isMounted = true;
     let pollTimeout: NodeJS.Timeout;
+
     const poll = async () => {
       await loadMessages();
       if (isMounted) {
         pollTimeout = setTimeout(poll, 3000);
       }
     };
-    pollTimeout = setTimeout(poll, 3000);
+
+    // Call immediately, don't wait 3s for first load
+    poll();
 
     return () => {
       isMounted = false;
@@ -186,10 +210,9 @@ export default function ChatPage() {
 
   const handleSend = async () => {
     if (!newMessage.trim() || !mission || !seller || !user || isSending) return;
-    // Prevent sending messages with invalid missionId
     if (!mission.id || mission.id === "mission") {
-        alert(t("chat.invalidMission"));
-        return; // don't proceed if mission is invalid
+      alert(t("chat.invalidMission"));
+      return;
     }
     setIsSending(true);
     const isConfigured = isFirebaseConfigured();
@@ -202,6 +225,7 @@ export default function ChatPage() {
       sender: user.role,
       text: newMessage.trim(),
       time: new Date().toISOString(),
+      type: "text",
     };
 
     try {
@@ -211,7 +235,7 @@ export default function ChatPage() {
         saveChatMessage(message);
       }
       setNewMessage("");
-      await loadMessages(); // Always reload from source to avoid duplicates
+      await loadMessages();
     } catch (error) {
       console.error("Failed to send message:", error);
     } finally {
@@ -220,12 +244,8 @@ export default function ChatPage() {
   };
 
   const handleTranslate = async (msg: ChatMessage) => {
-    // toggle visibility if we already have a translation
     if (translations[msg.id]) {
-      setShowOriginal((prev) => ({
-        ...prev,
-        [msg.id]: !prev[msg.id],
-      }));
+      setShowOriginal((prev) => ({ ...prev, [msg.id]: !prev[msg.id] }));
       return;
     }
 
@@ -242,7 +262,93 @@ export default function ChatPage() {
     }
   };
 
-  // Defensive checks for mission, seller, user before rendering chat UI
+  const handlePaymentSubmit = async (data: {
+    provider: PaymentProvider;
+    phone: string;
+    amount: string;
+    description: string;
+  }) => {
+    if (!mission || !seller || !user) return;
+    const isConfigured = isFirebaseConfigured();
+
+    const paymentId = generateId("pay");
+    const payment: PaymentRequest = {
+      id: paymentId,
+      missionId: mission.id,
+      sellerId: seller.id,
+      buyerId: mission.buyerId,
+      amount: parseFloat(data.amount),
+      currency: "RWF",
+      provider: data.provider,
+      phoneNumber: data.phone,
+      description: data.description,
+      status: "initiated",
+      requestedBy: user.role,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    const paymentMsg: ChatMessage = {
+      id: generateId("msg"),
+      missionId: mission.id,
+      sellerId: seller.id,
+      buyerId: mission.buyerId,
+      sender: user.role,
+      text: `Payment request: RWF ${data.amount} via ${data.provider === "mtn-momo" ? "MTN MoMo" : "Airtel Money"}`,
+      time: new Date().toISOString(),
+      type: "payment-request",
+      paymentRequestId: paymentId,
+    };
+
+    if (isConfigured) {
+      await createPaymentRequest(payment);
+      await saveFirebaseMessage(paymentMsg);
+    } else {
+      savePaymentRequest(payment);
+      saveChatMessage(paymentMsg);
+    }
+
+    setPayments((prev) => [...prev, payment]);
+    await loadMessages();
+  };
+
+  const handleConfirmPayment = async (paymentRequestId: string) => {
+    if (!mission || !seller || !user) return;
+    const isConfigured = isFirebaseConfigured();
+
+    if (isConfigured) {
+      await updateFirebasePaymentStatus(paymentRequestId, "confirmed");
+    } else {
+      updateLocalPaymentStatus(paymentRequestId, "confirmed");
+    }
+
+    setPayments((prev) =>
+      prev.map((p) => (p.id === paymentRequestId ? { ...p, status: "confirmed" } : p)),
+    );
+
+    const confirmMsg: ChatMessage = {
+      id: generateId("msg"),
+      missionId: mission.id,
+      sellerId: seller.id,
+      buyerId: mission.buyerId,
+      sender: user.role,
+      text: "Payment confirmed ✓",
+      time: new Date().toISOString(),
+      type: "payment-confirmed",
+    };
+
+    if (isConfigured) {
+      await saveFirebaseMessage(confirmMsg);
+    } else {
+      saveChatMessage(confirmMsg);
+    }
+
+    await loadMessages();
+  };
+
+  const getPaymentForMsg = (paymentRequestId: string) =>
+    payments.find((p) => p.id === paymentRequestId);
+
   if (!mounted || !user || !mission || !seller) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -250,6 +356,9 @@ export default function ChatPage() {
       </div>
     );
   }
+
+  const showReviewBanner =
+    isBuyer && messages.length >= 3 && !alreadyReviewed;
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -282,12 +391,9 @@ export default function ChatPage() {
             <p className="text-xs text-slate-600 mb-2 font-medium">
               {t("chat.missionDetailsHeader")}
             </p>
-            <p className="font-semibold text-sm text-slate-800">
-              {mission.product}
-            </p>
+            <p className="font-semibold text-sm text-slate-800">{mission.product}</p>
             <p className="text-sm text-slate-600">
-              {mission.quantity} {t("chat.units")} • RWF{mission.budgetMin}-RWF
-              {mission.budgetMax} • {mission.location}
+              {mission.quantity} {t("chat.units")} • RWF{mission.budgetMin}-RWF{mission.budgetMax} • {mission.location}
             </p>
           </div>
 
@@ -295,14 +401,62 @@ export default function ChatPage() {
           {messages.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-600 text-sm">
-                {isBuyer
-                  ? t("chat.startConversationSeller")
-                  : t("chat.waitForBuyer")}
+                {isBuyer ? t("chat.startConversationSeller") : t("chat.waitForBuyer")}
               </p>
             </div>
           ) : (
             messages.map((msg) => {
               const isOwnMessage = msg.sender === user.role;
+
+              // Payment request card
+              if (msg.type === "payment-request" && msg.paymentRequestId) {
+                const payment = getPaymentForMsg(msg.paymentRequestId);
+                const isReceiver = msg.sender !== user.role;
+                return (
+                  <div key={msg.id} className={`flex ${isOwnMessage ? "justify-end" : "justify-start"}`}>
+                    <div className="max-w-[80%] bg-white border-2 border-[#1152A2]/20 rounded-xl p-4 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <IoCardOutline className="w-5 h-5 text-[#1152A2]" />
+                        <span className="font-semibold text-sm text-gray-900">Payment Request</span>
+                      </div>
+                      <p className="text-lg font-bold text-[#1152A2]">
+                        RWF {payment?.amount?.toLocaleString() || "—"}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {payment?.provider === "mtn-momo" ? "MTN MoMo" : "Airtel Money"}
+                        {payment?.description ? ` · ${payment.description}` : ""}
+                      </p>
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                          payment?.status === "confirmed"
+                            ? "bg-green-100 text-green-700"
+                            : payment?.status === "failed"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-amber-100 text-amber-700"
+                        }`}
+                      >
+                        {payment?.status === "confirmed"
+                          ? "Confirmed"
+                          : payment?.status === "failed"
+                          ? "Failed"
+                          : "Pending"}
+                      </span>
+                      {isReceiver && payment?.status === "initiated" && (
+                        <button
+                          onClick={() => handleConfirmPayment(msg.paymentRequestId!)}
+                          className="w-full py-2 mt-1 bg-[#1152A2] text-white text-sm rounded-md font-medium"
+                        >
+                          Confirm Receipt
+                        </button>
+                      )}
+                      <p className="text-xs text-gray-400">
+                        {new Date(msg.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </p>
+                    </div>
+                  </div>
+                );
+              }
+
               return (
                 <div
                   key={msg.id}
@@ -311,41 +465,38 @@ export default function ChatPage() {
                   <div
                     className={`max-w-[75%] rounded-md px-4 py-3 ${
                       isOwnMessage
-                        ? "bg-[#1152A2] text-white"
+                        ? msg.type === "payment-confirmed"
+                          ? "bg-green-600 text-white"
+                          : "bg-[#1152A2] text-white"
                         : "bg-white border border-gray-200 text-black"
                     }`}
                   >
                     <p className="text-sm">{msg.text}</p>
-                  {translations[msg.id] && !showOriginal[msg.id] && (
-                    <p className="text-sm italic text-gray-500 mt-1">
-                      {translations[msg.id]}
+                    {translations[msg.id] && !showOriginal[msg.id] && (
+                      <p className="text-sm italic text-gray-300 mt-1">
+                        {translations[msg.id]}
+                      </p>
+                    )}
+                    {translationErrors[msg.id] && (
+                      <p className="text-sm text-red-300 mt-1">{t("chat.translationError")}</p>
+                    )}
+                    {msg.type !== "payment-confirmed" && (
+                      <button
+                        onClick={() => handleTranslate(msg)}
+                        className="text-xs text-[#93c5fd] mt-1 hover:underline"
+                      >
+                        {translatingId === msg.id
+                          ? t("chat.translating")
+                          : translations[msg.id]
+                          ? showOriginal[msg.id]
+                            ? t("chat.showOriginal")
+                            : t("chat.hideTranslation")
+                          : t("chat.translate")}
+                      </button>
+                    )}
+                    <p className={`text-xs mt-1 ${isOwnMessage ? "text-gray-400" : "text-gray-500"}`}>
+                      {new Date(msg.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </p>
-                  )}
-                  {translationErrors[msg.id] && (
-                    <p className="text-sm text-red-500 mt-1">
-                      {t("chat.translationError")}
-                    </p>
-                  )}
-                  <button
-                    onClick={() => handleTranslate(msg)}
-                    className="text-xs text-[#1152A2] mt-1 hover:underline"
-                  >
-                    {translatingId === msg.id
-                      ? t("chat.translating")
-                      : translations[msg.id]
-                      ? showOriginal[msg.id]
-                        ? t("chat.showOriginal")
-                        : t("chat.hideTranslation")
-                      : t("chat.translate")}
-                  </button>
-                  <p
-                    className={`text-xs mt-1 ${isOwnMessage ? "text-gray-400" : "text-gray-500"}`}
-                  >
-                    {new Date(msg.time).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
                   </div>
                 </div>
               );
@@ -355,9 +506,44 @@ export default function ChatPage() {
         </div>
       </div>
 
+      {/* Review banner */}
+      {showReviewBanner && (
+        <div className="bg-amber-50 border-t border-amber-200 px-6 py-3">
+          <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
+            <p className="text-sm text-amber-800 font-medium">
+              How was your experience with {seller.name}?
+            </p>
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() =>
+                    router.push(
+                      `/reviews/${seller.id}?mission=${mission.id}&initialRating=${star}`,
+                    )
+                  }
+                  className="text-amber-400 hover:text-amber-500 text-lg"
+                >
+                  ★
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Input */}
       <div className="bg-white border-t border-gray-200 px-6 lg:px-8 py-4 shrink-0">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
+          {/* Payment button */}
+          <button
+            onClick={() => setShowPayment(true)}
+            className="w-11 h-11 rounded-md bg-gray-100 text-[#1152A2] flex items-center justify-center hover:bg-gray-200 shrink-0"
+            title="Request Payment"
+          >
+            <IoCardOutline className="w-5 h-5" />
+          </button>
+
           <input
             type="text"
             placeholder={t("chat.input.placeholder")}
@@ -379,6 +565,14 @@ export default function ChatPage() {
           </button>
         </div>
       </div>
+
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={showPayment}
+        onClose={() => setShowPayment(false)}
+        onSubmit={handlePaymentSubmit}
+        productName={mission.product}
+      />
     </div>
   );
 }

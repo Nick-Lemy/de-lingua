@@ -19,6 +19,7 @@ import {
 } from "react-icons/io5";
 import { HiStar } from "react-icons/hi2";
 import { useTranslation } from "@/lib/i18n";
+import { WishlistButton } from "@/components/WishlistButton";
 
 const categories = [
   "All",
@@ -179,44 +180,57 @@ export default function DiscoverPage() {
             </div>
           ) : (
             filteredSellers.map((seller) => (
-              <Link
-                key={seller.id}
-                href={`/sellers/${seller.id}`}
-                className="block bg-white rounded-md p-4 border border-gray-200"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="w-12 h-12 rounded-md bg-[#1152A2] text-white flex items-center justify-center text-lg font-bold shrink-0">
-                    {seller.avatar}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-semibold text-gray-900 truncate">
-                        {seller.name}
-                      </h4>
-                      {seller.verified && (
-                        <IoCheckmarkCircle className="w-4 h-4 text-[#1152A2] shrink-0" />
-                      )}
+              <div key={seller.id} className="relative">
+                <Link
+                  href={`/sellers/${seller.id}`}
+                  className="block bg-white rounded-md p-4 border border-gray-200"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 rounded-md bg-[#1152A2] text-white flex items-center justify-center text-lg font-bold shrink-0">
+                      {seller.avatar}
                     </div>
-                    <p className="text-sm text-gray-500 mb-2">
-                      {seller.category}
-                    </p>
-                    <div className="flex items-center gap-3 text-xs text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <HiStar className="w-3 h-3 text-amber-500" />
-                        {seller.rating} ({seller.reviews})
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <IoLocationSharp className="w-3 h-3" />
-                        {seller.location}
-                      </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-semibold text-gray-900 truncate">
+                          {seller.name}
+                        </h4>
+                        {seller.verified && (
+                          <IoCheckmarkCircle className="w-4 h-4 text-[#1152A2] shrink-0" />
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500 mb-2">
+                        {seller.category}
+                      </p>
+                      <div className="flex items-center gap-3 text-xs text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <HiStar className="w-3 h-3 text-amber-500" />
+                          {seller.rating} ({seller.reviews})
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <IoLocationSharp className="w-3 h-3" />
+                          {seller.location}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-2 line-clamp-2">
+                        {seller.description}
+                      </p>
                     </div>
-                    <p className="text-xs text-gray-400 mt-2 line-clamp-2">
-                      {seller.description}
-                    </p>
+                    <IoChevronForward className="w-5 h-5 text-gray-400 shrink-0" />
                   </div>
-                  <IoChevronForward className="w-5 h-5 text-gray-400 shrink-0" />
-                </div>
-              </Link>
+                </Link>
+                {user.role === "buyer" && (
+                  <div className="absolute top-3 right-10">
+                    <WishlistButton
+                      sellerId={seller.id}
+                      sellerName={seller.name}
+                      sellerAvatar={seller.avatar}
+                      sellerCategory={seller.category}
+                      buyerId={user.id}
+                      isConfigured={isConfigured}
+                    />
+                  </div>
+                )}
+              </div>
             ))
           )}
         </div>

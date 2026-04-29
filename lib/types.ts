@@ -7,6 +7,7 @@ export interface UserProfile {
   role: "buyer" | "seller";
   avatar: string;
   createdAt?: string;
+  phoneNumber?: string;
   preferences?: {
     categories: string[];
     budgetBehavior: string;
@@ -55,6 +56,13 @@ export interface Match {
   createdAt?: string;
 }
 
+export type SellerBadge =
+  | "top-seller"
+  | "good-seller"
+  | "fast-reply"
+  | "verified-supplier"
+  | "trusted-partner";
+
 export interface Seller {
   id: string;
   name: string;
@@ -70,6 +78,7 @@ export interface Seller {
   description: string;
   certifications: string[];
   inventory: InventoryItem[];
+  badges?: SellerBadge[];
 }
 
 export interface InventoryItem {
@@ -90,6 +99,8 @@ export interface ChatMessage {
   sender: "buyer" | "seller";
   text: string;
   time: string;
+  type?: "text" | "payment-request" | "payment-confirmed";
+  paymentRequestId?: string;
 }
 
 export interface FeedPost {
@@ -132,4 +143,65 @@ export interface FeedAISuggestion {
   sellerAvatar: string;
   matchScore: number;
   reason: string;
+}
+
+export interface Review {
+  id: string;
+  sellerId: string;
+  buyerId: string;
+  buyerName: string;
+  buyerAvatar: string;
+  rating: number;
+  comment: string;
+  missionId: string;
+  createdAt: string;
+}
+
+export interface WishlistItem {
+  id: string;
+  buyerId: string;
+  sellerId: string;
+  sellerName: string;
+  sellerAvatar: string;
+  sellerCategory: string;
+  savedAt: string;
+  alertKeyword?: string;
+  alertEnabled: boolean;
+}
+
+export interface WishlistAlert {
+  id: string;
+  buyerId: string;
+  sellerId: string;
+  sellerName: string;
+  keyword: string;
+  matchedItem: string;
+  seen: boolean;
+  createdAt: string;
+}
+
+export interface SellerAnalytics {
+  sellerId: string;
+  profileViews: number;
+  itemViews: Record<string, number>;
+  updatedAt: string;
+}
+
+export type PaymentProvider = "mtn-momo" | "airtel-money";
+export type PaymentStatus = "pending" | "initiated" | "confirmed" | "failed" | "cancelled";
+
+export interface PaymentRequest {
+  id: string;
+  missionId: string;
+  sellerId: string;
+  buyerId: string;
+  amount: number;
+  currency: "RWF";
+  provider: PaymentProvider;
+  phoneNumber: string;
+  description: string;
+  status: PaymentStatus;
+  requestedBy: "buyer" | "seller";
+  createdAt: string;
+  updatedAt: string;
 }

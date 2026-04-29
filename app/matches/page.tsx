@@ -5,14 +5,20 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/AuthContext";
 import { isFirebaseConfigured } from "@/lib/firebase";
+// isFirebaseConfigured used in render for per-match mode switching
 import {
   getUserProfile,
   getMatches,
   getMissionById,
   getSellerById,
 } from "@/lib/storage";
-import { getAllMatchesForBuyer, getMissionsByBuyer } from "@/lib/db";
-import type { UserProfile, Match } from "@/lib/types";
+import {
+  getAllMatchesForBuyer,
+  getMissionsByBuyer,
+  getMissionById as getFirebaseMission,
+  getSellerById as getFirebaseSeller,
+} from "@/lib/db";
+import type { UserProfile, Match, Mission, Seller } from "@/lib/types";
 import { BottomNav } from "@/components/BottomNav";
 
 export default function MatchesPage() {
@@ -20,6 +26,8 @@ export default function MatchesPage() {
   const { user: authUser, loading: authLoading } = useAuth();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
+  const [missionsMap, setMissionsMap] = useState<Record<string, Mission>>({});
+  const [sellersMap, setSellersMap] = useState<Record<string, Seller>>({});
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -40,7 +48,25 @@ export default function MatchesPage() {
         setUser(authUser);
 
         const allMatches = await getAllMatchesForBuyer(authUser.id);
-        setMatches(allMatches.sort((a, b) => b.matchScore - a.matchScore));
+        const sorted = allMatches.sort((a, b) => b.matchScore - a.matchScore);
+        setMatches(sorted);
+
+        // Batch-load missions and sellers for Firebase mode
+        const uniqueMissionIds = [...new Set(sorted.map((m) => m.missionId))];
+        const uniqueSellerIds = [...new Set(sorted.map((m) => m.sellerId))];
+
+        const [missionResults, sellerResults] = await Promise.all([
+          Promise.all(uniqueMissionIds.map((id) => getFirebaseMission(id))),
+          Promise.all(uniqueSellerIds.map((id) => getFirebaseSeller(id))),
+        ]);
+
+        const mMap: Record<string, Mission> = {};
+        missionResults.forEach((m, i) => { if (m) mMap[uniqueMissionIds[i]] = m; });
+        const sMap: Record<string, Seller> = {};
+        sellerResults.forEach((s, i) => { if (s) sMap[uniqueSellerIds[i]] = s; });
+
+        setMissionsMap(mMap);
+        setSellersMap(sMap);
       } else {
         const profile = getUserProfile();
         if (!profile) {
@@ -129,8 +155,13 @@ export default function MatchesPage() {
         ) : (
           <div className="space-y-4">
             {matches.map((match) => {
-              const mission = getMissionById(match.missionId);
-              const seller = getSellerById(match.sellerId);
+              const isConfigured = isFirebaseConfigured();
+              const mission = isConfigured
+                ? missionsMap[match.missionId]
+                : getMissionById(match.missionId);
+              const seller = isConfigured
+                ? sellersMap[match.sellerId]
+                : getSellerById(match.sellerId);
               if (!mission || !seller) return null;
 
               return (

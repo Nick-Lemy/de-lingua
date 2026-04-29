@@ -11,6 +11,7 @@ import {
   query,
   where,
   orderBy,
+  increment,
 } from "firebase/firestore";
 import { db, isFirebaseConfigured } from "./firebase";
 import type {
@@ -21,6 +22,13 @@ import type {
   ChatMessage,
   FeedPost,
   FeedReply,
+  Review,
+  SellerBadge,
+  WishlistItem,
+  WishlistAlert,
+  SellerAnalytics,
+  PaymentRequest,
+  PaymentStatus,
 } from "./types";
 
 // Collection names
@@ -32,6 +40,11 @@ const COLLECTIONS = {
   CHATS: "chats",
   FEED_POSTS: "feedPosts",
   FEED_REPLIES: "feedReplies",
+  REVIEWS: "reviews",
+  WISHLIST: "wishlist",
+  WISHLIST_ALERTS: "wishlistAlerts",
+  ANALYTICS: "sellerAnalytics",
+  PAYMENTS: "paymentRequests",
 };
 
 // ==================== USER OPERATIONS ====================
@@ -141,17 +154,14 @@ export async function getMatchesByMission(missionId: string): Promise<Match[]> {
 export async function getAllMatchesForBuyer(buyerId: string): Promise<Match[]> {
   if (!isFirebaseConfigured() || !db) return [];
 
-  // First get all missions for the buyer
   const missions = await getMissionsByBuyer(buyerId);
   const missionIds = missions.map((m) => m.id);
 
   if (missionIds.length === 0) return [];
 
-  // Get matches for those missions
   const matchesRef = collection(db, COLLECTIONS.MATCHES);
   const allMatches: Match[] = [];
 
-  // Firestore 'in' query supports max 10 items, so we batch
   for (let i = 0; i < missionIds.length; i += 10) {
     const batch = missionIds.slice(i, i + 10);
     const q = query(matchesRef, where("missionId", "in", batch));
@@ -225,7 +235,6 @@ export async function updateSeller(
   await updateDoc(sellerRef, updates);
 }
 
-// Get all matches where this seller is matched (incoming buyer requests)
 export async function getMatchesForSeller(sellerId: string): Promise<Match[]> {
   if (!isFirebaseConfigured() || !db) return [];
 
@@ -236,7 +245,6 @@ export async function getMatchesForSeller(sellerId: string): Promise<Match[]> {
   return querySnapshot.docs.map((doc) => doc.data() as Match);
 }
 
-// Get all missions (for sellers to see incoming requests)
 export async function getAllMissions(): Promise<Mission[]> {
   if (!isFirebaseConfigured() || !db) return [];
 
@@ -247,7 +255,6 @@ export async function getAllMissions(): Promise<Mission[]> {
   return querySnapshot.docs.map((doc) => doc.data() as Mission);
 }
 
-// Update seller inventory
 export async function updateSellerInventory(
   sellerId: string,
   inventory: Seller["inventory"],
@@ -258,7 +265,6 @@ export async function updateSellerInventory(
   await setDoc(sellerRef, { inventory }, { merge: true });
 }
 
-// Create seller profile from user
 export async function createSellerFromUser(
   userId: string,
   sellerData: Omit<Seller, "id">,
@@ -302,7 +308,6 @@ export async function getChatMessages(
   return querySnapshot.docs.map((doc) => doc.data() as ChatMessage);
 }
 
-// Get all chats for a buyer (grouped by seller)
 export async function getChatsForBuyer(
   buyerId: string,
 ): Promise<ChatMessage[]> {
@@ -315,12 +320,10 @@ export async function getChatsForBuyer(
     orderBy("time", "desc"),
   );
   const querySnapshot = await getDocs(q);
-  console.log(querySnapshot);
 
   return querySnapshot.docs.map((doc) => doc.data() as ChatMessage);
 }
 
-// Get all chats for a seller
 export async function getChatsForSeller(
   sellerId: string,
 ): Promise<ChatMessage[]> {
@@ -412,7 +415,6 @@ export async function createFeedReply(reply: FeedReply): Promise<string> {
   const replyRef = doc(db, COLLECTIONS.FEED_REPLIES, reply.id);
   await setDoc(replyRef, reply);
 
-  // Increment reply count on post
   const post = await getFeedPostById(reply.postId);
   if (post) {
     await updateFeedPost(reply.postId, { repliesCount: post.repliesCount + 1 });
@@ -447,6 +449,267 @@ export async function getRepliesByUser(userId: string): Promise<FeedReply[]> {
   const querySnapshot = await getDocs(q);
 
   return querySnapshot.docs.map((doc) => doc.data() as FeedReply);
+}
+
+// ==================== REVIEWS ====================
+
+export async function createReview(review: Review): Promise<string> {
+  if (!isFirebaseConfigured() || !db) return review.id;
+
+  const reviewRef = doc(db, COLLECTIONS.REVIEWS, review.id);
+  await setDoc(reviewRef, review);
+  return review.id;
+}
+
+export async function getReviewsBySeller(sellerId: string): Promise<Review[]> {
+  if (!isFirebaseConfigured() || !db) return [];
+
+  const reviewsRef = collection(db, COLLECTIONS.REVIEWS);
+  const q = query(
+    reviewsRef,
+    where("sellerId", "==", sellerId),
+    orderBy("createdAt", "desc"),
+  );
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map((doc) => doc.data() as Review);
+}
+
+export async function getReviewsByBuyer(buyerId: string): Promise<Review[]> {
+  if (!isFirebaseConfigured() || !db) return [];
+
+  const reviewsRef = collection(db, COLLECTIONS.REVIEWS);
+  const q = query(reviewsRef, where("buyerId", "==", buyerId));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map((doc) => doc.data() as Review);
+}
+
+export async function hasReviewedSeller(
+  buyerId: string,
+  sellerId: string,
+  missionId: string,
+): Promise<boolean> {
+  if (!isFirebaseConfigured() || !db) return false;
+
+  const reviewsRef = collection(db, COLLECTIONS.REVIEWS);
+  const q = query(
+    reviewsRef,
+    where("buyerId", "==", buyerId),
+    where("sellerId", "==", sellerId),
+    where("missionId", "==", missionId),
+  );
+  const querySnapshot = await getDocs(q);
+  return !querySnapshot.empty;
+}
+
+function computeBadges(seller: Seller, reviews: Review[]): SellerBadge[] {
+  const badges: SellerBadge[] = [];
+  const count = reviews.length;
+  const avg = count > 0 ? reviews.reduce((s, r) => s + r.rating, 0) / count : 0;
+
+  if (avg >= 4.5 && count >= 5) badges.push("top-seller");
+  if (avg >= 4.0 && !badges.includes("top-seller")) badges.push("good-seller");
+  if (count >= 10) badges.push("trusted-partner");
+  if (seller.responseTime?.toLowerCase().includes("min")) badges.push("fast-reply");
+  if (seller.verified) badges.push("verified-supplier");
+
+  return badges;
+}
+
+export async function updateSellerRatingAndBadges(
+  sellerId: string,
+  reviews: Review[],
+): Promise<void> {
+  if (!isFirebaseConfigured() || !db) return;
+
+  const seller = await getSellerById(sellerId);
+  if (!seller) return;
+
+  const count = reviews.length;
+  const avg =
+    count > 0
+      ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / count) * 10) / 10
+      : seller.rating;
+
+  const sellerRef = doc(db, COLLECTIONS.SELLERS, sellerId);
+  await updateDoc(sellerRef, {
+    rating: avg,
+    reviews: count,
+    badges: computeBadges(seller, reviews),
+  });
+}
+
+// ==================== WISHLIST ====================
+
+export async function addToWishlist(item: WishlistItem): Promise<string> {
+  if (!isFirebaseConfigured() || !db) return item.id;
+
+  const wishlistRef = doc(db, COLLECTIONS.WISHLIST, item.id);
+  await setDoc(wishlistRef, item);
+  return item.id;
+}
+
+export async function removeFromWishlist(buyerId: string, sellerId: string): Promise<void> {
+  if (!isFirebaseConfigured() || !db) return;
+
+  const wishlistRef = collection(db, COLLECTIONS.WISHLIST);
+  const q = query(
+    wishlistRef,
+    where("buyerId", "==", buyerId),
+    where("sellerId", "==", sellerId),
+  );
+  const querySnapshot = await getDocs(q);
+  await Promise.all(querySnapshot.docs.map((d) => deleteDoc(d.ref)));
+}
+
+export async function getWishlistByBuyer(buyerId: string): Promise<WishlistItem[]> {
+  if (!isFirebaseConfigured() || !db) return [];
+
+  const wishlistRef = collection(db, COLLECTIONS.WISHLIST);
+  const q = query(wishlistRef, where("buyerId", "==", buyerId));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map((d) => d.data() as WishlistItem);
+}
+
+export async function isInWishlist(buyerId: string, sellerId: string): Promise<boolean> {
+  if (!isFirebaseConfigured() || !db) return false;
+
+  const wishlistRef = collection(db, COLLECTIONS.WISHLIST);
+  const q = query(
+    wishlistRef,
+    where("buyerId", "==", buyerId),
+    where("sellerId", "==", sellerId),
+  );
+  const querySnapshot = await getDocs(q);
+  return !querySnapshot.empty;
+}
+
+export async function updateWishlistAlert(
+  buyerId: string,
+  sellerId: string,
+  alertKeyword: string,
+  alertEnabled: boolean,
+): Promise<void> {
+  if (!isFirebaseConfigured() || !db) return;
+
+  const wishlistRef = collection(db, COLLECTIONS.WISHLIST);
+  const q = query(
+    wishlistRef,
+    where("buyerId", "==", buyerId),
+    where("sellerId", "==", sellerId),
+  );
+  const querySnapshot = await getDocs(q);
+  await Promise.all(
+    querySnapshot.docs.map((d) =>
+      updateDoc(d.ref, { alertKeyword, alertEnabled }),
+    ),
+  );
+}
+
+export async function getWishlistItemsForSeller(sellerId: string): Promise<WishlistItem[]> {
+  if (!isFirebaseConfigured() || !db) return [];
+
+  const wishlistRef = collection(db, COLLECTIONS.WISHLIST);
+  const q = query(wishlistRef, where("sellerId", "==", sellerId));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map((d) => d.data() as WishlistItem);
+}
+
+export async function createWishlistAlert(alert: WishlistAlert): Promise<string> {
+  if (!isFirebaseConfigured() || !db) return alert.id;
+
+  const alertRef = doc(db, COLLECTIONS.WISHLIST_ALERTS, alert.id);
+  await setDoc(alertRef, alert);
+  return alert.id;
+}
+
+export async function getWishlistAlertsByBuyer(buyerId: string): Promise<WishlistAlert[]> {
+  if (!isFirebaseConfigured() || !db) return [];
+
+  const alertsRef = collection(db, COLLECTIONS.WISHLIST_ALERTS);
+  const q = query(
+    alertsRef,
+    where("buyerId", "==", buyerId),
+    orderBy("createdAt", "desc"),
+  );
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map((d) => d.data() as WishlistAlert);
+}
+
+export async function markAlertSeen(alertId: string): Promise<void> {
+  if (!isFirebaseConfigured() || !db) return;
+
+  const alertRef = doc(db, COLLECTIONS.WISHLIST_ALERTS, alertId);
+  await updateDoc(alertRef, { seen: true });
+}
+
+// ==================== ANALYTICS ====================
+
+export async function getSellerAnalytics(sellerId: string): Promise<SellerAnalytics | null> {
+  if (!isFirebaseConfigured() || !db) return null;
+
+  const ref = doc(db, COLLECTIONS.ANALYTICS, sellerId);
+  const snap = await getDoc(ref);
+  return snap.exists() ? (snap.data() as SellerAnalytics) : null;
+}
+
+export async function incrementProfileView(sellerId: string): Promise<void> {
+  if (!isFirebaseConfigured() || !db) return;
+
+  const ref = doc(db, COLLECTIONS.ANALYTICS, sellerId);
+  await setDoc(
+    ref,
+    {
+      sellerId,
+      profileViews: increment(1),
+      updatedAt: new Date().toISOString(),
+    },
+    { merge: true },
+  );
+}
+
+export async function incrementItemView(sellerId: string, itemId: string): Promise<void> {
+  if (!isFirebaseConfigured() || !db) return;
+
+  const ref = doc(db, COLLECTIONS.ANALYTICS, sellerId);
+  await setDoc(
+    ref,
+    {
+      sellerId,
+      itemViews: { [itemId]: increment(1) },
+      updatedAt: new Date().toISOString(),
+    },
+    { merge: true },
+  );
+}
+
+// ==================== PAYMENTS ====================
+
+export async function createPaymentRequest(payment: PaymentRequest): Promise<string> {
+  if (!isFirebaseConfigured() || !db) return payment.id;
+
+  const ref = doc(db, COLLECTIONS.PAYMENTS, payment.id);
+  await setDoc(ref, payment);
+  return payment.id;
+}
+
+export async function getPaymentsByChat(missionId: string, sellerId: string): Promise<PaymentRequest[]> {
+  if (!isFirebaseConfigured() || !db) return [];
+
+  const ref = collection(db, COLLECTIONS.PAYMENTS);
+  const q = query(
+    ref,
+    where("missionId", "==", missionId),
+    where("sellerId", "==", sellerId),
+  );
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map((d) => d.data() as PaymentRequest);
+}
+
+export async function updatePaymentStatus(id: string, status: PaymentStatus): Promise<void> {
+  if (!isFirebaseConfigured() || !db) return;
+
+  const ref = doc(db, COLLECTIONS.PAYMENTS, id);
+  await updateDoc(ref, { status, updatedAt: new Date().toISOString() });
 }
 
 // ==================== UTILITY ====================

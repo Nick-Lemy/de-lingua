@@ -1,13 +1,3 @@
-// Utility: Remove all chat messages with missionId === "mission"
-export function cleanupInvalidChatMessages(): void {
-  const chats = getChatMessages();
-  const cleaned = chats.filter((m) => m.missionId && m.missionId !== "mission");
-  if (cleaned.length !== chats.length) {
-    localStorage.setItem(KEYS.CHATS, JSON.stringify(cleaned));
-    // Optionally, log how many were removed
-    console.log(`Removed ${chats.length - cleaned.length} invalid chat messages.`);
-  }
-}
 // LocalStorage utilities for data persistence
 // Re-export types for backwards compatibility
 export type {
@@ -30,6 +20,13 @@ import type {
   ChatMessage,
   FeedPost,
   FeedReply,
+  Review,
+  WishlistItem,
+  WishlistAlert,
+  SellerAnalytics,
+  SellerBadge,
+  PaymentRequest,
+  PaymentStatus,
 } from "./types";
 
 // Storage keys
@@ -41,6 +38,11 @@ const KEYS = {
   CHATS: "delingua_chats",
   FEED_POSTS: "delingua_feed_posts",
   FEED_REPLIES: "delingua_feed_replies",
+  REVIEWS: "delingua_reviews",
+  WISHLIST: "delingua_wishlist",
+  WISHLIST_ALERTS: "delingua_wishlist_alerts",
+  ANALYTICS: "delingua_seller_analytics",
+  PAYMENTS: "delingua_payments",
 };
 
 // User Profile
@@ -127,12 +129,10 @@ export function getMatchesByMission(missionId: string): Match[] {
   return getMatches().filter((m) => m.missionId === missionId);
 }
 
-// Get matches for a seller (incoming buyer requests)
 export function getMatchesForSeller(sellerId: string): Match[] {
   return getMatches().filter((m) => m.sellerId === sellerId);
 }
 
-// Update a match
 export function updateMatch(id: string, updates: Partial<Match>): void {
   const matches = getMatches();
   const index = matches.findIndex((m) => m.id === id);
@@ -156,7 +156,6 @@ export function updateSellerInventory(
 
 // Create a Seller from UserProfile during signup
 export function createSellerFromUser(user: UserProfile): Seller {
-  // Use store name as the seller's display name (falls back to user name)
   const displayName = user.businessProfile?.storeName || user.name;
   const seller: Seller = {
     id: user.id,
@@ -173,6 +172,7 @@ export function createSellerFromUser(user: UserProfile): Seller {
     description: `${displayName} is a supplier offering ${user.businessProfile?.products?.join(", ") || "products"} in Rwanda.`,
     certifications: [],
     inventory: [],
+    badges: [],
   };
   saveSeller(seller);
   return seller;
@@ -199,17 +199,15 @@ export function getChatByMissionAndSeller(
   );
 }
 
-// Get all chats for a buyer
 export function getChatsForBuyer(buyerId: string): ChatMessage[] {
   return getChatMessages().filter((m) => m.buyerId === buyerId);
 }
 
-// Get all chats for a seller
 export function getChatsForSeller(sellerId: string): ChatMessage[] {
   return getChatMessages().filter((m) => m.sellerId === sellerId);
 }
 
-// Initialize dummy data (no longer seeds fake sellers - sellers come from real signups)
+// Initialize dummy data (no longer seeds fake sellers)
 export function initializeDummyData(): void {
   // No longer pre-seeding sellers - they are created when users sign up as sellers
 }
@@ -227,7 +225,7 @@ export function saveFeedPost(post: FeedPost): void {
   if (index >= 0) {
     posts[index] = post;
   } else {
-    posts.unshift(post); // Add to beginning
+    posts.unshift(post);
   }
   localStorage.setItem(KEYS.FEED_POSTS, JSON.stringify(posts));
 }
@@ -258,7 +256,6 @@ export function updateFeedPost(id: string, updates: Partial<FeedPost>): void {
 export function deleteFeedPost(id: string): void {
   const posts = getFeedPosts().filter((p) => p.id !== id);
   localStorage.setItem(KEYS.FEED_POSTS, JSON.stringify(posts));
-  // Also delete associated replies
   const replies = getFeedReplies().filter((r) => r.postId !== id);
   localStorage.setItem(KEYS.FEED_REPLIES, JSON.stringify(replies));
 }
@@ -269,7 +266,6 @@ export function saveFeedReply(reply: FeedReply): void {
   const replies = getFeedReplies();
   replies.push(reply);
   localStorage.setItem(KEYS.FEED_REPLIES, JSON.stringify(replies));
-  // Increment reply count on post
   const post = getFeedPostById(reply.postId);
   if (post) {
     updateFeedPost(reply.postId, { repliesCount: post.repliesCount + 1 });
@@ -292,4 +288,218 @@ export function getRepliesByPost(postId: string): FeedReply[] {
 
 export function getRepliesByUser(userId: string): FeedReply[] {
   return getFeedReplies().filter((r) => r.userId === userId);
+}
+
+// ==================== REVIEWS ====================
+
+function getReviewsAll(): Review[] {
+  const data = localStorage.getItem(KEYS.REVIEWS);
+  return data ? JSON.parse(data) : [];
+}
+
+export function saveReview(review: Review): void {
+  const reviews = getReviewsAll();
+  reviews.push(review);
+  localStorage.setItem(KEYS.REVIEWS, JSON.stringify(reviews));
+}
+
+export function getReviewsBySeller(sellerId: string): Review[] {
+  return getReviewsAll()
+    .filter((r) => r.sellerId === sellerId)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export function getReviewsByBuyer(buyerId: string): Review[] {
+  return getReviewsAll().filter((r) => r.buyerId === buyerId);
+}
+
+export function hasReviewedSeller(
+  buyerId: string,
+  sellerId: string,
+  missionId: string,
+): boolean {
+  return getReviewsAll().some(
+    (r) => r.buyerId === buyerId && r.sellerId === sellerId && r.missionId === missionId,
+  );
+}
+
+function computeBadges(seller: Seller, reviews: Review[]): SellerBadge[] {
+  const badges: SellerBadge[] = [];
+  const count = reviews.length;
+  const avg = count > 0 ? reviews.reduce((s, r) => s + r.rating, 0) / count : 0;
+
+  if (avg >= 4.5 && count >= 5) badges.push("top-seller");
+  if (avg >= 4.0 && !badges.includes("top-seller")) badges.push("good-seller");
+  if (count >= 10) badges.push("trusted-partner");
+  if (seller.responseTime && seller.responseTime.toLowerCase().includes("min")) badges.push("fast-reply");
+  if (seller.verified) badges.push("verified-supplier");
+
+  return badges;
+}
+
+export function updateSellerRatingAndBadges(sellerId: string, reviews: Review[]): void {
+  const seller = getSellerById(sellerId);
+  if (!seller) return;
+
+  const count = reviews.length;
+  const avg = count > 0
+    ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / count) * 10) / 10
+    : seller.rating;
+
+  const updated: Seller = {
+    ...seller,
+    rating: avg,
+    reviews: count,
+    badges: computeBadges(seller, reviews),
+  };
+  saveSeller(updated);
+}
+
+// ==================== WISHLIST ====================
+
+function getWishlistAll(): WishlistItem[] {
+  const data = localStorage.getItem(KEYS.WISHLIST);
+  return data ? JSON.parse(data) : [];
+}
+
+export function addToWishlist(item: WishlistItem): void {
+  const wishlist = getWishlistAll();
+  const exists = wishlist.findIndex((w) => w.buyerId === item.buyerId && w.sellerId === item.sellerId);
+  if (exists < 0) {
+    wishlist.push(item);
+    localStorage.setItem(KEYS.WISHLIST, JSON.stringify(wishlist));
+  }
+}
+
+export function removeFromWishlist(buyerId: string, sellerId: string): void {
+  const wishlist = getWishlistAll().filter(
+    (w) => !(w.buyerId === buyerId && w.sellerId === sellerId),
+  );
+  localStorage.setItem(KEYS.WISHLIST, JSON.stringify(wishlist));
+}
+
+export function getWishlistByBuyer(buyerId: string): WishlistItem[] {
+  return getWishlistAll().filter((w) => w.buyerId === buyerId);
+}
+
+export function isInWishlist(buyerId: string, sellerId: string): boolean {
+  return getWishlistAll().some((w) => w.buyerId === buyerId && w.sellerId === sellerId);
+}
+
+export function updateWishlistAlert(
+  buyerId: string,
+  sellerId: string,
+  alertKeyword: string,
+  alertEnabled: boolean,
+): void {
+  const wishlist = getWishlistAll();
+  const index = wishlist.findIndex((w) => w.buyerId === buyerId && w.sellerId === sellerId);
+  if (index >= 0) {
+    wishlist[index] = { ...wishlist[index], alertKeyword, alertEnabled };
+    localStorage.setItem(KEYS.WISHLIST, JSON.stringify(wishlist));
+  }
+}
+
+function getWishlistAlertsAll(): WishlistAlert[] {
+  const data = localStorage.getItem(KEYS.WISHLIST_ALERTS);
+  return data ? JSON.parse(data) : [];
+}
+
+export function saveWishlistAlert(alert: WishlistAlert): void {
+  const alerts = getWishlistAlertsAll();
+  alerts.unshift(alert);
+  localStorage.setItem(KEYS.WISHLIST_ALERTS, JSON.stringify(alerts));
+}
+
+export function getWishlistAlertsByBuyer(buyerId: string): WishlistAlert[] {
+  return getWishlistAlertsAll()
+    .filter((a) => a.buyerId === buyerId)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export function markAlertSeen(alertId: string): void {
+  const alerts = getWishlistAlertsAll();
+  const index = alerts.findIndex((a) => a.id === alertId);
+  if (index >= 0) {
+    alerts[index] = { ...alerts[index], seen: true };
+    localStorage.setItem(KEYS.WISHLIST_ALERTS, JSON.stringify(alerts));
+  }
+}
+
+export function getWishlistItemsForSeller(sellerId: string): WishlistItem[] {
+  return getWishlistAll().filter((w) => w.sellerId === sellerId);
+}
+
+// ==================== ANALYTICS ====================
+
+function getAllAnalytics(): Record<string, SellerAnalytics> {
+  const data = localStorage.getItem(KEYS.ANALYTICS);
+  return data ? JSON.parse(data) : {};
+}
+
+function saveAllAnalytics(all: Record<string, SellerAnalytics>): void {
+  localStorage.setItem(KEYS.ANALYTICS, JSON.stringify(all));
+}
+
+export function getSellerAnalytics(sellerId: string): SellerAnalytics | null {
+  const all = getAllAnalytics();
+  return all[sellerId] || null;
+}
+
+export function incrementProfileView(sellerId: string): void {
+  const all = getAllAnalytics();
+  const existing = all[sellerId] || { sellerId, profileViews: 0, itemViews: {}, updatedAt: "" };
+  all[sellerId] = {
+    ...existing,
+    profileViews: (existing.profileViews || 0) + 1,
+    updatedAt: new Date().toISOString(),
+  };
+  saveAllAnalytics(all);
+}
+
+export function incrementItemView(sellerId: string, itemId: string): void {
+  const all = getAllAnalytics();
+  const existing = all[sellerId] || { sellerId, profileViews: 0, itemViews: {}, updatedAt: "" };
+  const itemViews = { ...existing.itemViews };
+  itemViews[itemId] = (itemViews[itemId] || 0) + 1;
+  all[sellerId] = { ...existing, itemViews, updatedAt: new Date().toISOString() };
+  saveAllAnalytics(all);
+}
+
+// ==================== PAYMENTS ====================
+
+function getPaymentsAll(): PaymentRequest[] {
+  const data = localStorage.getItem(KEYS.PAYMENTS);
+  return data ? JSON.parse(data) : [];
+}
+
+export function savePaymentRequest(payment: PaymentRequest): void {
+  const payments = getPaymentsAll();
+  payments.push(payment);
+  localStorage.setItem(KEYS.PAYMENTS, JSON.stringify(payments));
+}
+
+export function getPaymentsByChat(missionId: string, sellerId: string): PaymentRequest[] {
+  return getPaymentsAll().filter(
+    (p) => p.missionId === missionId && p.sellerId === sellerId,
+  );
+}
+
+export function updatePaymentStatus(id: string, status: PaymentStatus): void {
+  const payments = getPaymentsAll();
+  const index = payments.findIndex((p) => p.id === id);
+  if (index >= 0) {
+    payments[index] = { ...payments[index], status, updatedAt: new Date().toISOString() };
+    localStorage.setItem(KEYS.PAYMENTS, JSON.stringify(payments));
+  }
+}
+
+// ==================== UTILITY ====================
+
+export function cleanupInvalidChatMessages(): void {
+  const chats = getChatMessages();
+  const cleaned = chats.filter((m) => m.missionId && m.missionId !== "mission");
+  if (cleaned.length !== chats.length) {
+    localStorage.setItem(KEYS.CHATS, JSON.stringify(cleaned));
+  }
 }

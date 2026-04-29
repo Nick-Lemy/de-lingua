@@ -6,10 +6,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/AuthContext";
 import { isFirebaseConfigured } from "@/lib/firebase";
-import { getUserProfile, getSellers, getMissions } from "@/lib/storage";
-import { getAllSellers, getMissionsByBuyer } from "@/lib/db";
+import { getUserProfile, getSellers, getMissions, getWishlistAlertsByBuyer } from "@/lib/storage";
+import { getAllSellers, getMissionsByBuyer, getWishlistAlertsByBuyer as getFirebaseAlerts } from "@/lib/db";
 import type { UserProfile, Seller, Mission } from "@/lib/types";
 import { BottomNav } from "@/components/BottomNav";
+import { WishlistButton } from "@/components/WishlistButton";
 import {
   IoRocket,
   IoCheckmarkCircle,
@@ -17,6 +18,7 @@ import {
   IoLocationSharp,
   IoChevronForward,
   IoStorefront,
+  IoNotifications,
 } from "react-icons/io5";
 import { HiStar } from "react-icons/hi2";
 
@@ -27,6 +29,7 @@ export default function HomePage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [missions, setMissions] = useState<Mission[]>([]);
+  const [unseenAlerts, setUnseenAlerts] = useState(0);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -53,6 +56,8 @@ export default function HomePage() {
         ]);
         setSellers(fbSellers);
         setMissions(fbMissions);
+        const fbAlerts = await getFirebaseAlerts(currentUser.id);
+        setUnseenAlerts(fbAlerts.filter((a) => !a.seen).length);
       } else {
         // LocalStorage fallback
         const localUser = getUserProfile();
@@ -63,6 +68,8 @@ export default function HomePage() {
         currentUser = localUser;
         setSellers(getSellers());
         setMissions(getMissions().filter((m) => m.buyerId === currentUser!.id));
+        const localAlerts = getWishlistAlertsByBuyer(currentUser.id);
+        setUnseenAlerts(localAlerts.filter((a) => !a.seen).length);
       }
 
       if (currentUser?.role === "seller") {
@@ -100,12 +107,25 @@ export default function HomePage() {
               </p>
               <h1 className="text-xl font-bold">{user.name}</h1>
             </div>
-            <Link
-              href="/account"
-              className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-lg font-bold"
-            >
-              {user.avatar}
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/wishlist"
+                className="relative w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"
+              >
+                <IoNotifications className="w-5 h-5" />
+                {unseenAlerts > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#EF7C29] rounded-full text-[9px] font-bold flex items-center justify-center">
+                    {unseenAlerts}
+                  </span>
+                )}
+              </Link>
+              <Link
+                href="/account"
+                className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-lg font-bold"
+              >
+                {user.avatar}
+              </Link>
+            </div>
           </div>
 
           {/* Active Missions Card */}
@@ -212,41 +232,52 @@ export default function HomePage() {
               </div>
             ) : (
               sellers.slice(0, 3).map((seller) => (
-                <Link
-                  key={seller.id}
-                  href={`/sellers/${seller.id}`}
-                  className="block bg-white rounded-md p-4 border border-gray-200"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-11 h-11 rounded-md bg-[#1152A2] text-white flex items-center justify-center text-base font-bold shrink-0">
-                      {seller.avatar}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-sm text-gray-900">
-                          {seller.name}
-                        </h4>
-                        {seller.verified && (
-                          <IoCheckmarkCircle className="w-4 h-4 text-[#1152A2]" />
-                        )}
+                <div key={seller.id} className="relative">
+                  <Link
+                    href={`/sellers/${seller.id}`}
+                    className="block bg-white rounded-md p-4 border border-gray-200"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-11 h-11 rounded-md bg-[#1152A2] text-white flex items-center justify-center text-base font-bold shrink-0">
+                        {seller.avatar}
                       </div>
-                      <p className="text-xs text-gray-500 mb-2">
-                        {seller.category}
-                      </p>
-                      <div className="flex items-center gap-3 text-xs text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <HiStar className="w-3 h-3 text-amber-500" />
-                          {seller.rating}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <IoLocationSharp className="w-3 h-3" />
-                          {seller.location}
-                        </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-semibold text-sm text-gray-900">
+                            {seller.name}
+                          </h4>
+                          {seller.verified && (
+                            <IoCheckmarkCircle className="w-4 h-4 text-[#1152A2]" />
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500 mb-2">
+                          {seller.category}
+                        </p>
+                        <div className="flex items-center gap-3 text-xs text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <HiStar className="w-3 h-3 text-amber-500" />
+                            {seller.rating}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <IoLocationSharp className="w-3 h-3" />
+                            {seller.location}
+                          </span>
+                        </div>
                       </div>
+                      <IoChevronForward className="w-4 h-4 text-gray-400" />
                     </div>
-                    <IoChevronForward className="w-4 h-4 text-gray-400" />
+                  </Link>
+                  <div className="absolute top-3 right-8">
+                    <WishlistButton
+                      sellerId={seller.id}
+                      sellerName={seller.name}
+                      sellerAvatar={seller.avatar}
+                      sellerCategory={seller.category}
+                      buyerId={user.id}
+                      isConfigured={isConfigured}
+                    />
                   </div>
-                </Link>
+                </div>
               ))
             )}
           </div>
