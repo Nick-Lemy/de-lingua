@@ -33,7 +33,7 @@ export function Button({
     secondary: "bg-gray-100 text-gray-900",
     outline: "border border-gray-200 text-gray-700",
     ghost: "text-gray-600",
-    danger: "bg-slate-800 text-white",
+    danger: "bg-red-600 text-white hover:bg-red-700",
   };
 
   const sizes = {

@@ -84,20 +84,33 @@ export function WishlistButton({
         setIsSaved(true);
         setShowAlert(true);
       }
+    } catch (err) {
+      console.error("WishlistButton toggle failed", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSaveAlert = async (e: React.MouseEvent) => {
+  const handleSaveAlert = async (
+    e: React.MouseEvent | React.KeyboardEvent,
+  ) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (keyword.trim()) {
-      if (isConfigured) {
-        await updateWishlistAlertFirebase(buyerId, sellerId, keyword.trim(), true);
-      } else {
-        updateWishlistAlertLocal(buyerId, sellerId, keyword.trim(), true);
+      try {
+        if (isConfigured) {
+          await updateWishlistAlertFirebase(
+            buyerId,
+            sellerId,
+            keyword.trim(),
+            true,
+          );
+        } else {
+          updateWishlistAlertLocal(buyerId, sellerId, keyword.trim(), true);
+        }
+      } catch (err) {
+        console.error("updateWishlistAlert failed", err);
       }
     }
     setShowAlert(false);
@@ -128,31 +141,36 @@ export function WishlistButton({
 
       {showAlert && (
         <div
-          className="absolute right-0 top-10 z-50 bg-white rounded-lg shadow-lg border border-gray-200 p-3 w-56"
+          className="absolute right-0 top-11 z-50 bg-white rounded-2xl shadow-xl border border-gray-100 p-4 w-60"
           onClick={(e) => e.stopPropagation()}
         >
-          <p className="text-xs font-semibold text-gray-800 mb-2">Set alert (optional)</p>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-7 h-7 rounded-xl bg-[#EF7C29]/10 flex items-center justify-center">
+              <IoHeart className="w-3.5 h-3.5 text-[#EF7C29]" />
+            </div>
+            <p className="text-xs font-bold text-gray-800">Saved! Set an alert?</p>
+          </div>
           <input
             type="text"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             placeholder="e.g. tomatoes, rice..."
-            className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-md outline-none focus:border-[#1152A2] mb-2"
+            className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none focus:border-[#1152A2] focus:ring-2 focus:ring-[#1152A2]/10 mb-3 transition-all"
             autoFocus
             onKeyDown={(e) => {
-              if (e.key === "Enter") handleSaveAlert(e as unknown as React.MouseEvent);
+              if (e.key === "Enter") handleSaveAlert(e);
             }}
           />
           <div className="flex gap-2">
             <button
               onClick={handleSaveAlert}
-              className="flex-1 py-1.5 bg-[#1152A2] text-white text-xs rounded-md font-medium"
+              className="flex-1 py-2 bg-[#1152A2] text-white text-xs rounded-xl font-semibold hover:bg-[#0d3d7a] transition-colors"
             >
               Save
             </button>
             <button
               onClick={handleSkipAlert}
-              className="flex-1 py-1.5 bg-gray-100 text-gray-600 text-xs rounded-md font-medium"
+              className="flex-1 py-2 bg-gray-100 text-gray-500 text-xs rounded-xl font-semibold hover:bg-gray-200 transition-colors"
             >
               Skip
             </button>

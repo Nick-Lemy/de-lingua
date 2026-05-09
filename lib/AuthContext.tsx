@@ -44,15 +44,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isConfigured, setIsConfigured] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
     const configured = isFirebaseConfigured();
     setIsConfigured(configured);
 
     if (configured) {
-      // Use Firebase auth
       const unsubscribe = onAuthChange(async (fbUser) => {
+        if (!mounted) return;
         setFirebaseUser(fbUser);
         if (fbUser) {
           const userProfile = await getUserById(fbUser.uid);
+          if (!mounted) return;
           setUser(userProfile);
         } else {
           setUser(null);
@@ -60,12 +62,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       });
 
-      return () => unsubscribe();
+      return () => {
+        mounted = false;
+        unsubscribe();
+      };
     } else {
-      // Fallback to localStorage
       const localUser = getLocalUserProfile();
       setUser(localUser);
       setLoading(false);
+      return () => {
+        mounted = false;
+      };
     }
   }, []);
 

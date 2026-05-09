@@ -36,13 +36,14 @@ import { StarRating } from "@/components/StarRating";
 import {
   IoNotifications,
   IoStorefront,
-  IoCheckmarkCircle,
   IoChatbubbles,
   IoTime,
   IoAdd,
   IoListOutline,
   IoEye,
   IoTrendingUp,
+  IoChevronForward,
+  IoFlash,
 } from "react-icons/io5";
 import { useTranslation } from "@/lib/i18n";
 
@@ -94,7 +95,6 @@ export default function SellerDashboardPage() {
 
       setUser(currentUser);
 
-      // Load seller profile
       let sellerData: Seller | null = null;
       if (isConfigured) {
         sellerData = await getFirebaseSeller(currentUser.id);
@@ -108,7 +108,6 @@ export default function SellerDashboardPage() {
 
       setSeller(sellerData);
 
-      // Load all data in parallel
       const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
 
       const [matches, chats, reviewsData, analyticsData] = await Promise.all([
@@ -129,13 +128,11 @@ export default function SellerDashboardPage() {
       setReviews(reviewsData);
       setAnalytics(analyticsData);
 
-      // Count new messages in last 7 days from buyers
       const recent = chats.filter(
         (m) => m.sender === "buyer" && new Date(m.time).getTime() > weekAgo,
       );
       setNewMessageCount(recent.length);
 
-      // Load mission details for pending requests
       const pendingMatches = matches.filter((m) => m.status === "pending");
       const requestsWithMissions: RequestWithMission[] = await Promise.all(
         pendingMatches.slice(0, 3).map(async (match) => {
@@ -157,8 +154,8 @@ export default function SellerDashboardPage() {
 
   if (!mounted || loading || !user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-slate-800 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#f8faff] flex items-center justify-center">
+        <div className="w-10 h-10 border-3 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -170,7 +167,6 @@ export default function SellerDashboardPage() {
       ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) * 10) / 10
       : seller?.rating || 0;
 
-  // Sort inventory by view count
   const popularItems = seller?.inventory
     ? [...seller.inventory].sort(
         (a, b) =>
@@ -178,113 +174,113 @@ export default function SellerDashboardPage() {
       )
     : [];
 
-  const getUrgencyColor = (urgency: string) => {
+  const getUrgencyStyle = (urgency: string) => {
     switch (urgency) {
       case "urgent":
-        return "bg-red-50 text-red-700 border-red-200";
+        return "bg-red-50 text-red-600 border-red-100";
       case "normal":
-        return "bg-[#1152A2]/10 text-[#1152A2] border-[#1152A2]/20";
+        return "bg-blue-50 text-[#1152A2] border-blue-100";
       default:
-        return "bg-gray-50 text-gray-700 border-gray-200";
+        return "bg-gray-50 text-gray-600 border-gray-100";
     }
   };
 
   return (
-    <div className="min-h-screen bg-white pb-24">
+    <div className="min-h-screen bg-[#f8faff] pb-28">
       {/* Header */}
-      <div className="bg-[#1152A2] text-white px-5 pt-12 pb-8">
+      <div className="bg-gradient-to-br from-[#1152A2] via-[#1a6bc9] to-[#0d3d7a] text-white px-5 pt-14 pb-10">
         <div className="max-w-lg mx-auto">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-7">
             <div>
-              <p className="text-slate-300 text-xs font-medium mb-1">
+              <p className="text-blue-200 text-xs font-medium mb-0.5 tracking-wide uppercase">
                 {t("sellerDashboard.welcomeBack")}
               </p>
-              <h1 className="text-xl font-bold">{user.name}</h1>
+              <h1 className="text-2xl font-bold tracking-tight">{user.name}</h1>
             </div>
-            <div className="flex items-center gap-3">
-              <button className="w-10 h-10 rounded-md bg-white/10 flex items-center justify-center relative">
+            <div className="flex items-center gap-2.5">
+              <button className="relative w-11 h-11 rounded-2xl bg-white/15 hover:bg-white/25 transition-colors flex items-center justify-center">
                 <IoNotifications className="w-5 h-5" />
                 {pendingCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#EF7C29] rounded-full text-[10px] font-bold flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#EF7C29] rounded-full text-[10px] font-bold flex items-center justify-center shadow-lg">
                     {pendingCount}
                   </span>
                 )}
               </button>
               <Link
                 href="/account"
-                className="w-10 h-10 rounded-md bg-[#EF7C29] flex items-center justify-center text-lg font-bold"
+                className="w-11 h-11 rounded-2xl bg-[#EF7C29] flex items-center justify-center text-lg font-bold shadow-lg"
               >
                 {user.avatar}
               </Link>
             </div>
           </div>
 
-          {/* Stats grid (2x2) in header */}
+          {/* Header stats grid */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white/10 rounded-md p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-[#EF7C29] flex items-center justify-center">
+            <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-xl bg-[#EF7C29] flex items-center justify-center">
                   <IoEye className="w-4 h-4 text-white" />
                 </div>
+                <span className="text-blue-200 text-xs font-medium">{t("sellerDashboard.thisWeek")}</span>
               </div>
-              <p className="text-2xl font-bold">{analytics?.profileViews ?? 0}</p>
-              <p className="text-slate-300 text-xs">{t("sellerDashboard.profileViews")}</p>
+              <p className="text-3xl font-bold">{analytics?.profileViews ?? 0}</p>
+              <p className="text-blue-200 text-xs mt-0.5">{t("sellerDashboard.profileViews")}</p>
             </div>
-            <div className="bg-white/10 rounded-md p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-[#1152A2] flex items-center justify-center">
+            <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center">
                   <IoChatbubbles className="w-4 h-4 text-white" />
                 </div>
+                <span className="text-blue-200 text-xs font-medium">{t("sellerDashboard.thisWeek")}</span>
               </div>
-              <p className="text-2xl font-bold">{newMessageCount}</p>
-              <p className="text-slate-300 text-xs">{t("sellerDashboard.newMessages")}</p>
+              <p className="text-3xl font-bold">{newMessageCount}</p>
+              <p className="text-blue-200 text-xs mt-0.5">{t("sellerDashboard.newMessages")}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="px-5 max-w-lg mx-auto mt-6 space-y-6">
+      <div className="px-5 max-w-lg mx-auto -mt-4 space-y-5">
         {/* More Stats */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white rounded-md p-4 border border-gray-100 shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-[#EF7C29] flex items-center justify-center">
-                <IoChatbubbles className="w-4 h-4 text-white" />
-              </div>
+          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center mb-3">
+              <IoFlash className="w-5 h-5 text-[#EF7C29]" />
             </div>
-            <p className="text-xl font-bold text-[#EF7C29]">{pendingCount}</p>
-            <p className="text-gray-500 text-xs">{t("sellerDashboard.pendingRequests")}</p>
+            <p className="text-2xl font-bold text-[#EF7C29]">{pendingCount}</p>
+            <p className="text-gray-500 text-xs mt-0.5">{t("sellerDashboard.pendingRequests")}</p>
           </div>
-          <div className="bg-white rounded-md p-4 border border-gray-100 shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-[#1152A2] flex items-center justify-center">
-                <IoStorefront className="w-4 h-4 text-white" />
-              </div>
+          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center mb-3">
+              <IoStorefront className="w-5 h-5 text-[#1152A2]" />
             </div>
-            <p className="text-xl font-bold text-[#1152A2]">{productCount}</p>
-            <p className="text-gray-500 text-xs">{t("sellerDashboard.productsListed")}</p>
+            <p className="text-2xl font-bold text-[#1152A2]">{productCount}</p>
+            <p className="text-gray-500 text-xs mt-0.5">{t("sellerDashboard.productsListed")}</p>
           </div>
         </div>
 
         {/* Performance */}
         {reviews.length > 0 && (
-          <div className="bg-white rounded-md p-4 border border-gray-100 shadow-sm">
-            <h2 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-              <IoTrendingUp className="w-4 h-4 text-[#1152A2]" />
-              {t("sellerDashboard.performance")}
-            </h2>
-            <div className="flex items-center gap-4">
+          <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center">
+                <IoTrendingUp className="w-4 h-4 text-[#1152A2]" />
+              </div>
+              <h2 className="font-bold text-gray-900">{t("sellerDashboard.performance")}</h2>
+            </div>
+            <div className="flex items-center gap-5">
               <div>
                 <StarRating value={avgRating} readonly size="sm" />
-                <p className="text-xs text-gray-500 mt-0.5">
-                  {avgRating} · {reviews.length} reviews
+                <p className="text-xs text-gray-500 mt-1">
+                  <span className="font-semibold text-gray-800">{avgRating}</span> · {reviews.length} reviews
                 </p>
               </div>
               {seller?.responseTime && (
-                <div className="border-l border-gray-200 pl-4">
-                  <p className="text-xs font-medium text-gray-700">Response Time</p>
-                  <p className="text-xs text-gray-500">{seller.responseTime}</p>
+                <div className="border-l border-gray-100 pl-5">
+                  <p className="text-xs font-semibold text-gray-700">Response Time</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{seller.responseTime}</p>
                 </div>
               )}
             </div>
@@ -293,47 +289,46 @@ export default function SellerDashboardPage() {
 
         {/* Popular Items */}
         {popularItems.length > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-3">
+          <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="font-bold text-gray-900">{t("sellerDashboard.popularItems")}</h2>
-              <Link href="/inventory" className="text-sm text-[#1152A2] font-medium">
-                Manage
+              <Link href="/inventory" className="text-xs font-semibold text-[#1152A2] flex items-center gap-1">
+                Manage <IoChevronForward className="w-3.5 h-3.5" />
               </Link>
             </div>
-            <div className="space-y-2">
-              {popularItems.slice(0, 4).map((item) => {
+            <div className="space-y-3">
+              {popularItems.slice(0, 4).map((item, idx) => {
                 const views = analytics?.itemViews?.[item.id] || 0;
                 return (
                   <div
                     key={item.id}
-                    className="bg-white rounded-md p-3 border border-gray-100 shadow-sm flex items-center justify-between"
+                    className="flex items-center gap-3"
                   >
-                    <div className="flex items-center gap-3">
-                      {item.image ? (
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-10 h-10 rounded-md object-cover border border-gray-200"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center">
-                          <IoStorefront className="w-4 h-4 text-gray-400" />
-                        </div>
-                      )}
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{item.name}</p>
-                        <p className="text-xs text-[#EF7C29] font-bold">{item.price} RWF</p>
+                    <span className="text-xs font-bold text-gray-300 w-4 text-center">{idx + 1}</span>
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-10 h-10 rounded-xl object-cover border border-gray-100 shrink-0"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center shrink-0">
+                        <IoStorefront className="w-4 h-4 text-gray-300" />
                       </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{item.name}</p>
+                      <p className="text-xs text-[#EF7C29] font-bold">{Number(item.price).toLocaleString()} RWF</p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col items-end gap-1">
                       <span
-                        className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                        className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
                           item.stock === 0
-                            ? "bg-red-50 text-red-600"
-                            : "bg-green-50 text-green-700"
+                            ? "bg-red-50 text-red-500"
+                            : "bg-green-50 text-green-600"
                         }`}
                       >
-                        {item.stock === 0 ? "Out" : "In Stock"}
+                        {item.stock === 0 ? "Out" : "In stock"}
                       </span>
                       <div className="flex items-center gap-1 text-xs text-gray-400">
                         <IoEye className="w-3 h-3" />
@@ -348,54 +343,53 @@ export default function SellerDashboardPage() {
         )}
 
         {/* Recent Requests */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
+        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-gray-900">{t("sellerDashboard.newMatchRequests")}</h2>
-            <Link href="/requests" className="text-sm text-slate-600 font-medium">
-              {t("sellerDashboard.viewAll")}
+            <Link href="/requests" className="text-xs font-semibold text-[#1152A2] flex items-center gap-1">
+              {t("sellerDashboard.viewAll")} <IoChevronForward className="w-3.5 h-3.5" />
             </Link>
           </div>
 
           <div className="space-y-3">
             {requests.length === 0 ? (
-              <div className="bg-white rounded-md p-6 border border-gray-100 shadow-sm text-center">
-                <IoListOutline className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">No pending requests yet</p>
-                <p className="text-xs text-gray-400 mt-1">
-                  Buyers will find you through our AI matching
-                </p>
+              <div className="py-8 text-center">
+                <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-3">
+                  <IoListOutline className="w-6 h-6 text-gray-300" />
+                </div>
+                <p className="text-sm font-medium text-gray-500">No pending requests yet</p>
+                <p className="text-xs text-gray-400 mt-1">Buyers will find you through AI matching</p>
               </div>
             ) : (
               requests.map((request) => (
                 <div
                   key={request.id}
-                  className="bg-white rounded-md p-4 border border-gray-100 shadow-sm"
+                  className="bg-gray-50 rounded-xl p-4 border border-gray-100"
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <h3 className="font-semibold text-sm text-gray-900">
+                    <div className="flex-1 min-w-0 pr-2">
+                      <h3 className="font-semibold text-sm text-gray-900 truncate">
                         {request.mission?.product || t("sellerDashboard.buyerRequest")}
                       </h3>
-                      <p className="text-xs text-gray-500">
-                        {request.mission?.description?.slice(0, 50) ||
+                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
+                        {request.mission?.description?.slice(0, 60) ||
                           request.mission?.quantity ||
                           "Product inquiry"}
-                        ...
                       </p>
                     </div>
                     <span
-                      className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold border ${getUrgencyColor(request.mission?.urgency || "normal")}`}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border shrink-0 capitalize ${getUrgencyStyle(request.mission?.urgency || "normal")}`}
                     >
                       {request.mission?.urgency || "normal"}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-600">
+                  <div className="flex items-center justify-between mt-3">
+                    <span className="text-xs font-medium text-gray-700">
                       {request.mission?.budgetMin && request.mission?.budgetMax
-                        ? `${parseInt(request.mission.budgetMin).toLocaleString()} - ${parseInt(request.mission.budgetMax).toLocaleString()} RWF`
+                        ? `${parseInt(request.mission.budgetMin).toLocaleString()} – ${parseInt(request.mission.budgetMax).toLocaleString()} RWF`
                         : t("sellerDashboard.budgetTbd")}
                     </span>
-                    <span className="text-gray-400 flex items-center gap-1">
+                    <span className="text-xs text-gray-400 flex items-center gap-1">
                       <IoTime className="w-3 h-3" />
                       {request.createdAt
                         ? new Date(request.createdAt).toLocaleDateString()
@@ -414,26 +408,26 @@ export default function SellerDashboardPage() {
           <div className="grid grid-cols-2 gap-3">
             <Link
               href="/inventory"
-              className="bg-white rounded-md p-4 border border-gray-100 shadow-sm flex items-center gap-3"
+              className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex items-center gap-3 hover:shadow-md hover:border-[#EF7C29]/30 transition-all group"
             >
-              <div className="w-10 h-10 rounded-md bg-[#EF7C29]/10 flex items-center justify-center">
-                <IoAdd className="w-5 h-5 text-[#EF7C29]" />
+              <div className="w-11 h-11 rounded-xl bg-orange-50 flex items-center justify-center group-hover:bg-[#EF7C29] transition-colors">
+                <IoAdd className="w-5 h-5 text-[#EF7C29] group-hover:text-white transition-colors" />
               </div>
               <div>
-                <p className="font-medium text-sm text-gray-900">{t("sellerDashboard.addProduct")}</p>
-                <p className="text-xs text-gray-500">{t("sellerDashboard.updateInventory")}</p>
+                <p className="font-semibold text-sm text-gray-900">{t("sellerDashboard.addProduct")}</p>
+                <p className="text-xs text-gray-400">{t("sellerDashboard.updateInventory")}</p>
               </div>
             </Link>
             <Link
               href="/messages"
-              className="bg-white rounded-md p-4 border border-gray-100 shadow-sm flex items-center gap-3"
+              className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex items-center gap-3 hover:shadow-md hover:border-[#1152A2]/30 transition-all group"
             >
-              <div className="w-10 h-10 rounded-md bg-[#1152A2]/10 flex items-center justify-center">
-                <IoChatbubbles className="w-5 h-5 text-[#1152A2]" />
+              <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center group-hover:bg-[#1152A2] transition-colors">
+                <IoChatbubbles className="w-5 h-5 text-[#1152A2] group-hover:text-white transition-colors" />
               </div>
               <div>
-                <p className="font-medium text-sm text-gray-900">Messages</p>
-                <p className="text-xs text-gray-500">Chat with buyers</p>
+                <p className="font-semibold text-sm text-gray-900">Messages</p>
+                <p className="text-xs text-gray-400">Chat with buyers</p>
               </div>
             </Link>
           </div>

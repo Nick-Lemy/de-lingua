@@ -315,5 +315,11 @@
   "payment.pending": "En attente",
   "payment.confirmed": "Confirmé",
   "payment.confirmReceipt": "Confirmer la réception",
-  "payment.cancel": "Annuler"
+  "payment.cancel": "Annuler",
+  "payment.amountInvalid": "Saisissez un montant valide.",
+  "payment.descriptionPlaceholder": "ex. 50 sacs de riz",
+  "payment.phoneInvalid": "Saisissez un numéro rwandais à 10 chiffres commençant par 07.",
+  "payment.sending": "Envoi...",
+  "payment.successMtn": "L'autre partie recevra une notification MTN MoMo.",
+  "payment.successAirtel": "L'autre partie recevra une notification Airtel Money."
 }

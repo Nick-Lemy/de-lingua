@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslation, setLanguage } from "@/lib/i18n";
 
 const LANGUAGES = [
   { code: "en", label: "English" },
@@ -40,8 +40,7 @@ export function LanguageSwitcher() {
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const lang = e.target.value;
     setSelected(lang);
-    localStorage.setItem("preferredLanguage", lang);
-    window.location.reload(); // reload to apply language everywhere
+    setLanguage(lang);
   };
 
   return (

@@ -315,5 +315,11 @@
   "payment.pending": "Ausstehend",
   "payment.confirmed": "Bestätigt",
   "payment.confirmReceipt": "Eingang bestätigen",
-  "payment.cancel": "Abbrechen"
+  "payment.cancel": "Abbrechen",
+  "payment.amountInvalid": "Geben Sie einen gültigen Betrag ein.",
+  "payment.descriptionPlaceholder": "z. B. 50 Säcke Reis",
+  "payment.phoneInvalid": "Geben Sie eine 10-stellige ruandische Nummer ein, die mit 07 beginnt.",
+  "payment.sending": "Senden...",
+  "payment.successMtn": "Die andere Partei erhält eine MTN-MoMo-Aufforderung.",
+  "payment.successAirtel": "Die andere Partei erhält eine Airtel-Money-Aufforderung."
 }

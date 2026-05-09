@@ -315,5 +315,11 @@
   "payment.pending": "Pendiente",
   "payment.confirmed": "Confirmado",
   "payment.confirmReceipt": "Confirmar recepción",
-  "payment.cancel": "Cancelar"
+  "payment.cancel": "Cancelar",
+  "payment.amountInvalid": "Introduce un importe válido.",
+  "payment.descriptionPlaceholder": "p. ej. 50 sacos de arroz",
+  "payment.phoneInvalid": "Introduce un número ruandés de 10 dígitos que comience con 07.",
+  "payment.sending": "Enviando...",
+  "payment.successMtn": "La otra parte recibirá una notificación de MTN MoMo.",
+  "payment.successAirtel": "La otra parte recibirá una notificación de Airtel Money."
 }

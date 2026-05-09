@@ -7,9 +7,14 @@ import {
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   onAuthStateChanged,
+  sendEmailVerification,
   User,
   updateProfile,
 } from "firebase/auth";
+
+function initialFor(name: string | null | undefined): string {
+  return (name?.trim()?.charAt(0) || "U").toUpperCase();
+}
 import { auth, isFirebaseConfigured } from "./firebase";
 import { createOrUpdateUser, getUserById, createSellerFromUser } from "./db";
 import type { UserProfile, Seller } from "./types";
@@ -34,16 +39,20 @@ export async function signUp(
   );
   const user = userCredential.user;
 
-  // Update display name
   await updateProfile(user, { displayName: name });
 
-  // Create user profile in Firestore
+  try {
+    await sendEmailVerification(user);
+  } catch (err) {
+    console.error("sendEmailVerification failed", err);
+  }
+
   const userProfile: UserProfile = {
     id: user.uid,
     name,
     email,
     role,
-    avatar: name.charAt(0).toUpperCase(),
+    avatar: initialFor(name),
     createdAt: new Date().toISOString(),
     ...(preferences && { preferences }),
     ...(businessProfile && { businessProfile }),
@@ -51,13 +60,11 @@ export async function signUp(
 
   await createOrUpdateUser(userProfile);
 
-  // If seller, create a Seller entry as well
   if (role === "seller") {
-    // Use store name as the seller's display name (falls back to user name)
-    const displayName = businessProfile?.storeName || name;
+    const displayName = businessProfile?.storeName?.trim() || name;
     const sellerData: Omit<Seller, "id"> = {
       name: displayName,
-      avatar: displayName.charAt(0).toUpperCase(),
+      avatar: initialFor(displayName),
       category: businessProfile?.category || "General",
       rating: 5.0,
       reviews: 0,
@@ -116,7 +123,7 @@ export async function signInWithGoogle(): Promise<UserProfile | null> {
       name: user.displayName || "User",
       email: user.email || "",
       role: "buyer", // Default role, user can change later
-      avatar: user.displayName?.charAt(0).toUpperCase() || "U",
+      avatar: initialFor(user.displayName),
       createdAt: new Date().toISOString(),
     };
 

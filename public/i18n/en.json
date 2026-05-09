@@ -315,5 +315,11 @@
   "payment.pending": "Pending",
   "payment.confirmed": "Confirmed",
   "payment.confirmReceipt": "Confirm Receipt",
-  "payment.cancel": "Cancel"
+  "payment.cancel": "Cancel",
+  "payment.amountInvalid": "Enter a valid amount.",
+  "payment.descriptionPlaceholder": "e.g. 50 bags of rice",
+  "payment.phoneInvalid": "Enter a 10-digit Rwandan number starting with 07.",
+  "payment.sending": "Sending...",
+  "payment.successMtn": "The other party will receive an MTN MoMo prompt.",
+  "payment.successAirtel": "The other party will receive an Airtel Money prompt."
 }

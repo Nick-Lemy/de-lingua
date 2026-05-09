@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { HiStar, HiOutlineStar } from "react-icons/hi";
 
 interface StarRatingProps {
@@ -10,22 +11,28 @@ interface StarRatingProps {
 }
 
 export function StarRating({ value, onChange, readonly = false, size = "md" }: StarRatingProps) {
-  const iconSize = size === "sm" ? "w-3 h-3" : "w-5 h-5";
+  const [hovered, setHovered] = useState(0);
+  const iconSize = size === "sm" ? "w-3.5 h-3.5" : "w-7 h-7";
+  const gap = size === "sm" ? "gap-0.5" : "gap-1";
+  const interactive = !readonly && !!onChange;
+  const display = interactive && hovered > 0 ? hovered : Math.round(value);
 
   return (
-    <div className="flex items-center gap-0.5">
+    <div className={`flex items-center ${gap}`}>
       {[1, 2, 3, 4, 5].map((star) => (
         <button
           key={star}
           type="button"
-          disabled={readonly}
-          onClick={() => !readonly && onChange?.(star)}
-          className={`${readonly ? "cursor-default" : "cursor-pointer hover:scale-110"} transition-transform`}
+          disabled={!interactive}
+          onClick={() => interactive && onChange?.(star)}
+          onMouseEnter={() => interactive && setHovered(star)}
+          onMouseLeave={() => interactive && setHovered(0)}
+          className={`transition-transform ${interactive ? "cursor-pointer hover:scale-125 active:scale-110" : "cursor-default"}`}
         >
-          {star <= Math.round(value) ? (
+          {star <= display ? (
             <HiStar className={`${iconSize} text-amber-400`} />
           ) : (
-            <HiOutlineStar className={`${iconSize} text-amber-300`} />
+            <HiOutlineStar className={`${iconSize} text-gray-300`} />
           )}
         </button>
       ))}

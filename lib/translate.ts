@@ -1,17 +1,31 @@
+const SUPPORTED_LANGS = new Set(["en", "fr", "de", "es", "zh", "rw"]);
+const DEFAULT_ENDPOINT = "https://lingva.ml";
+const TIMEOUT_MS = 10_000;
+
 export async function translateText(
   text: string,
   targetLang: string,
 ): Promise<string> {
-  // Lingva API endpoint; using auto detection for source language
-  const url = `https://lingva.ml/api/v1/auto/${encodeURIComponent(
+  if (!SUPPORTED_LANGS.has(targetLang)) return text;
+
+  const endpoint =
+    process.env.NEXT_PUBLIC_TRANSLATE_ENDPOINT || DEFAULT_ENDPOINT;
+  const url = `${endpoint}/api/v1/auto/${encodeURIComponent(
     targetLang,
   )}/${encodeURIComponent(text)}`;
 
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`translation failed: ${res.status}`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    if (!res.ok) return text;
+    const data = await res.json();
+    return data.translation || text;
+  } catch (err) {
+    console.error("translateText failed", err);
+    return text;
+  } finally {
+    clearTimeout(timer);
   }
-  const data = await res.json();
-  // expected shape { translation: string }
-  return data.translation || "";
 }

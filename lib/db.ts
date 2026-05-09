@@ -1,5 +1,3 @@
-"use client";
-
 import {
   collection,
   doc,
@@ -12,6 +10,7 @@ import {
   where,
   orderBy,
   increment,
+  runTransaction,
 } from "firebase/firestore";
 import { db, isFirebaseConfigured } from "./firebase";
 import type {
@@ -31,7 +30,8 @@ import type {
   PaymentStatus,
 } from "./types";
 
-// Collection names
+export { generateId } from "./utils";
+
 const COLLECTIONS = {
   USERS: "users",
   MISSIONS: "missions",
@@ -47,25 +47,44 @@ const COLLECTIONS = {
   PAYMENTS: "paymentRequests",
 };
 
+async function safeCall<T>(
+  label: string,
+  fn: () => Promise<T>,
+  fallback: T,
+): Promise<T> {
+  try {
+    return await fn();
+  } catch (err) {
+    console.error(`[db.${label}]`, err);
+    return fallback;
+  }
+}
+
 // ==================== USER OPERATIONS ====================
 
 export async function createOrUpdateUser(user: UserProfile): Promise<void> {
   if (!isFirebaseConfigured() || !db) return;
-
-  const userRef = doc(db, COLLECTIONS.USERS, user.id);
-  await setDoc(userRef, user, { merge: true });
+  await safeCall(
+    "createOrUpdateUser",
+    async () => {
+      const userRef = doc(db!, COLLECTIONS.USERS, user.id);
+      await setDoc(userRef, user, { merge: true });
+    },
+    undefined,
+  );
 }
 
 export async function getUserById(id: string): Promise<UserProfile | null> {
   if (!isFirebaseConfigured() || !db) return null;
-
-  const userRef = doc(db, COLLECTIONS.USERS, id);
-  const userSnap = await getDoc(userRef);
-
-  if (userSnap.exists()) {
-    return userSnap.data() as UserProfile;
-  }
-  return null;
+  return safeCall(
+    "getUserById",
+    async () => {
+      const userRef = doc(db!, COLLECTIONS.USERS, id);
+      const userSnap = await getDoc(userRef);
+      return userSnap.exists() ? (userSnap.data() as UserProfile) : null;
+    },
+    null,
+  );
 }
 
 export async function updateUser(
@@ -73,45 +92,60 @@ export async function updateUser(
   updates: Partial<UserProfile>,
 ): Promise<void> {
   if (!isFirebaseConfigured() || !db) return;
-
-  const userRef = doc(db, COLLECTIONS.USERS, id);
-  await updateDoc(userRef, updates);
+  await safeCall(
+    "updateUser",
+    async () => {
+      const userRef = doc(db!, COLLECTIONS.USERS, id);
+      await updateDoc(userRef, updates);
+    },
+    undefined,
+  );
 }
 
 // ==================== MISSION OPERATIONS ====================
 
 export async function createMission(mission: Mission): Promise<string> {
   if (!isFirebaseConfigured() || !db) return mission.id;
-
-  const missionRef = doc(db, COLLECTIONS.MISSIONS, mission.id);
-  await setDoc(missionRef, mission);
-  return mission.id;
+  return safeCall(
+    "createMission",
+    async () => {
+      const missionRef = doc(db!, COLLECTIONS.MISSIONS, mission.id);
+      await setDoc(missionRef, mission);
+      return mission.id;
+    },
+    mission.id,
+  );
 }
 
 export async function getMissionById(id: string): Promise<Mission | null> {
   if (!isFirebaseConfigured() || !db) return null;
-
-  const missionRef = doc(db, COLLECTIONS.MISSIONS, id);
-  const missionSnap = await getDoc(missionRef);
-
-  if (missionSnap.exists()) {
-    return missionSnap.data() as Mission;
-  }
-  return null;
+  return safeCall(
+    "getMissionById",
+    async () => {
+      const missionRef = doc(db!, COLLECTIONS.MISSIONS, id);
+      const missionSnap = await getDoc(missionRef);
+      return missionSnap.exists() ? (missionSnap.data() as Mission) : null;
+    },
+    null,
+  );
 }
 
 export async function getMissionsByBuyer(buyerId: string): Promise<Mission[]> {
   if (!isFirebaseConfigured() || !db) return [];
-
-  const missionsRef = collection(db, COLLECTIONS.MISSIONS);
-  const q = query(
-    missionsRef,
-    where("buyerId", "==", buyerId),
-    orderBy("createdAt", "desc"),
+  return safeCall(
+    "getMissionsByBuyer",
+    async () => {
+      const missionsRef = collection(db!, COLLECTIONS.MISSIONS);
+      const q = query(
+        missionsRef,
+        where("buyerId", "==", buyerId),
+        orderBy("createdAt", "desc"),
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((doc) => doc.data() as Mission);
+    },
+    [],
   );
-  const querySnapshot = await getDocs(q);
-
-  return querySnapshot.docs.map((doc) => doc.data() as Mission);
 }
 
 export async function updateMission(
@@ -119,57 +153,78 @@ export async function updateMission(
   updates: Partial<Mission>,
 ): Promise<void> {
   if (!isFirebaseConfigured() || !db) return;
-
-  const missionRef = doc(db, COLLECTIONS.MISSIONS, id);
-  await updateDoc(missionRef, updates);
+  await safeCall(
+    "updateMission",
+    async () => {
+      const missionRef = doc(db!, COLLECTIONS.MISSIONS, id);
+      await updateDoc(missionRef, updates);
+    },
+    undefined,
+  );
 }
 
 export async function deleteMission(id: string): Promise<void> {
   if (!isFirebaseConfigured() || !db) return;
-
-  const missionRef = doc(db, COLLECTIONS.MISSIONS, id);
-  await deleteDoc(missionRef);
+  await safeCall(
+    "deleteMission",
+    async () => {
+      const missionRef = doc(db!, COLLECTIONS.MISSIONS, id);
+      await deleteDoc(missionRef);
+    },
+    undefined,
+  );
 }
 
 // ==================== MATCH OPERATIONS ====================
 
 export async function createMatch(match: Match): Promise<string> {
   if (!isFirebaseConfigured() || !db) return match.id;
-
-  const matchRef = doc(db, COLLECTIONS.MATCHES, match.id);
-  await setDoc(matchRef, match);
-  return match.id;
+  return safeCall(
+    "createMatch",
+    async () => {
+      const matchRef = doc(db!, COLLECTIONS.MATCHES, match.id);
+      await setDoc(matchRef, match);
+      return match.id;
+    },
+    match.id,
+  );
 }
 
 export async function getMatchesByMission(missionId: string): Promise<Match[]> {
   if (!isFirebaseConfigured() || !db) return [];
-
-  const matchesRef = collection(db, COLLECTIONS.MATCHES);
-  const q = query(matchesRef, where("missionId", "==", missionId));
-  const querySnapshot = await getDocs(q);
-
-  return querySnapshot.docs.map((doc) => doc.data() as Match);
+  return safeCall(
+    "getMatchesByMission",
+    async () => {
+      const matchesRef = collection(db!, COLLECTIONS.MATCHES);
+      const q = query(matchesRef, where("missionId", "==", missionId));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((doc) => doc.data() as Match);
+    },
+    [],
+  );
 }
 
 export async function getAllMatchesForBuyer(buyerId: string): Promise<Match[]> {
   if (!isFirebaseConfigured() || !db) return [];
+  return safeCall(
+    "getAllMatchesForBuyer",
+    async () => {
+      const missions = await getMissionsByBuyer(buyerId);
+      const missionIds = missions.map((m) => m.id);
+      if (missionIds.length === 0) return [];
 
-  const missions = await getMissionsByBuyer(buyerId);
-  const missionIds = missions.map((m) => m.id);
-
-  if (missionIds.length === 0) return [];
-
-  const matchesRef = collection(db, COLLECTIONS.MATCHES);
-  const allMatches: Match[] = [];
-
-  for (let i = 0; i < missionIds.length; i += 10) {
-    const batch = missionIds.slice(i, i + 10);
-    const q = query(matchesRef, where("missionId", "in", batch));
-    const querySnapshot = await getDocs(q);
-    allMatches.push(...querySnapshot.docs.map((doc) => doc.data() as Match));
-  }
-
-  return allMatches;
+      const matchesRef = collection(db!, COLLECTIONS.MATCHES);
+      const allMatches: Match[] = [];
+      for (let i = 0; i < missionIds.length; i += 10) {
+        const batch = missionIds.slice(i, i + 10);
+        const q = query(matchesRef, where("missionId", "in", batch));
+        const querySnapshot = await getDocs(q);
+        allMatches.push(...querySnapshot.docs.map((doc) => doc.data() as Match));
+      }
+      return allMatches;
+    },
+    [],
+  );
 }
 
 export async function updateMatch(
@@ -177,52 +232,71 @@ export async function updateMatch(
   updates: Partial<Match>,
 ): Promise<void> {
   if (!isFirebaseConfigured() || !db) return;
-
-  const matchRef = doc(db, COLLECTIONS.MATCHES, id);
-  await updateDoc(matchRef, updates);
+  await safeCall(
+    "updateMatch",
+    async () => {
+      const matchRef = doc(db!, COLLECTIONS.MATCHES, id);
+      await updateDoc(matchRef, updates);
+    },
+    undefined,
+  );
 }
 
 // ==================== SELLER OPERATIONS ====================
 
 export async function createSeller(seller: Seller): Promise<string> {
   if (!isFirebaseConfigured() || !db) return seller.id;
-
-  const sellerRef = doc(db, COLLECTIONS.SELLERS, seller.id);
-  await setDoc(sellerRef, seller);
-  return seller.id;
+  return safeCall(
+    "createSeller",
+    async () => {
+      const sellerRef = doc(db!, COLLECTIONS.SELLERS, seller.id);
+      await setDoc(sellerRef, seller);
+      return seller.id;
+    },
+    seller.id,
+  );
 }
 
 export async function getSellerById(id: string): Promise<Seller | null> {
   if (!isFirebaseConfigured() || !db) return null;
-
-  const sellerRef = doc(db, COLLECTIONS.SELLERS, id);
-  const sellerSnap = await getDoc(sellerRef);
-
-  if (sellerSnap.exists()) {
-    return sellerSnap.data() as Seller;
-  }
-  return null;
+  return safeCall(
+    "getSellerById",
+    async () => {
+      const sellerRef = doc(db!, COLLECTIONS.SELLERS, id);
+      const sellerSnap = await getDoc(sellerRef);
+      return sellerSnap.exists() ? (sellerSnap.data() as Seller) : null;
+    },
+    null,
+  );
 }
 
 export async function getAllSellers(): Promise<Seller[]> {
   if (!isFirebaseConfigured() || !db) return [];
-
-  const sellersRef = collection(db, COLLECTIONS.SELLERS);
-  const querySnapshot = await getDocs(sellersRef);
-
-  return querySnapshot.docs.map((doc) => doc.data() as Seller);
+  return safeCall(
+    "getAllSellers",
+    async () => {
+      const sellersRef = collection(db!, COLLECTIONS.SELLERS);
+      const querySnapshot = await getDocs(sellersRef);
+      return querySnapshot.docs.map((doc) => doc.data() as Seller);
+    },
+    [],
+  );
 }
 
 export async function getSellersByCategory(
   category: string,
 ): Promise<Seller[]> {
   if (!isFirebaseConfigured() || !db) return [];
-
-  const sellersRef = collection(db, COLLECTIONS.SELLERS);
-  const q = query(sellersRef, where("category", "==", category));
-  const querySnapshot = await getDocs(q);
-
-  return querySnapshot.docs.map((doc) => doc.data() as Seller);
+  return safeCall(
+    "getSellersByCategory",
+    async () => {
+      const sellersRef = collection(db!, COLLECTIONS.SELLERS);
+      const q = query(sellersRef, where("category", "==", category));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((doc) => doc.data() as Seller);
+    },
+    [],
+  );
 }
 
 export async function updateSeller(
@@ -230,29 +304,42 @@ export async function updateSeller(
   updates: Partial<Seller>,
 ): Promise<void> {
   if (!isFirebaseConfigured() || !db) return;
-
-  const sellerRef = doc(db, COLLECTIONS.SELLERS, id);
-  await updateDoc(sellerRef, updates);
+  await safeCall(
+    "updateSeller",
+    async () => {
+      const sellerRef = doc(db!, COLLECTIONS.SELLERS, id);
+      await updateDoc(sellerRef, updates);
+    },
+    undefined,
+  );
 }
 
 export async function getMatchesForSeller(sellerId: string): Promise<Match[]> {
   if (!isFirebaseConfigured() || !db) return [];
-
-  const matchesRef = collection(db, COLLECTIONS.MATCHES);
-  const q = query(matchesRef, where("sellerId", "==", sellerId));
-  const querySnapshot = await getDocs(q);
-
-  return querySnapshot.docs.map((doc) => doc.data() as Match);
+  return safeCall(
+    "getMatchesForSeller",
+    async () => {
+      const matchesRef = collection(db!, COLLECTIONS.MATCHES);
+      const q = query(matchesRef, where("sellerId", "==", sellerId));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((doc) => doc.data() as Match);
+    },
+    [],
+  );
 }
 
 export async function getAllMissions(): Promise<Mission[]> {
   if (!isFirebaseConfigured() || !db) return [];
-
-  const missionsRef = collection(db, COLLECTIONS.MISSIONS);
-  const q = query(missionsRef, orderBy("createdAt", "desc"));
-  const querySnapshot = await getDocs(q);
-
-  return querySnapshot.docs.map((doc) => doc.data() as Mission);
+  return safeCall(
+    "getAllMissions",
+    async () => {
+      const missionsRef = collection(db!, COLLECTIONS.MISSIONS);
+      const q = query(missionsRef, orderBy("createdAt", "desc"));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((doc) => doc.data() as Mission);
+    },
+    [],
+  );
 }
 
 export async function updateSellerInventory(
@@ -260,9 +347,14 @@ export async function updateSellerInventory(
   inventory: Seller["inventory"],
 ): Promise<void> {
   if (!isFirebaseConfigured() || !db) return;
-
-  const sellerRef = doc(db, COLLECTIONS.SELLERS, sellerId);
-  await setDoc(sellerRef, { inventory }, { merge: true });
+  await safeCall(
+    "updateSellerInventory",
+    async () => {
+      const sellerRef = doc(db!, COLLECTIONS.SELLERS, sellerId);
+      await setDoc(sellerRef, { inventory }, { merge: true });
+    },
+    undefined,
+  );
 }
 
 export async function createSellerFromUser(
@@ -270,24 +362,30 @@ export async function createSellerFromUser(
   sellerData: Omit<Seller, "id">,
 ): Promise<void> {
   if (!isFirebaseConfigured() || !db) return;
-
-  const seller: Seller = {
-    id: userId,
-    ...sellerData,
-  };
-
-  const sellerRef = doc(db, COLLECTIONS.SELLERS, userId);
-  await setDoc(sellerRef, seller);
+  await safeCall(
+    "createSellerFromUser",
+    async () => {
+      const seller: Seller = { id: userId, ...sellerData };
+      const sellerRef = doc(db!, COLLECTIONS.SELLERS, userId);
+      await setDoc(sellerRef, seller);
+    },
+    undefined,
+  );
 }
 
 // ==================== CHAT OPERATIONS ====================
 
 export async function sendChatMessage(message: ChatMessage): Promise<string> {
   if (!isFirebaseConfigured() || !db) return message.id;
-
-  const chatRef = doc(db, COLLECTIONS.CHATS, message.id);
-  await setDoc(chatRef, message);
-  return message.id;
+  return safeCall(
+    "sendChatMessage",
+    async () => {
+      const chatRef = doc(db!, COLLECTIONS.CHATS, message.id);
+      await setDoc(chatRef, message);
+      return message.id;
+    },
+    message.id,
+  );
 }
 
 export async function getChatMessages(
@@ -295,99 +393,125 @@ export async function getChatMessages(
   sellerId: string,
 ): Promise<ChatMessage[]> {
   if (!isFirebaseConfigured() || !db) return [];
-
-  const chatsRef = collection(db, COLLECTIONS.CHATS);
-  const q = query(
-    chatsRef,
-    where("missionId", "==", missionId),
-    where("sellerId", "==", sellerId),
-    orderBy("time", "asc"),
+  return safeCall(
+    "getChatMessages",
+    async () => {
+      const chatsRef = collection(db!, COLLECTIONS.CHATS);
+      const q = query(
+        chatsRef,
+        where("missionId", "==", missionId),
+        where("sellerId", "==", sellerId),
+        orderBy("time", "asc"),
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((doc) => doc.data() as ChatMessage);
+    },
+    [],
   );
-  const querySnapshot = await getDocs(q);
-
-  return querySnapshot.docs.map((doc) => doc.data() as ChatMessage);
 }
 
 export async function getChatsForBuyer(
   buyerId: string,
 ): Promise<ChatMessage[]> {
   if (!isFirebaseConfigured() || !db) return [];
-
-  const chatsRef = collection(db, COLLECTIONS.CHATS);
-  const q = query(
-    chatsRef,
-    where("buyerId", "==", buyerId),
-    orderBy("time", "desc"),
+  return safeCall(
+    "getChatsForBuyer",
+    async () => {
+      const chatsRef = collection(db!, COLLECTIONS.CHATS);
+      const q = query(
+        chatsRef,
+        where("buyerId", "==", buyerId),
+        orderBy("time", "desc"),
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((doc) => doc.data() as ChatMessage);
+    },
+    [],
   );
-  const querySnapshot = await getDocs(q);
-
-  return querySnapshot.docs.map((doc) => doc.data() as ChatMessage);
 }
 
 export async function getChatsForSeller(
   sellerId: string,
 ): Promise<ChatMessage[]> {
   if (!isFirebaseConfigured() || !db) return [];
-
-  const chatsRef = collection(db, COLLECTIONS.CHATS);
-  const q = query(
-    chatsRef,
-    where("sellerId", "==", sellerId),
-    orderBy("time", "desc"),
+  return safeCall(
+    "getChatsForSeller",
+    async () => {
+      const chatsRef = collection(db!, COLLECTIONS.CHATS);
+      const q = query(
+        chatsRef,
+        where("sellerId", "==", sellerId),
+        orderBy("time", "desc"),
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((doc) => doc.data() as ChatMessage);
+    },
+    [],
   );
-  const querySnapshot = await getDocs(q);
-
-  return querySnapshot.docs.map((doc) => doc.data() as ChatMessage);
 }
 
 // ==================== FEED POST OPERATIONS ====================
 
 export async function createFeedPost(post: FeedPost): Promise<string> {
   if (!isFirebaseConfigured() || !db) return post.id;
-
-  const postRef = doc(db, COLLECTIONS.FEED_POSTS, post.id);
-  await setDoc(postRef, post);
-  return post.id;
+  return safeCall(
+    "createFeedPost",
+    async () => {
+      const postRef = doc(db!, COLLECTIONS.FEED_POSTS, post.id);
+      await setDoc(postRef, post);
+      return post.id;
+    },
+    post.id,
+  );
 }
 
 export async function getFeedPostById(id: string): Promise<FeedPost | null> {
   if (!isFirebaseConfigured() || !db) return null;
-
-  const postRef = doc(db, COLLECTIONS.FEED_POSTS, id);
-  const postSnap = await getDoc(postRef);
-
-  if (postSnap.exists()) {
-    return postSnap.data() as FeedPost;
-  }
-  return null;
+  return safeCall(
+    "getFeedPostById",
+    async () => {
+      const postRef = doc(db!, COLLECTIONS.FEED_POSTS, id);
+      const postSnap = await getDoc(postRef);
+      return postSnap.exists() ? (postSnap.data() as FeedPost) : null;
+    },
+    null,
+  );
 }
 
 export async function getAllFeedPosts(): Promise<FeedPost[]> {
   if (!isFirebaseConfigured() || !db) return [];
-
-  const postsRef = collection(db, COLLECTIONS.FEED_POSTS);
-  const q = query(
-    postsRef,
-    where("status", "==", "active"),
-    orderBy("createdAt", "desc"),
+  return safeCall(
+    "getAllFeedPosts",
+    async () => {
+      const postsRef = collection(db!, COLLECTIONS.FEED_POSTS);
+      const q = query(
+        postsRef,
+        where("status", "==", "active"),
+        orderBy("createdAt", "desc"),
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((doc) => doc.data() as FeedPost);
+    },
+    [],
   );
-  const querySnapshot = await getDocs(q);
-
-  return querySnapshot.docs.map((doc) => doc.data() as FeedPost);
 }
 
 export async function getFeedPostsByUser(userId: string): Promise<FeedPost[]> {
   if (!isFirebaseConfigured() || !db) return [];
-
-  const postsRef = collection(db, COLLECTIONS.FEED_POSTS);
-  const q = query(
-    postsRef,
-    where("userId", "==", userId),
-    orderBy("createdAt", "desc"),
+  return safeCall(
+    "getFeedPostsByUser",
+    async () => {
+      const postsRef = collection(db!, COLLECTIONS.FEED_POSTS);
+      const q = query(
+        postsRef,
+        where("userId", "==", userId),
+        orderBy("createdAt", "desc"),
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((doc) => doc.data() as FeedPost);
+    },
+    [],
   );
-  const querySnapshot = await getDocs(q);
-
-  return querySnapshot.docs.map((doc) => doc.data() as FeedPost);
 }
 
 export async function updateFeedPost(
@@ -395,92 +519,128 @@ export async function updateFeedPost(
   updates: Partial<FeedPost>,
 ): Promise<void> {
   if (!isFirebaseConfigured() || !db) return;
-
-  const postRef = doc(db, COLLECTIONS.FEED_POSTS, id);
-  await updateDoc(postRef, updates);
+  await safeCall(
+    "updateFeedPost",
+    async () => {
+      const postRef = doc(db!, COLLECTIONS.FEED_POSTS, id);
+      await updateDoc(postRef, updates);
+    },
+    undefined,
+  );
 }
 
 export async function deleteFeedPost(id: string): Promise<void> {
   if (!isFirebaseConfigured() || !db) return;
-
-  const postRef = doc(db, COLLECTIONS.FEED_POSTS, id);
-  await deleteDoc(postRef);
+  await safeCall(
+    "deleteFeedPost",
+    async () => {
+      const postRef = doc(db!, COLLECTIONS.FEED_POSTS, id);
+      await deleteDoc(postRef);
+    },
+    undefined,
+  );
 }
 
 // ==================== FEED REPLY OPERATIONS ====================
 
 export async function createFeedReply(reply: FeedReply): Promise<string> {
   if (!isFirebaseConfigured() || !db) return reply.id;
+  return safeCall(
+    "createFeedReply",
+    async () => {
+      const replyRef = doc(db!, COLLECTIONS.FEED_REPLIES, reply.id);
+      await setDoc(replyRef, reply);
 
-  const replyRef = doc(db, COLLECTIONS.FEED_REPLIES, reply.id);
-  await setDoc(replyRef, reply);
+      const postRef = doc(db!, COLLECTIONS.FEED_POSTS, reply.postId);
+      await updateDoc(postRef, { repliesCount: increment(1) });
 
-  const post = await getFeedPostById(reply.postId);
-  if (post) {
-    await updateFeedPost(reply.postId, { repliesCount: post.repliesCount + 1 });
-  }
-
-  return reply.id;
+      return reply.id;
+    },
+    reply.id,
+  );
 }
 
 export async function getRepliesByPost(postId: string): Promise<FeedReply[]> {
   if (!isFirebaseConfigured() || !db) return [];
-
-  const repliesRef = collection(db, COLLECTIONS.FEED_REPLIES);
-  const q = query(
-    repliesRef,
-    where("postId", "==", postId),
-    orderBy("createdAt", "asc"),
+  return safeCall(
+    "getRepliesByPost",
+    async () => {
+      const repliesRef = collection(db!, COLLECTIONS.FEED_REPLIES);
+      const q = query(
+        repliesRef,
+        where("postId", "==", postId),
+        orderBy("createdAt", "asc"),
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((doc) => doc.data() as FeedReply);
+    },
+    [],
   );
-  const querySnapshot = await getDocs(q);
-
-  return querySnapshot.docs.map((doc) => doc.data() as FeedReply);
 }
 
 export async function getRepliesByUser(userId: string): Promise<FeedReply[]> {
   if (!isFirebaseConfigured() || !db) return [];
-
-  const repliesRef = collection(db, COLLECTIONS.FEED_REPLIES);
-  const q = query(
-    repliesRef,
-    where("userId", "==", userId),
-    orderBy("createdAt", "desc"),
+  return safeCall(
+    "getRepliesByUser",
+    async () => {
+      const repliesRef = collection(db!, COLLECTIONS.FEED_REPLIES);
+      const q = query(
+        repliesRef,
+        where("userId", "==", userId),
+        orderBy("createdAt", "desc"),
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((doc) => doc.data() as FeedReply);
+    },
+    [],
   );
-  const querySnapshot = await getDocs(q);
-
-  return querySnapshot.docs.map((doc) => doc.data() as FeedReply);
 }
 
 // ==================== REVIEWS ====================
 
 export async function createReview(review: Review): Promise<string> {
   if (!isFirebaseConfigured() || !db) return review.id;
-
-  const reviewRef = doc(db, COLLECTIONS.REVIEWS, review.id);
-  await setDoc(reviewRef, review);
-  return review.id;
+  return safeCall(
+    "createReview",
+    async () => {
+      const reviewRef = doc(db!, COLLECTIONS.REVIEWS, review.id);
+      await setDoc(reviewRef, review);
+      return review.id;
+    },
+    review.id,
+  );
 }
 
 export async function getReviewsBySeller(sellerId: string): Promise<Review[]> {
   if (!isFirebaseConfigured() || !db) return [];
-
-  const reviewsRef = collection(db, COLLECTIONS.REVIEWS);
-  const q = query(
-    reviewsRef,
-    where("sellerId", "==", sellerId),
-    orderBy("createdAt", "desc"),
+  return safeCall(
+    "getReviewsBySeller",
+    async () => {
+      const reviewsRef = collection(db!, COLLECTIONS.REVIEWS);
+      const q = query(
+        reviewsRef,
+        where("sellerId", "==", sellerId),
+        orderBy("createdAt", "desc"),
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((doc) => doc.data() as Review);
+    },
+    [],
   );
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map((doc) => doc.data() as Review);
 }
 
 export async function getReviewsByBuyer(buyerId: string): Promise<Review[]> {
   if (!isFirebaseConfigured() || !db) return [];
-
-  const reviewsRef = collection(db, COLLECTIONS.REVIEWS);
-  const q = query(reviewsRef, where("buyerId", "==", buyerId));
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map((doc) => doc.data() as Review);
+  return safeCall(
+    "getReviewsByBuyer",
+    async () => {
+      const reviewsRef = collection(db!, COLLECTIONS.REVIEWS);
+      const q = query(reviewsRef, where("buyerId", "==", buyerId));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((doc) => doc.data() as Review);
+    },
+    [],
+  );
 }
 
 export async function hasReviewedSeller(
@@ -489,16 +649,21 @@ export async function hasReviewedSeller(
   missionId: string,
 ): Promise<boolean> {
   if (!isFirebaseConfigured() || !db) return false;
-
-  const reviewsRef = collection(db, COLLECTIONS.REVIEWS);
-  const q = query(
-    reviewsRef,
-    where("buyerId", "==", buyerId),
-    where("sellerId", "==", sellerId),
-    where("missionId", "==", missionId),
+  return safeCall(
+    "hasReviewedSeller",
+    async () => {
+      const reviewsRef = collection(db!, COLLECTIONS.REVIEWS);
+      const q = query(
+        reviewsRef,
+        where("buyerId", "==", buyerId),
+        where("sellerId", "==", sellerId),
+        where("missionId", "==", missionId),
+      );
+      const querySnapshot = await getDocs(q);
+      return !querySnapshot.empty;
+    },
+    false,
   );
-  const querySnapshot = await getDocs(q);
-  return !querySnapshot.empty;
 }
 
 function computeBadges(seller: Seller, reviews: Review[]): SellerBadge[] {
@@ -520,67 +685,108 @@ export async function updateSellerRatingAndBadges(
   reviews: Review[],
 ): Promise<void> {
   if (!isFirebaseConfigured() || !db) return;
+  await safeCall(
+    "updateSellerRatingAndBadges",
+    async () => {
+      const sellerRef = doc(db!, COLLECTIONS.SELLERS, sellerId);
+      await runTransaction(db!, async (tx) => {
+        const sellerSnap = await tx.get(sellerRef);
+        if (!sellerSnap.exists()) return;
+        const seller = sellerSnap.data() as Seller;
 
-  const seller = await getSellerById(sellerId);
-  if (!seller) return;
+        const count = reviews.length;
+        const avg =
+          count > 0
+            ? Math.round(
+                (reviews.reduce((s, r) => s + r.rating, 0) / count) * 10,
+              ) / 10
+            : seller.rating;
 
-  const count = reviews.length;
-  const avg =
-    count > 0
-      ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / count) * 10) / 10
-      : seller.rating;
-
-  const sellerRef = doc(db, COLLECTIONS.SELLERS, sellerId);
-  await updateDoc(sellerRef, {
-    rating: avg,
-    reviews: count,
-    badges: computeBadges(seller, reviews),
-  });
+        tx.update(sellerRef, {
+          rating: avg,
+          reviews: count,
+          badges: computeBadges(seller, reviews),
+        });
+      });
+    },
+    undefined,
+  );
 }
 
 // ==================== WISHLIST ====================
 
 export async function addToWishlist(item: WishlistItem): Promise<string> {
   if (!isFirebaseConfigured() || !db) return item.id;
-
-  const wishlistRef = doc(db, COLLECTIONS.WISHLIST, item.id);
-  await setDoc(wishlistRef, item);
-  return item.id;
+  return safeCall(
+    "addToWishlist",
+    async () => {
+      const wishlistRef = collection(db!, COLLECTIONS.WISHLIST);
+      const existing = await getDocs(
+        query(
+          wishlistRef,
+          where("buyerId", "==", item.buyerId),
+          where("sellerId", "==", item.sellerId),
+        ),
+      );
+      if (!existing.empty) {
+        return existing.docs[0].id;
+      }
+      const ref = doc(db!, COLLECTIONS.WISHLIST, item.id);
+      await setDoc(ref, item);
+      return item.id;
+    },
+    item.id,
+  );
 }
 
 export async function removeFromWishlist(buyerId: string, sellerId: string): Promise<void> {
   if (!isFirebaseConfigured() || !db) return;
-
-  const wishlistRef = collection(db, COLLECTIONS.WISHLIST);
-  const q = query(
-    wishlistRef,
-    where("buyerId", "==", buyerId),
-    where("sellerId", "==", sellerId),
+  await safeCall(
+    "removeFromWishlist",
+    async () => {
+      const wishlistRef = collection(db!, COLLECTIONS.WISHLIST);
+      const q = query(
+        wishlistRef,
+        where("buyerId", "==", buyerId),
+        where("sellerId", "==", sellerId),
+      );
+      const querySnapshot = await getDocs(q);
+      await Promise.all(querySnapshot.docs.map((d) => deleteDoc(d.ref)));
+    },
+    undefined,
   );
-  const querySnapshot = await getDocs(q);
-  await Promise.all(querySnapshot.docs.map((d) => deleteDoc(d.ref)));
 }
 
 export async function getWishlistByBuyer(buyerId: string): Promise<WishlistItem[]> {
   if (!isFirebaseConfigured() || !db) return [];
-
-  const wishlistRef = collection(db, COLLECTIONS.WISHLIST);
-  const q = query(wishlistRef, where("buyerId", "==", buyerId));
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map((d) => d.data() as WishlistItem);
+  return safeCall(
+    "getWishlistByBuyer",
+    async () => {
+      const wishlistRef = collection(db!, COLLECTIONS.WISHLIST);
+      const q = query(wishlistRef, where("buyerId", "==", buyerId));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((d) => d.data() as WishlistItem);
+    },
+    [],
+  );
 }
 
 export async function isInWishlist(buyerId: string, sellerId: string): Promise<boolean> {
   if (!isFirebaseConfigured() || !db) return false;
-
-  const wishlistRef = collection(db, COLLECTIONS.WISHLIST);
-  const q = query(
-    wishlistRef,
-    where("buyerId", "==", buyerId),
-    where("sellerId", "==", sellerId),
+  return safeCall(
+    "isInWishlist",
+    async () => {
+      const wishlistRef = collection(db!, COLLECTIONS.WISHLIST);
+      const q = query(
+        wishlistRef,
+        where("buyerId", "==", buyerId),
+        where("sellerId", "==", sellerId),
+      );
+      const querySnapshot = await getDocs(q);
+      return !querySnapshot.empty;
+    },
+    false,
   );
-  const querySnapshot = await getDocs(q);
-  return !querySnapshot.empty;
 }
 
 export async function updateWishlistAlert(
@@ -590,95 +796,135 @@ export async function updateWishlistAlert(
   alertEnabled: boolean,
 ): Promise<void> {
   if (!isFirebaseConfigured() || !db) return;
-
-  const wishlistRef = collection(db, COLLECTIONS.WISHLIST);
-  const q = query(
-    wishlistRef,
-    where("buyerId", "==", buyerId),
-    where("sellerId", "==", sellerId),
-  );
-  const querySnapshot = await getDocs(q);
-  await Promise.all(
-    querySnapshot.docs.map((d) =>
-      updateDoc(d.ref, { alertKeyword, alertEnabled }),
-    ),
+  await safeCall(
+    "updateWishlistAlert",
+    async () => {
+      const wishlistRef = collection(db!, COLLECTIONS.WISHLIST);
+      const q = query(
+        wishlistRef,
+        where("buyerId", "==", buyerId),
+        where("sellerId", "==", sellerId),
+      );
+      const querySnapshot = await getDocs(q);
+      await Promise.all(
+        querySnapshot.docs.map((d) =>
+          updateDoc(d.ref, { alertKeyword, alertEnabled }),
+        ),
+      );
+    },
+    undefined,
   );
 }
 
 export async function getWishlistItemsForSeller(sellerId: string): Promise<WishlistItem[]> {
   if (!isFirebaseConfigured() || !db) return [];
-
-  const wishlistRef = collection(db, COLLECTIONS.WISHLIST);
-  const q = query(wishlistRef, where("sellerId", "==", sellerId));
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map((d) => d.data() as WishlistItem);
+  return safeCall(
+    "getWishlistItemsForSeller",
+    async () => {
+      const wishlistRef = collection(db!, COLLECTIONS.WISHLIST);
+      const q = query(wishlistRef, where("sellerId", "==", sellerId));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((d) => d.data() as WishlistItem);
+    },
+    [],
+  );
 }
 
 export async function createWishlistAlert(alert: WishlistAlert): Promise<string> {
   if (!isFirebaseConfigured() || !db) return alert.id;
-
-  const alertRef = doc(db, COLLECTIONS.WISHLIST_ALERTS, alert.id);
-  await setDoc(alertRef, alert);
-  return alert.id;
+  return safeCall(
+    "createWishlistAlert",
+    async () => {
+      const alertRef = doc(db!, COLLECTIONS.WISHLIST_ALERTS, alert.id);
+      await setDoc(alertRef, alert);
+      return alert.id;
+    },
+    alert.id,
+  );
 }
 
 export async function getWishlistAlertsByBuyer(buyerId: string): Promise<WishlistAlert[]> {
   if (!isFirebaseConfigured() || !db) return [];
-
-  const alertsRef = collection(db, COLLECTIONS.WISHLIST_ALERTS);
-  const q = query(
-    alertsRef,
-    where("buyerId", "==", buyerId),
-    orderBy("createdAt", "desc"),
+  return safeCall(
+    "getWishlistAlertsByBuyer",
+    async () => {
+      const alertsRef = collection(db!, COLLECTIONS.WISHLIST_ALERTS);
+      const q = query(
+        alertsRef,
+        where("buyerId", "==", buyerId),
+        orderBy("createdAt", "desc"),
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((d) => d.data() as WishlistAlert);
+    },
+    [],
   );
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map((d) => d.data() as WishlistAlert);
 }
 
 export async function markAlertSeen(alertId: string): Promise<void> {
   if (!isFirebaseConfigured() || !db) return;
-
-  const alertRef = doc(db, COLLECTIONS.WISHLIST_ALERTS, alertId);
-  await updateDoc(alertRef, { seen: true });
+  await safeCall(
+    "markAlertSeen",
+    async () => {
+      const alertRef = doc(db!, COLLECTIONS.WISHLIST_ALERTS, alertId);
+      await updateDoc(alertRef, { seen: true });
+    },
+    undefined,
+  );
 }
 
 // ==================== ANALYTICS ====================
 
 export async function getSellerAnalytics(sellerId: string): Promise<SellerAnalytics | null> {
   if (!isFirebaseConfigured() || !db) return null;
-
-  const ref = doc(db, COLLECTIONS.ANALYTICS, sellerId);
-  const snap = await getDoc(ref);
-  return snap.exists() ? (snap.data() as SellerAnalytics) : null;
+  return safeCall(
+    "getSellerAnalytics",
+    async () => {
+      const ref = doc(db!, COLLECTIONS.ANALYTICS, sellerId);
+      const snap = await getDoc(ref);
+      return snap.exists() ? (snap.data() as SellerAnalytics) : null;
+    },
+    null,
+  );
 }
 
 export async function incrementProfileView(sellerId: string): Promise<void> {
   if (!isFirebaseConfigured() || !db) return;
-
-  const ref = doc(db, COLLECTIONS.ANALYTICS, sellerId);
-  await setDoc(
-    ref,
-    {
-      sellerId,
-      profileViews: increment(1),
-      updatedAt: new Date().toISOString(),
+  await safeCall(
+    "incrementProfileView",
+    async () => {
+      const ref = doc(db!, COLLECTIONS.ANALYTICS, sellerId);
+      await setDoc(
+        ref,
+        {
+          sellerId,
+          profileViews: increment(1),
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true },
+      );
     },
-    { merge: true },
+    undefined,
   );
 }
 
 export async function incrementItemView(sellerId: string, itemId: string): Promise<void> {
   if (!isFirebaseConfigured() || !db) return;
-
-  const ref = doc(db, COLLECTIONS.ANALYTICS, sellerId);
-  await setDoc(
-    ref,
-    {
-      sellerId,
-      itemViews: { [itemId]: increment(1) },
-      updatedAt: new Date().toISOString(),
+  await safeCall(
+    "incrementItemView",
+    async () => {
+      const ref = doc(db!, COLLECTIONS.ANALYTICS, sellerId);
+      await setDoc(
+        ref,
+        {
+          sellerId,
+          itemViews: { [itemId]: increment(1) },
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true },
+      );
     },
-    { merge: true },
+    undefined,
   );
 }
 
@@ -686,34 +932,43 @@ export async function incrementItemView(sellerId: string, itemId: string): Promi
 
 export async function createPaymentRequest(payment: PaymentRequest): Promise<string> {
   if (!isFirebaseConfigured() || !db) return payment.id;
-
-  const ref = doc(db, COLLECTIONS.PAYMENTS, payment.id);
-  await setDoc(ref, payment);
-  return payment.id;
+  return safeCall(
+    "createPaymentRequest",
+    async () => {
+      const ref = doc(db!, COLLECTIONS.PAYMENTS, payment.id);
+      await setDoc(ref, payment);
+      return payment.id;
+    },
+    payment.id,
+  );
 }
 
 export async function getPaymentsByChat(missionId: string, sellerId: string): Promise<PaymentRequest[]> {
   if (!isFirebaseConfigured() || !db) return [];
-
-  const ref = collection(db, COLLECTIONS.PAYMENTS);
-  const q = query(
-    ref,
-    where("missionId", "==", missionId),
-    where("sellerId", "==", sellerId),
+  return safeCall(
+    "getPaymentsByChat",
+    async () => {
+      const ref = collection(db!, COLLECTIONS.PAYMENTS);
+      const q = query(
+        ref,
+        where("missionId", "==", missionId),
+        where("sellerId", "==", sellerId),
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((d) => d.data() as PaymentRequest);
+    },
+    [],
   );
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map((d) => d.data() as PaymentRequest);
 }
 
 export async function updatePaymentStatus(id: string, status: PaymentStatus): Promise<void> {
   if (!isFirebaseConfigured() || !db) return;
-
-  const ref = doc(db, COLLECTIONS.PAYMENTS, id);
-  await updateDoc(ref, { status, updatedAt: new Date().toISOString() });
-}
-
-// ==================== UTILITY ====================
-
-export function generateId(prefix: string): string {
-  return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  await safeCall(
+    "updatePaymentStatus",
+    async () => {
+      const ref = doc(db!, COLLECTIONS.PAYMENTS, id);
+      await updateDoc(ref, { status, updatedAt: new Date().toISOString() });
+    },
+    undefined,
+  );
 }

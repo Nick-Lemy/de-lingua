@@ -2,15 +2,31 @@
 
 import type { ReactNode } from "react";
 
+type Accent = "blue" | "orange" | "green" | "red" | "gray";
+
 interface AnalyticsCardProps {
   icon: ReactNode;
   label: string;
   value: string | number;
   sublabel?: string;
-  accent?: string;
+  accent?: Accent;
 }
 
-export function AnalyticsCard({ icon, label, value, sublabel, accent = "text-[#1152A2]" }: AnalyticsCardProps) {
+const ACCENT_CLASSES: Record<Accent, string> = {
+  blue: "text-[#1152A2]",
+  orange: "text-[#EF7C29]",
+  green: "text-emerald-600",
+  red: "text-red-600",
+  gray: "text-gray-700",
+};
+
+export function AnalyticsCard({
+  icon,
+  label,
+  value,
+  sublabel,
+  accent = "blue",
+}: AnalyticsCardProps) {
   return (
     <div className="bg-white rounded-md p-4 border border-gray-100 shadow-sm">
       <div className="flex items-center gap-2 mb-2">
@@ -18,9 +34,11 @@ export function AnalyticsCard({ icon, label, value, sublabel, accent = "text-[#1
           {icon}
         </div>
       </div>
-      <p className={`text-xl font-bold ${accent}`}>{value}</p>
+      <p className={`text-xl font-bold ${ACCENT_CLASSES[accent]}`}>{value}</p>
       <p className="text-gray-500 text-xs">{label}</p>
-      {sublabel && <p className="text-gray-400 text-[10px] mt-0.5">{sublabel}</p>}
+      {sublabel && (
+        <p className="text-gray-400 text-[10px] mt-0.5">{sublabel}</p>
+      )}
     </div>
   );
 }

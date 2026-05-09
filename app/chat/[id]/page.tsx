@@ -351,8 +351,8 @@ export default function ChatPage() {
 
   if (!mounted || !user || !mission || !seller) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-slate-800 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#f8faff] flex items-center justify-center">
+        <div className="w-10 h-10 border-3 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -361,46 +361,49 @@ export default function ChatPage() {
     isBuyer && messages.length >= 3 && !alreadyReviewed;
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-[#f8faff] flex flex-col">
       {/* Header */}
-      <div className="bg-[#1152A2] text-white px-6 lg:px-8 pt-14 pb-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-4">
+      <div className="bg-gradient-to-br from-[#1152A2] via-[#1a6bc9] to-[#0d3d7a] text-white px-5 pt-14 pb-5 shrink-0">
+        <div className="max-w-2xl mx-auto">
+          <div className="flex items-center gap-3">
             <button
               onClick={() => router.back()}
-              className="w-10 h-10 rounded-md bg-white/10 border border-white/20 flex items-center justify-center"
+              className="w-10 h-10 rounded-xl bg-white/15 hover:bg-white/25 transition-colors flex items-center justify-center shrink-0"
             >
               <IoArrowBack className="w-5 h-5" />
             </button>
-            <div className="w-12 h-12 rounded-md bg-[#EF7C29] flex items-center justify-center text-xl font-bold">
+            <div className="w-11 h-11 rounded-xl bg-[#EF7C29] flex items-center justify-center text-lg font-bold shrink-0 shadow-md">
               {partnerAvatar}
             </div>
-            <div className="flex-1">
-              <h1 className="text-lg font-bold">{partnerName}</h1>
-              <p className="text-sm text-slate-300">{t("chat.re")} {mission.product}</p>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-base font-bold truncate">{partnerName}</h1>
+              <p className="text-xs text-blue-200 truncate">{t("chat.re")} {mission.product}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-6 lg:px-8 py-6">
-        <div className="max-w-4xl mx-auto space-y-4">
-          {/* Mission Context */}
-          <div className="bg-slate-100 border border-slate-200 rounded-md p-4 text-center">
-            <p className="text-xs text-slate-600 mb-2 font-medium">
+      <div className="flex-1 overflow-y-auto px-4 py-5">
+        <div className="max-w-2xl mx-auto space-y-3">
+          {/* Mission Context pill */}
+          <div className="bg-white border border-gray-100 shadow-sm rounded-2xl px-4 py-3 text-center mx-4">
+            <p className="text-xs text-gray-400 font-medium mb-0.5">
               {t("chat.missionDetailsHeader")}
             </p>
-            <p className="font-semibold text-sm text-slate-800">{mission.product}</p>
-            <p className="text-sm text-slate-600">
-              {mission.quantity} {t("chat.units")} • RWF{mission.budgetMin}-RWF{mission.budgetMax} • {mission.location}
+            <p className="font-semibold text-sm text-gray-800">{mission.product}</p>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {mission.quantity} {t("chat.units")} · RWF {mission.budgetMin}–{mission.budgetMax} · {mission.location}
             </p>
           </div>
 
           {/* Messages */}
           {messages.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-600 text-sm">
+            <div className="text-center py-12">
+              <div className="w-14 h-14 rounded-full bg-white border border-gray-100 shadow-sm flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl">{partnerAvatar}</span>
+              </div>
+              <p className="text-sm font-medium text-gray-500">
                 {isBuyer ? t("chat.startConversationSeller") : t("chat.waitForBuyer")}
               </p>
             </div>
@@ -414,12 +417,14 @@ export default function ChatPage() {
                 const isReceiver = msg.sender !== user.role;
                 return (
                   <div key={msg.id} className={`flex ${isOwnMessage ? "justify-end" : "justify-start"}`}>
-                    <div className="max-w-[80%] bg-white border-2 border-[#1152A2]/20 rounded-xl p-4 space-y-2">
+                    <div className="max-w-[80%] bg-white border border-[#1152A2]/20 rounded-2xl p-4 shadow-sm space-y-2.5">
                       <div className="flex items-center gap-2">
-                        <IoCardOutline className="w-5 h-5 text-[#1152A2]" />
-                        <span className="font-semibold text-sm text-gray-900">Payment Request</span>
+                        <div className="w-8 h-8 rounded-xl bg-[#1152A2]/10 flex items-center justify-center">
+                          <IoCardOutline className="w-4 h-4 text-[#1152A2]" />
+                        </div>
+                        <span className="font-bold text-sm text-gray-900">Payment Request</span>
                       </div>
-                      <p className="text-lg font-bold text-[#1152A2]">
+                      <p className="text-2xl font-bold text-[#1152A2]">
                         RWF {payment?.amount?.toLocaleString() || "—"}
                       </p>
                       <p className="text-xs text-gray-500">
@@ -427,24 +432,24 @@ export default function ChatPage() {
                         {payment?.description ? ` · ${payment.description}` : ""}
                       </p>
                       <span
-                        className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                        className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${
                           payment?.status === "confirmed"
-                            ? "bg-green-100 text-green-700"
+                            ? "bg-green-50 text-green-700"
                             : payment?.status === "failed"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-amber-100 text-amber-700"
+                            ? "bg-red-50 text-red-600"
+                            : "bg-amber-50 text-amber-700"
                         }`}
                       >
                         {payment?.status === "confirmed"
-                          ? "Confirmed"
+                          ? "✓ Confirmed"
                           : payment?.status === "failed"
                           ? "Failed"
-                          : "Pending"}
+                          : "⏳ Pending"}
                       </span>
                       {isReceiver && payment?.status === "initiated" && (
                         <button
                           onClick={() => handleConfirmPayment(msg.paymentRequestId!)}
-                          className="w-full py-2 mt-1 bg-[#1152A2] text-white text-sm rounded-md font-medium"
+                          className="w-full py-2.5 mt-1 bg-[#1152A2] text-white text-sm rounded-xl font-semibold hover:bg-[#0d3d7a] transition-colors"
                         >
                           Confirm Receipt
                         </button>
@@ -463,27 +468,27 @@ export default function ChatPage() {
                   className={`flex ${isOwnMessage ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[75%] rounded-md px-4 py-3 ${
+                    className={`max-w-[75%] rounded-2xl px-4 py-3 shadow-sm ${
                       isOwnMessage
                         ? msg.type === "payment-confirmed"
-                          ? "bg-green-600 text-white"
+                          ? "bg-green-500 text-white"
                           : "bg-[#1152A2] text-white"
-                        : "bg-white border border-gray-200 text-black"
+                        : "bg-white border border-gray-100 text-gray-900"
                     }`}
                   >
-                    <p className="text-sm">{msg.text}</p>
+                    <p className="text-sm leading-relaxed">{msg.text}</p>
                     {translations[msg.id] && !showOriginal[msg.id] && (
-                      <p className="text-sm italic text-gray-300 mt-1">
+                      <p className={`text-xs italic mt-1.5 ${isOwnMessage ? "text-blue-200" : "text-gray-400"}`}>
                         {translations[msg.id]}
                       </p>
                     )}
                     {translationErrors[msg.id] && (
-                      <p className="text-sm text-red-300 mt-1">{t("chat.translationError")}</p>
+                      <p className="text-xs text-red-300 mt-1">{t("chat.translationError")}</p>
                     )}
                     {msg.type !== "payment-confirmed" && (
                       <button
                         onClick={() => handleTranslate(msg)}
-                        className="text-xs text-[#93c5fd] mt-1 hover:underline"
+                        className={`text-xs mt-1.5 hover:underline ${isOwnMessage ? "text-blue-300" : "text-gray-400"}`}
                       >
                         {translatingId === msg.id
                           ? t("chat.translating")
@@ -494,7 +499,7 @@ export default function ChatPage() {
                           : t("chat.translate")}
                       </button>
                     )}
-                    <p className={`text-xs mt-1 ${isOwnMessage ? "text-gray-400" : "text-gray-500"}`}>
+                    <p className={`text-[11px] mt-1 ${isOwnMessage ? "text-blue-300" : "text-gray-400"}`}>
                       {new Date(msg.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </p>
                   </div>
@@ -508,12 +513,12 @@ export default function ChatPage() {
 
       {/* Review banner */}
       {showReviewBanner && (
-        <div className="bg-amber-50 border-t border-amber-200 px-6 py-3">
-          <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
-            <p className="text-sm text-amber-800 font-medium">
-              How was your experience with {seller.name}?
+        <div className="bg-amber-50 border-t border-amber-100 px-4 py-3 shrink-0">
+          <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
+            <p className="text-sm text-amber-800 font-semibold">
+              Rate your experience with {seller.name}
             </p>
-            <div className="flex gap-1">
+            <div className="flex gap-0.5">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
@@ -522,7 +527,7 @@ export default function ChatPage() {
                       `/reviews/${seller.id}?mission=${mission.id}&initialRating=${star}`,
                     )
                   }
-                  className="text-amber-400 hover:text-amber-500 text-lg"
+                  className="text-amber-300 hover:text-amber-500 text-xl transition-colors hover:scale-125"
                 >
                   ★
                 </button>
@@ -533,12 +538,12 @@ export default function ChatPage() {
       )}
 
       {/* Input */}
-      <div className="bg-white border-t border-gray-200 px-6 lg:px-8 py-4 shrink-0">
-        <div className="max-w-4xl mx-auto flex items-center gap-3">
+      <div className="bg-white/95 backdrop-blur-md border-t border-gray-100 px-4 py-3 shrink-0 safe-area-pb">
+        <div className="max-w-2xl mx-auto flex items-center gap-2">
           {/* Payment button */}
           <button
             onClick={() => setShowPayment(true)}
-            className="w-11 h-11 rounded-md bg-gray-100 text-[#1152A2] flex items-center justify-center hover:bg-gray-200 shrink-0"
+            className="w-11 h-11 rounded-xl bg-gray-50 border border-gray-200 text-[#1152A2] flex items-center justify-center hover:bg-[#1152A2]/5 transition-colors shrink-0"
             title="Request Payment"
           >
             <IoCardOutline className="w-5 h-5" />
@@ -549,18 +554,18 @@ export default function ChatPage() {
             placeholder={t("chat.input.placeholder")}
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleSend()}
-            className="flex-1 px-5 py-3 border-2 border-gray-200 rounded-md focus:border-[#1152A2] focus:outline-none text-base"
+            onKeyDown={(e) => e.key === "Enter" && handleSend()}
+            className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:border-[#1152A2] focus:bg-white focus:ring-2 focus:ring-[#1152A2]/10 outline-none text-sm transition-all"
           />
           <button
             onClick={handleSend}
             disabled={!newMessage.trim() || isSending}
-            className="w-12 h-12 rounded-md bg-[#EF7C29] text-white flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#d96a1f]"
+            className="w-11 h-11 rounded-xl bg-[#EF7C29] text-white flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed hover:bg-[#e06c1e] transition-colors shadow-md shadow-orange-200/50 shrink-0"
           >
             {isSending ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
-              <IoSend className="w-5 h-5" />
+              <IoSend className="w-4 h-4" />
             )}
           </button>
         </div>

@@ -315,5 +315,11 @@
   "payment.pending": "Birategerejwe",
   "payment.confirmed": "Byemejwe",
   "payment.confirmReceipt": "Emeza Kwakira",
-  "payment.cancel": "Hagarika"
+  "payment.cancel": "Hagarika",
+  "payment.amountInvalid": "Andika umubare ufite ireme.",
+  "payment.descriptionPlaceholder": "urugero: imifuka 50 y'umuceri",
+  "payment.phoneInvalid": "Andika nimero y'u Rwanda y'imibare 10 itangirana na 07.",
+  "payment.sending": "Iroherezwa...",
+  "payment.successMtn": "Undi muntu azabona ubutumwa bwa MTN MoMo.",
+  "payment.successAirtel": "Undi muntu azabona ubutumwa bwa Airtel Money."
 }

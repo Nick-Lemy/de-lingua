@@ -95,9 +95,7 @@ export default function LoginPage() {
 
   const canSubmit =
     loginMethod === "email"
-      ? isConfigured
-        ? email.trim() && password.trim()
-        : email.trim()
+      ? email.trim() && password.trim()
       : phone.trim();
 
   return (
@@ -168,20 +166,18 @@ export default function LoginPage() {
                   autoFocus
                 />
               </div>
-              {isConfigured && (
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    {t("login.password")}
-                  </label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder={t("login.password")}
-                    className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-md text-white placeholder:text-gray-500 outline-none"
-                  />
-                </div>
-              )}
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  {t("login.password")}
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={t("login.password")}
+                  className="w-full h-14 px-5 bg-white/10 border border-white/20 rounded-md text-white placeholder:text-gray-500 outline-none"
+                />
+              </div>
             </>
           ) : (
             <div>

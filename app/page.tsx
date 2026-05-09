@@ -19,6 +19,7 @@ import {
   IoChevronForward,
   IoStorefront,
   IoNotifications,
+  IoArrowForward,
 } from "react-icons/io5";
 import { HiStar } from "react-icons/hi2";
 
@@ -49,7 +50,6 @@ export default function HomePage() {
         }
         currentUser = authUser;
 
-        // Fetch from Firebase
         const [fbSellers, fbMissions] = await Promise.all([
           getAllSellers(),
           getMissionsByBuyer(currentUser.id),
@@ -59,7 +59,6 @@ export default function HomePage() {
         const fbAlerts = await getFirebaseAlerts(currentUser.id);
         setUnseenAlerts(fbAlerts.filter((a) => !a.seen).length);
       } else {
-        // LocalStorage fallback
         const localUser = getUserProfile();
         if (!localUser) {
           router.push("/onboarding");
@@ -85,8 +84,8 @@ export default function HomePage() {
 
   if (!mounted || loading || !user) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#f8faff] flex items-center justify-center">
+        <div className="w-10 h-10 border-3 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -96,178 +95,153 @@ export default function HomePage() {
   ).length;
 
   return (
-    <div className="min-h-screen bg-white pb-24">
-      {/* Header */}
-      <div className="bg-[#1152A2] text-white px-5 pt-12 pb-6">
+    <div className="min-h-screen bg-[#f8faff] pb-28">
+      {/* Header with gradient */}
+      <div className="bg-gradient-to-br from-[#1152A2] via-[#1a6bc9] to-[#0d3d7a] text-white px-5 pt-14 pb-8">
         <div className="max-w-lg mx-auto">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-7">
             <div>
-              <p className="text-slate-300 text-xs font-medium mb-1">
+              <p className="text-blue-200 text-xs font-medium mb-0.5 tracking-wide uppercase">
                 {t("home.greeting")}
               </p>
-              <h1 className="text-xl font-bold">{user.name}</h1>
+              <h1 className="text-2xl font-bold tracking-tight">{user.name}</h1>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <Link
                 href="/wishlist"
-                className="relative w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"
+                className="relative w-11 h-11 rounded-2xl bg-white/15 hover:bg-white/25 transition-colors flex items-center justify-center"
               >
                 <IoNotifications className="w-5 h-5" />
                 {unseenAlerts > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#EF7C29] rounded-full text-[9px] font-bold flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#EF7C29] rounded-full text-[10px] font-bold flex items-center justify-center shadow-lg">
                     {unseenAlerts}
                   </span>
                 )}
               </Link>
               <Link
                 href="/account"
-                className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-lg font-bold"
+                className="w-11 h-11 rounded-2xl bg-[#EF7C29] flex items-center justify-center text-lg font-bold shadow-lg"
               >
                 {user.avatar}
               </Link>
             </div>
           </div>
 
-          {/* Active Missions Card */}
+          {/* Active Missions Banner */}
           {activeMissionCount > 0 && (
-            <Link href="/missions" className="block bg-white/10 rounded-md p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                    <IoRocket className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-slate-300 text-xs font-medium">
-                      {t("home.activeMissions")}
-                    </p>
-                    <p className="text-lg font-bold">{activeMissionCount}</p>
-                  </div>
+            <Link
+              href="/missions"
+              className="flex items-center justify-between bg-white/15 hover:bg-white/20 transition-colors rounded-2xl px-4 py-3.5 border border-white/20"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-[#EF7C29] flex items-center justify-center">
+                  <IoRocket className="w-4.5 h-4.5 text-white" />
                 </div>
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="white"
-                  strokeWidth="2"
-                >
-                  <path d="M9 18l6-6-6-6" />
-                </svg>
+                <div>
+                  <p className="font-semibold text-sm">{activeMissionCount} active {activeMissionCount === 1 ? "mission" : "missions"}</p>
+                  <p className="text-blue-200 text-xs">{t("home.activeMissions")}</p>
+                </div>
               </div>
+              <IoChevronForward className="w-4 h-4 text-blue-200" />
             </Link>
           )}
         </div>
       </div>
 
-      <div className="px-5 max-w-lg mx-auto mt-5">
-        {/* Create Mission Button */}
+      <div className="px-5 max-w-lg mx-auto -mt-4">
+        {/* Create Mission CTA */}
         <Link
           href="/missions/create"
-          className="block bg-[#EF7C29] text-white rounded-md p-4 hover:bg-[#d96a1f]"
+          className="flex items-center justify-between bg-[#EF7C29] text-white rounded-2xl px-5 py-4 shadow-xl shadow-orange-200/60 hover:bg-[#e06c1e] transition-colors"
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-md bg-white/20 flex items-center justify-center">
-                <IoAdd className="w-6 h-6" />
-              </div>
-              <div>
-                <h2 className="text-base font-bold">{t("home.createMission")}</h2>
-                <p className="text-white/80 text-xs">{t("home.findSuppliers")}</p>
-              </div>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
+              <IoAdd className="w-6 h-6" />
             </div>
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="white"
-              strokeWidth="2"
-            >
-              <path d="M9 18l6-6-6-6" />
-            </svg>
+            <div>
+              <h2 className="text-base font-bold leading-tight">{t("home.createMission")}</h2>
+              <p className="text-orange-100 text-xs mt-0.5">{t("home.findSuppliers")}</p>
+            </div>
+          </div>
+          <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+            <IoArrowForward className="w-4 h-4" />
           </div>
         </Link>
 
         {/* Quick Stats */}
         <div className="grid grid-cols-3 gap-3 mt-5">
-          <div className="bg-white rounded-md p-3 border border-gray-200">
-            <p className="text-gray-500 text-xs mb-1 font-medium">{t("home.stats.missions")}</p>
-            <p className="text-lg font-bold text-[#1152A2]">
-              {missions.length}
-            </p>
-          </div>
-          <div className="bg-white rounded-md p-3 border border-gray-200">
-            <p className="text-gray-500 text-xs mb-1 font-medium">{t("home.stats.suppliers")}</p>
-            <p className="text-lg font-bold text-[#1152A2]">{sellers.length}</p>
-          </div>
-          <div className="bg-white rounded-md p-3 border border-gray-200">
-            <p className="text-gray-500 text-xs mb-1 font-medium">{t("home.stats.active")}</p>
-            <p className="text-lg font-bold text-[#1152A2]">
-              {activeMissionCount}
-            </p>
-          </div>
+          {[
+            { label: t("home.stats.missions"), value: missions.length, accent: "#1152A2" },
+            { label: t("home.stats.suppliers"), value: sellers.length, accent: "#EF7C29" },
+            { label: t("home.stats.active"), value: activeMissionCount, accent: "#16a34a" },
+          ].map((stat) => (
+            <div key={stat.label} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+              <p className="text-2xl font-bold" style={{ color: stat.accent }}>{stat.value}</p>
+              <p className="text-gray-500 text-xs mt-1 font-medium leading-tight">{stat.label}</p>
+            </div>
+          ))}
         </div>
 
         {/* Suggested Suppliers */}
-        <div className="mt-6">
-          <div className="flex items-center justify-between mb-3">
+        <div className="mt-7">
+          <div className="flex items-center justify-between mb-4">
             <h3 className="text-base font-bold text-gray-900">
               {t("home.suggestedSuppliers")}
             </h3>
             <Link
               href="/discover"
-              className="text-xs font-medium text-[#1152A2]"
+              className="flex items-center gap-1 text-xs font-semibold text-[#1152A2]"
             >
               {t("home.seeAll")}
+              <IoChevronForward className="w-3.5 h-3.5" />
             </Link>
           </div>
+
           <div className="space-y-3">
             {sellers.length === 0 ? (
-              <div className="bg-white rounded-md p-6 border border-gray-200 text-center">
-                <IoStorefront className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">{t("home.noSuppliersYet")}</p>
-                <p className="text-xs text-gray-400 mt-1">
-                  {t("home.suppliersWillAppear")}
-                </p>
+              <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm text-center">
+                <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-3">
+                  <IoStorefront className="w-8 h-8 text-gray-300" />
+                </div>
+                <p className="text-sm font-medium text-gray-500">{t("home.noSuppliersYet")}</p>
+                <p className="text-xs text-gray-400 mt-1">{t("home.suppliersWillAppear")}</p>
               </div>
             ) : (
               sellers.slice(0, 3).map((seller) => (
-                <div key={seller.id} className="relative">
+                <div key={seller.id} className="relative group">
                   <Link
                     href={`/sellers/${seller.id}`}
-                    className="block bg-white rounded-md p-4 border border-gray-200"
+                    className="block bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:shadow-md hover:border-[#1152A2]/20 transition-all duration-200"
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="w-11 h-11 rounded-md bg-[#1152A2] text-white flex items-center justify-center text-base font-bold shrink-0">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#1152A2] to-[#1a6bc9] text-white flex items-center justify-center text-lg font-bold shrink-0 shadow-sm">
                         {seller.avatar}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-semibold text-sm text-gray-900">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <h4 className="font-semibold text-sm text-gray-900 truncate">
                             {seller.name}
                           </h4>
                           {seller.verified && (
-                            <IoCheckmarkCircle className="w-4 h-4 text-[#1152A2]" />
+                            <IoCheckmarkCircle className="w-4 h-4 text-[#1152A2] shrink-0" />
                           )}
                         </div>
-                        <p className="text-xs text-gray-500 mb-2">
-                          {seller.category}
-                        </p>
-                        <div className="flex items-center gap-3 text-xs text-gray-500">
-                          <span className="flex items-center gap-1">
-                            <HiStar className="w-3 h-3 text-amber-500" />
-                            {seller.rating}
+                        <p className="text-xs text-gray-500 mb-1.5 truncate">{seller.category}</p>
+                        <div className="flex items-center gap-3">
+                          <span className="flex items-center gap-1 text-xs">
+                            <HiStar className="w-3 h-3 text-amber-400" />
+                            <span className="font-medium text-gray-700">{seller.rating}</span>
                           </span>
-                          <span className="flex items-center gap-1">
+                          <span className="flex items-center gap-1 text-xs text-gray-400">
                             <IoLocationSharp className="w-3 h-3" />
                             {seller.location}
                           </span>
                         </div>
                       </div>
-                      <IoChevronForward className="w-4 h-4 text-gray-400" />
+                      <IoChevronForward className="w-4 h-4 text-gray-300 group-hover:text-[#1152A2] transition-colors shrink-0" />
                     </div>
                   </Link>
-                  <div className="absolute top-3 right-8">
+                  <div className="absolute top-3.5 right-10">
                     <WishlistButton
                       sellerId={seller.id}
                       sellerName={seller.name}

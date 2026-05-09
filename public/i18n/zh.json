@@ -315,5 +315,11 @@
   "payment.pending": "待处理",
   "payment.confirmed": "已确认",
   "payment.confirmReceipt": "确认收款",
-  "payment.cancel": "取消"
+  "payment.cancel": "取消",
+  "payment.amountInvalid": "请输入有效金额。",
+  "payment.descriptionPlaceholder": "例如：50 袋大米",
+  "payment.phoneInvalid": "请输入以 07 开头的 10 位卢旺达号码。",
+  "payment.sending": "发送中...",
+  "payment.successMtn": "对方将收到 MTN MoMo 通知。",
+  "payment.successAirtel": "对方将收到 Airtel Money 通知。"
 }

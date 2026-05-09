@@ -130,8 +130,8 @@ Sort by matchScore descending. Maximum 5 matches.`;
 }
 
 function fallbackMatching(mission: Mission, sellers: Seller[]): MatchResult[] {
-  const budgetMin = parseInt(mission.budgetMin) || 0;
-  const budgetMax = parseInt(mission.budgetMax) || 0;
+  const budgetMin = parseInt(mission.budgetMin, 10) || 0;
+  const budgetMax = parseInt(mission.budgetMax, 10) || 0;
   const budgetMid = (budgetMin + budgetMax) / 2;
 
   return sellers
@@ -144,34 +144,32 @@ function fallbackMatching(mission: Mission, sellers: Seller[]): MatchResult[] {
       return categoryMatch;
     })
     .map((seller) => {
-      // Calculate a more meaningful score
       let score = 70;
 
-      // Category match bonus
       if (seller.category.toLowerCase() === mission.category.toLowerCase()) {
         score += 10;
       }
 
-      // Rating bonus
       score += Math.floor(seller.rating * 2);
 
-      // Price fit calculation
       const avgPrice =
         seller.inventory.length > 0
           ? seller.inventory.reduce((sum, i) => sum + Number(i.price), 0) /
             seller.inventory.length
           : budgetMid;
 
-      const priceDiff = Math.abs(budgetMid - avgPrice) / budgetMid;
       let budgetFit: "good" | "moderate" | "high" = "good";
-      if (priceDiff < 0.2) {
-        score += 10;
-        budgetFit = "good";
-      } else if (priceDiff < 0.5) {
-        score += 5;
-        budgetFit = "moderate";
-      } else {
-        budgetFit = "high";
+      if (budgetMid > 0) {
+        const priceDiff = Math.abs(budgetMid - avgPrice) / budgetMid;
+        if (priceDiff < 0.2) {
+          score += 10;
+          budgetFit = "good";
+        } else if (priceDiff < 0.5) {
+          score += 5;
+          budgetFit = "moderate";
+        } else {
+          budgetFit = "high";
+        }
       }
 
       // Stock status based on inventory
@@ -202,51 +200,39 @@ export async function createMatchesFromAI(
 ): Promise<Match[]> {
   const aiResults = await generateMatchesWithAI(mission, sellers);
 
-  return aiResults.map((result) => {
-    const seller = sellers.find((s) => s.id === result.sellerId)!;
-    const distance = calculateDistance(mission.location, seller.location);
-
-    return {
+  const matches: Match[] = [];
+  for (const result of aiResults) {
+    const seller = sellers.find((s) => s.id === result.sellerId);
+    if (!seller) continue;
+    matches.push({
       id: generateId(),
       missionId: mission.id,
       sellerId: seller.id,
       sellerName: seller.name,
       sellerAvatar: seller.avatar,
       matchScore: result.matchScore,
-      distance: `${distance}km`,
+      distance: estimateDistance(mission.location, seller.location),
       budgetFit: result.budgetFit,
       stockStatus: result.stockStatus,
       whyMatch: [result.reasoning],
-      status: "pending" as const,
-    };
-  });
+      status: "pending",
+    });
+  }
+  return matches;
 }
 
-function calculateDistance(
+// TODO: replace with a real geocoding API (Google Maps / Mapbox)
+function estimateDistance(
   buyerLocation: string,
   sellerLocation: string,
-): number {
-  // Simple distance estimation based on location strings
-  // In production, you'd use a geocoding API
-  const sameCity =
-    buyerLocation
-      .toLowerCase()
-      .includes(sellerLocation.split(",")[0].toLowerCase()) ||
-    sellerLocation
-      .toLowerCase()
-      .includes(buyerLocation.split(",")[0].toLowerCase());
+): string {
+  if (!buyerLocation || !sellerLocation) return "N/A";
 
-  if (sameCity) {
-    return Math.floor(Math.random() * 30) + 5;
+  const buyerCity = buyerLocation.split(",")[0]?.trim().toLowerCase() ?? "";
+  const sellerCity = sellerLocation.split(",")[0]?.trim().toLowerCase() ?? "";
+
+  if (buyerCity && sellerCity && buyerCity === sellerCity) {
+    return "same city";
   }
-
-  // Same country check (Germany example)
-  if (
-    buyerLocation.toLowerCase().includes("germany") &&
-    sellerLocation.toLowerCase().includes("germany")
-  ) {
-    return Math.floor(Math.random() * 400) + 50;
-  }
-
-  return Math.floor(Math.random() * 800) + 200;
+  return "N/A";
 }

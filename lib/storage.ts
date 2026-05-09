@@ -1,5 +1,4 @@
 // LocalStorage utilities for data persistence
-// Re-export types for backwards compatibility
 export type {
   UserProfile,
   Mission,
@@ -28,8 +27,10 @@ import type {
   PaymentRequest,
   PaymentStatus,
 } from "./types";
+import { safeGet, safeSet, safeRemove } from "./utils";
 
-// Storage keys
+export { generateId } from "./utils";
+
 const KEYS = {
   USER_PROFILE: "delingua_user_profile",
   MISSIONS: "delingua_missions",
@@ -47,16 +48,15 @@ const KEYS = {
 
 // User Profile
 export function saveUserProfile(profile: UserProfile): void {
-  localStorage.setItem(KEYS.USER_PROFILE, JSON.stringify(profile));
+  safeSet(KEYS.USER_PROFILE, profile);
 }
 
 export function getUserProfile(): UserProfile | null {
-  const data = localStorage.getItem(KEYS.USER_PROFILE);
-  return data ? JSON.parse(data) : null;
+  return safeGet<UserProfile | null>(KEYS.USER_PROFILE, null);
 }
 
 export function clearUserProfile(): void {
-  localStorage.removeItem(KEYS.USER_PROFILE);
+  safeRemove(KEYS.USER_PROFILE);
 }
 
 // Missions
@@ -68,12 +68,11 @@ export function saveMission(mission: Mission): void {
   } else {
     missions.push(mission);
   }
-  localStorage.setItem(KEYS.MISSIONS, JSON.stringify(missions));
+  safeSet(KEYS.MISSIONS, missions);
 }
 
 export function getMissions(): Mission[] {
-  const data = localStorage.getItem(KEYS.MISSIONS);
-  return data ? JSON.parse(data) : [];
+  return safeGet<Mission[]>(KEYS.MISSIONS, []);
 }
 
 export function getMissionById(id: string): Mission | null {
@@ -83,7 +82,7 @@ export function getMissionById(id: string): Mission | null {
 
 export function deleteMission(id: string): void {
   const missions = getMissions().filter((m) => m.id !== id);
-  localStorage.setItem(KEYS.MISSIONS, JSON.stringify(missions));
+  safeSet(KEYS.MISSIONS, missions);
 }
 
 // Sellers
@@ -95,12 +94,11 @@ export function saveSeller(seller: Seller): void {
   } else {
     sellers.push(seller);
   }
-  localStorage.setItem(KEYS.SELLERS, JSON.stringify(sellers));
+  safeSet(KEYS.SELLERS, sellers);
 }
 
 export function getSellers(): Seller[] {
-  const data = localStorage.getItem(KEYS.SELLERS);
-  return data ? JSON.parse(data) : [];
+  return safeGet<Seller[]>(KEYS.SELLERS, []);
 }
 
 export function getSellerById(id: string): Seller | null {
@@ -117,12 +115,11 @@ export function saveMatch(match: Match): void {
   } else {
     matches.push(match);
   }
-  localStorage.setItem(KEYS.MATCHES, JSON.stringify(matches));
+  safeSet(KEYS.MATCHES, matches);
 }
 
 export function getMatches(): Match[] {
-  const data = localStorage.getItem(KEYS.MATCHES);
-  return data ? JSON.parse(data) : [];
+  return safeGet<Match[]>(KEYS.MATCHES, []);
 }
 
 export function getMatchesByMission(missionId: string): Match[] {
@@ -138,7 +135,7 @@ export function updateMatch(id: string, updates: Partial<Match>): void {
   const index = matches.findIndex((m) => m.id === id);
   if (index >= 0) {
     matches[index] = { ...matches[index], ...updates };
-    localStorage.setItem(KEYS.MATCHES, JSON.stringify(matches));
+    safeSet(KEYS.MATCHES, matches);
   }
 }
 
@@ -156,11 +153,12 @@ export function updateSellerInventory(
 
 // Create a Seller from UserProfile during signup
 export function createSellerFromUser(user: UserProfile): Seller {
-  const displayName = user.businessProfile?.storeName || user.name;
+  const displayName = user.businessProfile?.storeName?.trim() || user.name;
+  const initial = (displayName?.trim()?.charAt(0) || "U").toUpperCase();
   const seller: Seller = {
     id: user.id,
     name: displayName,
-    avatar: displayName.charAt(0).toUpperCase(),
+    avatar: initial,
     category: user.businessProfile?.category || "General",
     rating: 5.0,
     reviews: 0,
@@ -182,12 +180,11 @@ export function createSellerFromUser(user: UserProfile): Seller {
 export function saveChatMessage(message: ChatMessage): void {
   const chats = getChatMessages();
   chats.push(message);
-  localStorage.setItem(KEYS.CHATS, JSON.stringify(chats));
+  safeSet(KEYS.CHATS, chats);
 }
 
 export function getChatMessages(): ChatMessage[] {
-  const data = localStorage.getItem(KEYS.CHATS);
-  return data ? JSON.parse(data) : [];
+  return safeGet<ChatMessage[]>(KEYS.CHATS, []);
 }
 
 export function getChatByMissionAndSeller(
@@ -207,16 +204,6 @@ export function getChatsForSeller(sellerId: string): ChatMessage[] {
   return getChatMessages().filter((m) => m.sellerId === sellerId);
 }
 
-// Initialize dummy data (no longer seeds fake sellers)
-export function initializeDummyData(): void {
-  // No longer pre-seeding sellers - they are created when users sign up as sellers
-}
-
-// Generate unique ID
-export function generateId(prefix: string): string {
-  return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-}
-
 // ==================== FEED POSTS ====================
 
 export function saveFeedPost(post: FeedPost): void {
@@ -227,12 +214,11 @@ export function saveFeedPost(post: FeedPost): void {
   } else {
     posts.unshift(post);
   }
-  localStorage.setItem(KEYS.FEED_POSTS, JSON.stringify(posts));
+  safeSet(KEYS.FEED_POSTS, posts);
 }
 
 export function getFeedPosts(): FeedPost[] {
-  const data = localStorage.getItem(KEYS.FEED_POSTS);
-  return data ? JSON.parse(data) : [];
+  return safeGet<FeedPost[]>(KEYS.FEED_POSTS, []);
 }
 
 export function getFeedPostById(id: string): FeedPost | null {
@@ -249,15 +235,15 @@ export function updateFeedPost(id: string, updates: Partial<FeedPost>): void {
   const index = posts.findIndex((p) => p.id === id);
   if (index >= 0) {
     posts[index] = { ...posts[index], ...updates };
-    localStorage.setItem(KEYS.FEED_POSTS, JSON.stringify(posts));
+    safeSet(KEYS.FEED_POSTS, posts);
   }
 }
 
 export function deleteFeedPost(id: string): void {
   const posts = getFeedPosts().filter((p) => p.id !== id);
-  localStorage.setItem(KEYS.FEED_POSTS, JSON.stringify(posts));
+  safeSet(KEYS.FEED_POSTS, posts);
   const replies = getFeedReplies().filter((r) => r.postId !== id);
-  localStorage.setItem(KEYS.FEED_REPLIES, JSON.stringify(replies));
+  safeSet(KEYS.FEED_REPLIES, replies);
 }
 
 // ==================== FEED REPLIES ====================
@@ -265,7 +251,7 @@ export function deleteFeedPost(id: string): void {
 export function saveFeedReply(reply: FeedReply): void {
   const replies = getFeedReplies();
   replies.push(reply);
-  localStorage.setItem(KEYS.FEED_REPLIES, JSON.stringify(replies));
+  safeSet(KEYS.FEED_REPLIES, replies);
   const post = getFeedPostById(reply.postId);
   if (post) {
     updateFeedPost(reply.postId, { repliesCount: post.repliesCount + 1 });
@@ -273,8 +259,7 @@ export function saveFeedReply(reply: FeedReply): void {
 }
 
 export function getFeedReplies(): FeedReply[] {
-  const data = localStorage.getItem(KEYS.FEED_REPLIES);
-  return data ? JSON.parse(data) : [];
+  return safeGet<FeedReply[]>(KEYS.FEED_REPLIES, []);
 }
 
 export function getRepliesByPost(postId: string): FeedReply[] {
@@ -293,14 +278,13 @@ export function getRepliesByUser(userId: string): FeedReply[] {
 // ==================== REVIEWS ====================
 
 function getReviewsAll(): Review[] {
-  const data = localStorage.getItem(KEYS.REVIEWS);
-  return data ? JSON.parse(data) : [];
+  return safeGet<Review[]>(KEYS.REVIEWS, []);
 }
 
 export function saveReview(review: Review): void {
   const reviews = getReviewsAll();
   reviews.push(review);
-  localStorage.setItem(KEYS.REVIEWS, JSON.stringify(reviews));
+  safeSet(KEYS.REVIEWS, reviews);
 }
 
 export function getReviewsBySeller(sellerId: string): Review[] {
@@ -358,8 +342,7 @@ export function updateSellerRatingAndBadges(sellerId: string, reviews: Review[])
 // ==================== WISHLIST ====================
 
 function getWishlistAll(): WishlistItem[] {
-  const data = localStorage.getItem(KEYS.WISHLIST);
-  return data ? JSON.parse(data) : [];
+  return safeGet<WishlistItem[]>(KEYS.WISHLIST, []);
 }
 
 export function addToWishlist(item: WishlistItem): void {
@@ -367,7 +350,7 @@ export function addToWishlist(item: WishlistItem): void {
   const exists = wishlist.findIndex((w) => w.buyerId === item.buyerId && w.sellerId === item.sellerId);
   if (exists < 0) {
     wishlist.push(item);
-    localStorage.setItem(KEYS.WISHLIST, JSON.stringify(wishlist));
+    safeSet(KEYS.WISHLIST, wishlist);
   }
 }
 
@@ -375,7 +358,7 @@ export function removeFromWishlist(buyerId: string, sellerId: string): void {
   const wishlist = getWishlistAll().filter(
     (w) => !(w.buyerId === buyerId && w.sellerId === sellerId),
   );
-  localStorage.setItem(KEYS.WISHLIST, JSON.stringify(wishlist));
+  safeSet(KEYS.WISHLIST, wishlist);
 }
 
 export function getWishlistByBuyer(buyerId: string): WishlistItem[] {
@@ -396,19 +379,18 @@ export function updateWishlistAlert(
   const index = wishlist.findIndex((w) => w.buyerId === buyerId && w.sellerId === sellerId);
   if (index >= 0) {
     wishlist[index] = { ...wishlist[index], alertKeyword, alertEnabled };
-    localStorage.setItem(KEYS.WISHLIST, JSON.stringify(wishlist));
+    safeSet(KEYS.WISHLIST, wishlist);
   }
 }
 
 function getWishlistAlertsAll(): WishlistAlert[] {
-  const data = localStorage.getItem(KEYS.WISHLIST_ALERTS);
-  return data ? JSON.parse(data) : [];
+  return safeGet<WishlistAlert[]>(KEYS.WISHLIST_ALERTS, []);
 }
 
 export function saveWishlistAlert(alert: WishlistAlert): void {
   const alerts = getWishlistAlertsAll();
   alerts.unshift(alert);
-  localStorage.setItem(KEYS.WISHLIST_ALERTS, JSON.stringify(alerts));
+  safeSet(KEYS.WISHLIST_ALERTS, alerts);
 }
 
 export function getWishlistAlertsByBuyer(buyerId: string): WishlistAlert[] {
@@ -422,7 +404,7 @@ export function markAlertSeen(alertId: string): void {
   const index = alerts.findIndex((a) => a.id === alertId);
   if (index >= 0) {
     alerts[index] = { ...alerts[index], seen: true };
-    localStorage.setItem(KEYS.WISHLIST_ALERTS, JSON.stringify(alerts));
+    safeSet(KEYS.WISHLIST_ALERTS, alerts);
   }
 }
 
@@ -433,12 +415,11 @@ export function getWishlistItemsForSeller(sellerId: string): WishlistItem[] {
 // ==================== ANALYTICS ====================
 
 function getAllAnalytics(): Record<string, SellerAnalytics> {
-  const data = localStorage.getItem(KEYS.ANALYTICS);
-  return data ? JSON.parse(data) : {};
+  return safeGet<Record<string, SellerAnalytics>>(KEYS.ANALYTICS, {});
 }
 
 function saveAllAnalytics(all: Record<string, SellerAnalytics>): void {
-  localStorage.setItem(KEYS.ANALYTICS, JSON.stringify(all));
+  safeSet(KEYS.ANALYTICS, all);
 }
 
 export function getSellerAnalytics(sellerId: string): SellerAnalytics | null {
@@ -469,14 +450,13 @@ export function incrementItemView(sellerId: string, itemId: string): void {
 // ==================== PAYMENTS ====================
 
 function getPaymentsAll(): PaymentRequest[] {
-  const data = localStorage.getItem(KEYS.PAYMENTS);
-  return data ? JSON.parse(data) : [];
+  return safeGet<PaymentRequest[]>(KEYS.PAYMENTS, []);
 }
 
 export function savePaymentRequest(payment: PaymentRequest): void {
   const payments = getPaymentsAll();
   payments.push(payment);
-  localStorage.setItem(KEYS.PAYMENTS, JSON.stringify(payments));
+  safeSet(KEYS.PAYMENTS, payments);
 }
 
 export function getPaymentsByChat(missionId: string, sellerId: string): PaymentRequest[] {
@@ -490,16 +470,6 @@ export function updatePaymentStatus(id: string, status: PaymentStatus): void {
   const index = payments.findIndex((p) => p.id === id);
   if (index >= 0) {
     payments[index] = { ...payments[index], status, updatedAt: new Date().toISOString() };
-    localStorage.setItem(KEYS.PAYMENTS, JSON.stringify(payments));
-  }
-}
-
-// ==================== UTILITY ====================
-
-export function cleanupInvalidChatMessages(): void {
-  const chats = getChatMessages();
-  const cleaned = chats.filter((m) => m.missionId && m.missionId !== "mission");
-  if (cleaned.length !== chats.length) {
-    localStorage.setItem(KEYS.CHATS, JSON.stringify(cleaned));
+    safeSet(KEYS.PAYMENTS, payments);
   }
 }
