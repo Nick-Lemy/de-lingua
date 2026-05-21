@@ -56,8 +56,8 @@ export default function CreateMissionPage() {
   const router = useRouter();
   const { t } = useTranslation();
   const { user: authUser, isConfigured, loading: authLoading } = useAuth();
-  // Remove user state, use authUser/localUser directly
   const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     product: "",
     category: "",
@@ -104,7 +104,7 @@ export default function CreateMissionPage() {
       case 1:
         return formData.product.trim().length > 0;
       case 2:
-        if (formData.category === "Other") {
+        if (formData.category === "other") {
           return formData.customCategory.trim().length > 0;
         }
         return formData.category.length > 0;
@@ -125,7 +125,8 @@ export default function CreateMissionPage() {
 
   const handleSubmit = async () => {
     const currentUser = isConfigured ? authUser : getUserProfile();
-    if (!currentUser) return;
+    if (!currentUser || isSubmitting) return;
+    setIsSubmitting(true);
 
     const missionId = isConfigured
       ? generateFirebaseId("mission")
@@ -136,7 +137,7 @@ export default function CreateMissionPage() {
       buyerId: currentUser.id,
       product: formData.product,
       category:
-        formData.category === "Other"
+        formData.category === "other"
           ? formData.customCategory
           : formData.category,
       quantity: formData.quantity,
@@ -177,9 +178,20 @@ export default function CreateMissionPage() {
           saveMatch(matchWithId);
         }
       }
+
+      // Update mission status if matches were found
+      if (matches.length > 0) {
+        const updatedMission = { ...mission, status: "matched" as const };
+        if (isConfigured) {
+          const { updateMission } = await import("@/lib/db");
+          await updateMission(mission.id, { status: "matched" });
+        } else {
+          const { saveMission: updateLocalMission } = await import("@/lib/storage");
+          updateLocalMission(updatedMission);
+        }
+      }
     } catch (error) {
       console.error("AI matching failed:", error);
-      // Matches will be empty if AI fails - that's okay
     }
 
     router.push(`/missions/${mission.id}`);
@@ -202,7 +214,7 @@ export default function CreateMissionPage() {
                 {t("missions.createMission")}
               </h1>
               <p className="text-slate-300 text-xs">
-                {t("feedCreate.step", { step, total: 5 })}
+                {t("missions.stepCounter", { step, total: 5 })}
               </p>
             </div>
           </div>
@@ -267,7 +279,7 @@ export default function CreateMissionPage() {
                 </button>
               ))}
             </div>
-            {formData.category === "Other" && (
+            {formData.category === "other" && (
               <div className="mt-4">
                 <label className="block text-xs font-semibold text-gray-700 mb-2">
                   Please specify your category
@@ -424,10 +436,19 @@ export default function CreateMissionPage() {
         <div className="max-w-lg mx-auto">
           <button
             onClick={step < 5 ? handleNext : handleSubmit}
-            disabled={!canProceed()}
-            className="w-full py-3 rounded-md bg-[#EF7C29] text-white font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#d96a1f]"
+            disabled={!canProceed() || isSubmitting}
+            className="w-full py-3 rounded-md bg-[#EF7C29] text-white font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#d96a1f] flex items-center justify-center gap-2"
           >
-            {step < 5 ? t("missions.continue") : t("missions.findSuppliers")}
+            {isSubmitting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                {t("missions.findingSuppliers")}
+              </>
+            ) : step < 5 ? (
+              t("missions.continue")
+            ) : (
+              t("missions.findSuppliers")
+            )}
           </button>
         </div>
       </div>

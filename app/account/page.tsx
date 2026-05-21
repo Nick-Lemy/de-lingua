@@ -3,20 +3,24 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
-import { getUserProfile, clearUserProfile } from "@/lib/storage";
+import { getUserProfile, clearUserProfile, saveUserProfile } from "@/lib/storage";
+import { createOrUpdateUser } from "@/lib/db";
 import type { UserProfile } from "@/lib/types";
 import { Button } from "@/components/ui";
 import { BottomNav } from "@/components/BottomNav";
-import { IoArrowBack, IoMail, IoLogOut } from "react-icons/io5";
+import { IoArrowBack, IoMail, IoLogOut, IoPencil, IoCheckmark, IoClose } from "react-icons/io5";
 import { useTranslation } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export default function AccountPage() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { user: authUser, signOut, isConfigured, loading } = useAuth();
+  const { user: authUser, signOut, isConfigured, loading, refreshUser } = useAuth();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState("");
+  const [savingName, setSavingName] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -30,6 +34,7 @@ export default function AccountPage() {
         router.push("/onboarding");
       } else {
         setUser(authUser);
+        setNameValue(authUser?.name || "");
       }
     } else {
       const localUser = getUserProfile();
@@ -37,6 +42,7 @@ export default function AccountPage() {
         router.push("/onboarding");
       } else {
         setUser(localUser);
+        setNameValue(localUser.name);
       }
     }
   }, [mounted, loading, authUser, isConfigured, router]);
@@ -48,6 +54,30 @@ export default function AccountPage() {
       clearUserProfile();
     }
     router.push("/onboarding");
+  };
+
+  const handleSaveName = async () => {
+    if (!user || !nameValue.trim() || nameValue.trim() === user.name) {
+      setEditingName(false);
+      return;
+    }
+    setSavingName(true);
+    const newAvatar = nameValue.trim()[0].toUpperCase();
+    const updated: UserProfile = { ...user, name: nameValue.trim(), avatar: newAvatar };
+    try {
+      if (isConfigured) {
+        await createOrUpdateUser(updated);
+        await refreshUser();
+      } else {
+        saveUserProfile(updated);
+        setUser(updated);
+      }
+      setEditingName(false);
+    } catch (err) {
+      console.error("Failed to save name:", err);
+    } finally {
+      setSavingName(false);
+    }
   };
 
   if (!mounted || loading || !user) {
@@ -76,11 +106,55 @@ export default function AccountPage() {
           {/* User Card */}
           <div className="bg-white/10 rounded-md p-5 border border-white/10">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-[#EF7C29] flex items-center justify-center text-2xl font-bold">
+              <div className="w-16 h-16 rounded-full bg-[#EF7C29] flex items-center justify-center text-2xl font-bold shrink-0">
                 {user.avatar}
               </div>
-              <div className="flex-1">
-                <h2 className="text-lg font-bold">{user.name}</h2>
+              <div className="flex-1 min-w-0">
+                {editingName ? (
+                  <div className="flex items-center gap-2 mb-1">
+                    <input
+                      type="text"
+                      value={nameValue}
+                      onChange={(e) => setNameValue(e.target.value)}
+                      className="flex-1 h-9 px-3 bg-white/20 border border-white/30 rounded-md text-white placeholder:text-white/50 outline-none text-sm"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSaveName();
+                        if (e.key === "Escape") setEditingName(false);
+                      }}
+                    />
+                    <button
+                      onClick={handleSaveName}
+                      disabled={savingName}
+                      className="w-8 h-8 rounded-md bg-green-500/80 flex items-center justify-center shrink-0"
+                    >
+                      {savingName ? (
+                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <IoCheckmark className="w-4 h-4 text-white" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingName(false);
+                        setNameValue(user.name);
+                      }}
+                      className="w-8 h-8 rounded-md bg-white/20 flex items-center justify-center shrink-0"
+                    >
+                      <IoClose className="w-4 h-4 text-white" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 mb-1">
+                    <h2 className="text-lg font-bold">{user.name}</h2>
+                    <button
+                      onClick={() => setEditingName(true)}
+                      className="w-7 h-7 rounded-md bg-white/15 flex items-center justify-center"
+                    >
+                      <IoPencil className="w-3.5 h-3.5 text-white/70" />
+                    </button>
+                  </div>
+                )}
                 <p className="text-slate-300 text-sm flex items-center gap-1.5">
                   <IoMail className="w-3.5 h-3.5" />
                   {user.email}
@@ -97,6 +171,7 @@ export default function AccountPage() {
       {/* Menu Items */}
       <div className="px-5 max-w-xl mx-auto mt-6 space-y-6">
         <LanguageSwitcher />
+
         {/* Preferences Summary */}
         {user.preferences && (
           <div className="mt-6 bg-white rounded-md border border-gray-100 shadow-sm p-4">

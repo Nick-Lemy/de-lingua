@@ -74,6 +74,7 @@ export function useTranslation() {
   function t(key: string, vars?: Record<string, string | number>) {
     let text = translations[key] || key;
     if (vars) {
+      text = applyPlurals(text, vars, lang);
       Object.entries(vars).forEach(([k, v]) => {
         text = text.replaceAll(`{${k}}`, String(v));
       });
@@ -82,4 +83,82 @@ export function useTranslation() {
   }
 
   return { t, lang };
+}
+
+function applyPlurals(
+  text: string,
+  vars: Record<string, string | number>,
+  lang: string,
+): string {
+  let out = "";
+  let i = 0;
+  while (i < text.length) {
+    const start = text.indexOf("{", i);
+    if (start === -1) {
+      out += text.slice(i);
+      break;
+    }
+    out += text.slice(i, start);
+
+    let depth = 1;
+    let j = start + 1;
+    while (j < text.length && depth > 0) {
+      if (text[j] === "{") depth++;
+      else if (text[j] === "}") depth--;
+      if (depth === 0) break;
+      j++;
+    }
+    if (depth !== 0) {
+      out += text.slice(start);
+      break;
+    }
+
+    const inner = text.slice(start + 1, j);
+    const pluralMatch = inner.match(/^\s*(\w+)\s*,\s*plural\s*,\s*([\s\S]*)$/);
+    if (pluralMatch) {
+      const [, varName, body] = pluralMatch;
+      const raw = vars[varName];
+      const num = Number(raw);
+      let category = "other";
+      if (Number.isFinite(num)) {
+        try {
+          category = new Intl.PluralRules(lang).select(num);
+        } catch {
+          category = new Intl.PluralRules("en").select(num);
+        }
+      }
+      const branches = parsePluralBranches(body);
+      out += branches[category] ?? branches.other ?? "";
+    } else {
+      out += "{" + inner + "}";
+    }
+    i = j + 1;
+  }
+  return out;
+}
+
+function parsePluralBranches(body: string): Record<string, string> {
+  const branches: Record<string, string> = {};
+  let i = 0;
+  while (i < body.length) {
+    while (i < body.length && /\s/.test(body[i])) i++;
+    const nameStart = i;
+    while (i < body.length && /\w/.test(body[i])) i++;
+    const name = body.slice(nameStart, i);
+    if (!name) break;
+    while (i < body.length && /\s/.test(body[i])) i++;
+    if (body[i] !== "{") break;
+    let depth = 1;
+    i++;
+    const contentStart = i;
+    while (i < body.length && depth > 0) {
+      if (body[i] === "{") depth++;
+      else if (body[i] === "}") depth--;
+      if (depth === 0) break;
+      i++;
+    }
+    branches[name] = body.slice(contentStart, i);
+    i++;
+  }
+  return branches;
 }

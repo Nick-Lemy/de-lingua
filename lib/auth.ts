@@ -8,6 +8,7 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged,
   sendEmailVerification,
+  sendPasswordResetEmail,
   User,
   updateProfile,
 } from "firebase/auth";
@@ -148,6 +149,14 @@ export function getCurrentUser(): User | null {
     return null;
   }
   return auth.currentUser;
+}
+
+// Send password reset email
+export async function forgotPassword(email: string): Promise<void> {
+  if (!isFirebaseConfigured() || !auth) {
+    throw new Error("Firebase is not configured");
+  }
+  await sendPasswordResetEmail(auth, email);
 }
 
 // Subscribe to auth state changes

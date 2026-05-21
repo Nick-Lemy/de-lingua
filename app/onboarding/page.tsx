@@ -14,6 +14,17 @@ import {
 } from "@/lib/storage";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
+const CATEGORY_DISPLAY_TO_KEY: Record<string, string> = {
+  "Agricultural Products": "agriculture",
+  "Construction Materials": "construction",
+  "Electronics & Tech": "electronics",
+  "Textiles & Garments": "textiles",
+  "Food & Beverages": "food",
+  "Handicrafts & Art": "handicrafts",
+  "Office Supplies": "office",
+  "Machinery & Equipment": "machinery",
+};
+
 const buyerSteps = [
   {
     title: "What do you usually buy?",
@@ -181,8 +192,15 @@ export default function OnboardingPage() {
       (!isOtherSelected || customCategory.trim().length > 0)
     : (preferences[currentStep.key] || []).length > 0;
 
+  const normalizeCategoryList = (cats: string[], custom: string): string[] => {
+    return cats.map((cat) => {
+      if (cat === "Other") return custom.trim() || "other";
+      return CATEGORY_DISPLAY_TO_KEY[cat] || cat.toLowerCase().replace(/\s+/g, "-");
+    });
+  };
+
   const handleContinue = () => {
-    // If "Other" is selected, replace it with the custom value
+    // If "Other" is selected, replace it with the custom value (keep display form for now)
     if (isCategoryStep && isOtherSelected && customCategory.trim().length > 0) {
       const filtered = selectedCategories.filter((cat) => cat !== "Other");
       setPreferences({
@@ -193,7 +211,6 @@ export default function OnboardingPage() {
     if (step < steps.length - 1) {
       setStep(step + 1);
     } else {
-      // Show name/email form before saving
       setShowNameEmail(true);
     }
   };
@@ -206,10 +223,15 @@ export default function OnboardingPage() {
     setIsSubmitting(true);
 
     try {
+      const normalizedCategories = normalizeCategoryList(
+        preferences.categories || [],
+        customCategory,
+      );
+
       const userPreferences =
         role === "buyer"
           ? {
-              categories: preferences.categories || [],
+              categories: normalizedCategories,
               budgetBehavior: preferences.budgetBehavior?.[0] || "",
               locationRadius: preferences.locationRadius?.[0] || "",
               values: preferences.values || [],
@@ -220,8 +242,8 @@ export default function OnboardingPage() {
         role === "seller"
           ? {
               storeName: storeName.trim() || name.trim(),
-              category: preferences.categories?.[0] || "",
-              products: preferences.categories || [],
+              category: normalizedCategories[0] || "",
+              products: normalizedCategories,
               minOrderQty: preferences.minOrderQty?.[0] || "",
               location: preferences.locationRadius?.[0] || "Kigali, Rwanda",
               serviceRange: preferences.serviceRange?.[0] || "",

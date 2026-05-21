@@ -170,16 +170,18 @@ export default function HomePage() {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-3 gap-3 mt-5">
-          {[
-            { label: t("home.stats.missions"), value: missions.length, accent: "#1152A2" },
-            { label: t("home.stats.suppliers"), value: sellers.length, accent: "#EF7C29" },
-            { label: t("home.stats.active"), value: activeMissionCount, accent: "#16a34a" },
-          ].map((stat) => (
-            <div key={stat.label} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-              <p className="text-2xl font-bold" style={{ color: stat.accent }}>{stat.value}</p>
-              <p className="text-gray-500 text-xs mt-1 font-medium leading-tight">{stat.label}</p>
-            </div>
-          ))}
+          <Link href="/missions" className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:border-[#1152A2]/30 transition-colors">
+            <p className="text-2xl font-bold text-[#1152A2]">{missions.length}</p>
+            <p className="text-gray-500 text-xs mt-1 font-medium leading-tight">{t("home.stats.missions")}</p>
+          </Link>
+          <Link href="/discover" className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:border-[#EF7C29]/30 transition-colors">
+            <p className="text-2xl font-bold text-[#EF7C29]">{sellers.length}</p>
+            <p className="text-gray-500 text-xs mt-1 font-medium leading-tight">{t("home.stats.suppliers")}</p>
+          </Link>
+          <Link href="/matches" className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:border-green-300 transition-colors">
+            <p className="text-2xl font-bold text-green-600">{activeMissionCount}</p>
+            <p className="text-gray-500 text-xs mt-1 font-medium leading-tight">{t("home.stats.matches")}</p>
+          </Link>
         </div>
 
         {/* Suggested Suppliers */}

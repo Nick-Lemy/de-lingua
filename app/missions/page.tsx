@@ -10,7 +10,10 @@ import {
   getMissions,
   getMatchesByMission,
 } from "@/lib/storage";
-import { getMissionsByBuyer as getFirebaseMissions } from "@/lib/db";
+import {
+  getMissionsByBuyer as getFirebaseMissions,
+  getAllMatchesForBuyer,
+} from "@/lib/db";
 import type { UserProfile, Mission } from "@/lib/types";
 import { IoRocket, IoAdd, IoTime } from "react-icons/io5";
 import { BottomNav } from "@/components/BottomNav";
@@ -22,6 +25,7 @@ export default function MissionsPage() {
   const { user: authUser, loading: authLoading } = useAuth();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [missions, setMissions] = useState<Mission[]>([]);
+  const [matchMap, setMatchMap] = useState<Map<string, number>>(new Map());
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -40,7 +44,15 @@ export default function MissionsPage() {
           return;
         }
         setUser(authUser);
-        const allMissions = await getFirebaseMissions(authUser.id);
+        const [allMissions, allMatches] = await Promise.all([
+          getFirebaseMissions(authUser.id),
+          getAllMatchesForBuyer(authUser.id),
+        ]);
+        const map = new Map<string, number>();
+        allMatches.forEach((m) => {
+          map.set(m.missionId, (map.get(m.missionId) || 0) + 1);
+        });
+        setMatchMap(map);
         setMissions(
           allMissions.sort(
             (a, b) =>
@@ -57,6 +69,11 @@ export default function MissionsPage() {
         const allMissions = getMissions().filter(
           (m) => m.buyerId === profile.id,
         );
+        const map = new Map<string, number>();
+        allMissions.forEach((m) => {
+          map.set(m.id, getMatchesByMission(m.id).length);
+        });
+        setMatchMap(map);
         setMissions(
           allMissions.sort(
             (a, b) =>
@@ -135,7 +152,7 @@ export default function MissionsPage() {
         ) : (
           <div className="space-y-3">
             {missions.map((mission) => {
-              const matches = getMatchesByMission(mission.id);
+              const matchCount = matchMap.get(mission.id) || 0;
               return (
                 <Link
                   key={mission.id}
@@ -173,8 +190,8 @@ export default function MissionsPage() {
                   </div>
                   <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                     <span className="text-xs text-gray-600">
-                      {matches.length}{" "}
-                      {matches.length === 1 ? "match" : "matches"}
+                      {matchCount}{" "}
+                      {matchCount === 1 ? "match" : "matches"}
                     </span>
                     <span className="text-[10px] text-gray-400 flex items-center gap-1">
                       <IoTime className="w-3 h-3" />

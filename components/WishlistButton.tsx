@@ -155,7 +155,7 @@ export function WishlistButton({
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             placeholder="e.g. tomatoes, rice..."
-            className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl outline-none focus:border-[#1152A2] focus:ring-2 focus:ring-[#1152A2]/10 mb-3 transition-all"
+            className="w-full px-3 py-2 text-xs text-gray-900 placeholder:text-gray-400 border border-gray-200 rounded-xl outline-none focus:border-[#1152A2] focus:ring-2 focus:ring-[#1152A2]/10 mb-3 transition-all"
             autoFocus
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSaveAlert(e);

@@ -31,7 +31,7 @@ export default function FeedPage() {
   const { user: authUser, isConfigured, loading } = useAuth();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [posts, setPosts] = useState<FeedPost[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [activeTab, setActiveTab] = useState<"all" | "looking" | "offering">(
     "all",
   );
@@ -82,7 +82,7 @@ export default function FeedPage() {
     }
 
     // Filter by category
-    if (selectedCategory !== "All") {
+    if (selectedCategory !== "all") {
       filtered = filtered.filter(
         (p) =>
           p.category.toLowerCase().includes(selectedCategory.toLowerCase()) ||
@@ -203,7 +203,7 @@ export default function FeedPage() {
                   : "bg-white border border-gray-200 text-gray-700"
               }`}
             >
-              {cat}
+              {t(`feed.categories.${cat}`)}
             </button>
           ))}
         </div>

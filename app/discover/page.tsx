@@ -21,16 +21,17 @@ import { HiStar } from "react-icons/hi2";
 import { useTranslation } from "@/lib/i18n";
 import { WishlistButton } from "@/components/WishlistButton";
 
+// category identifiers correspond to translation keys under feed.categories
 const categories = [
-  "All",
-  "Agricultural Products",
-  "Construction Materials",
-  "Electronics & Tech",
-  "Textiles & Garments",
-  "Food & Beverages",
-  "Handicrafts & Art",
-  "Office Supplies",
-  "Machinery & Equipment",
+  "all",
+  "agriculture",
+  "construction",
+  "electronics",
+  "textiles",
+  "food",
+  "handicrafts",
+  "office",
+  "machinery",
 ];
 
 export default function DiscoverPage() {
@@ -41,7 +42,7 @@ export default function DiscoverPage() {
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [filteredSellers, setFilteredSellers] = useState<Seller[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -84,7 +85,7 @@ export default function DiscoverPage() {
   useEffect(() => {
     let filtered = sellers;
 
-    if (selectedCategory !== "All") {
+    if (selectedCategory !== "all") {
       filtered = filtered.filter(
         (s) =>
           s.category.toLowerCase().includes(selectedCategory.toLowerCase()) ||
@@ -156,7 +157,7 @@ export default function DiscoverPage() {
                   : "bg-white text-gray-600 border border-gray-200 hover:border-[#1152A2]/30"
               }`}
             >
-              {cat === "All" ? "All" : t(`feed.categories.${cat}`)}
+              {t(`feed.categories.${cat}`)}
             </button>
           ))}
         </div>
@@ -167,9 +168,9 @@ export default function DiscoverPage() {
             <span className="font-semibold text-gray-900">{filteredSellers.length}</span>{" "}
             {t("discover.resultsCount", { count: filteredSellers.length }).replace(String(filteredSellers.length), "").trim() || "suppliers"}
           </p>
-          {(searchQuery || selectedCategory !== "All") && (
+          {(searchQuery || selectedCategory !== "all") && (
             <button
-              onClick={() => { setSearchQuery(""); setSelectedCategory("All"); }}
+              onClick={() => { setSearchQuery(""); setSelectedCategory("all"); }}
               className="text-xs text-[#EF7C29] font-semibold flex items-center gap-1"
             >
               <IoClose className="w-3.5 h-3.5" />

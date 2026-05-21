@@ -9,16 +9,18 @@ import {
   getSellerById,
   getReviewsBySeller,
   getUserProfile,
+  getMissions,
   incrementProfileView as incrementProfileViewLocal,
   incrementItemView as incrementItemViewLocal,
 } from "@/lib/storage";
 import {
   getSellerById as getFirebaseSeller,
   getReviewsBySeller as getFirebaseReviews,
+  getMissionsByBuyer,
   incrementProfileView as incrementProfileViewFirebase,
   incrementItemView as incrementItemViewFirebase,
 } from "@/lib/db";
-import type { Seller, Review, UserProfile } from "@/lib/types";
+import type { Seller, Review, UserProfile, Mission } from "@/lib/types";
 import { StarRating } from "@/components/StarRating";
 import { SellerBadges } from "@/components/SellerBadges";
 import { WishlistButton } from "@/components/WishlistButton";
@@ -40,6 +42,8 @@ export default function SellerProfilePage() {
   const [seller, setSeller] = useState<Seller | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [buyerMissions, setBuyerMissions] = useState<Mission[]>([]);
+  const [showMissionPicker, setShowMissionPicker] = useState(false);
   const missionId = searchParams?.get("mission");
   const viewTrackedRef = useRef<Set<string>>(new Set());
 
@@ -65,9 +69,23 @@ export default function SellerProfilePage() {
           getFirebaseSeller(id),
           getFirebaseReviews(id),
         ]);
+        if (currentUser?.role === "buyer") {
+          const missions = await getMissionsByBuyer(currentUser.id);
+          setBuyerMissions(
+            missions.filter((m) => m.status === "finding" || m.status === "matched"),
+          );
+        }
       } else {
         foundSeller = getSellerById(id);
         foundReviews = getReviewsBySeller(id);
+        if (currentUser?.role === "buyer") {
+          const missions = getMissions().filter(
+            (m) =>
+              m.buyerId === currentUser.id &&
+              (m.status === "finding" || m.status === "matched"),
+          );
+          setBuyerMissions(missions);
+        }
       }
 
       if (!foundSeller) {
@@ -338,16 +356,82 @@ export default function SellerProfilePage() {
       </div>
 
       {/* Bottom CTA */}
-      {missionId && (
+      {user?.role === "buyer" && (
         <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-100 safe-area-pb">
           <div className="max-w-2xl mx-auto px-5 py-4">
-            <Link
-              href={`/chat/${missionId}?seller=${seller.id}`}
-              className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl bg-[#EF7C29] text-white font-bold shadow-lg shadow-orange-200/60 hover:bg-[#e06c1e] transition-colors"
+            {missionId ? (
+              <Link
+                href={`/chat/${missionId}?seller=${seller.id}`}
+                className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl bg-[#EF7C29] text-white font-bold shadow-lg shadow-orange-200/60 hover:bg-[#e06c1e] transition-colors"
+              >
+                <IoChatbubble className="w-5 h-5" />
+                Start Conversation
+              </Link>
+            ) : (
+              <button
+                onClick={() => setShowMissionPicker(true)}
+                className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl bg-[#EF7C29] text-white font-bold shadow-lg shadow-orange-200/60 hover:bg-[#e06c1e] transition-colors"
+              >
+                <IoChatbubble className="w-5 h-5" />
+                Contact Seller
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Mission Picker Modal */}
+      {showMissionPicker && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-end justify-center z-50"
+          onClick={() => setShowMissionPicker(false)}
+        >
+          <div
+            className="bg-white rounded-t-2xl w-full max-w-lg p-5 pb-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-base font-bold text-gray-900 mb-1">
+              Select a Mission
+            </h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Which mission is this for?
+            </p>
+            {buyerMissions.length === 0 ? (
+              <div className="text-center py-6">
+                <p className="text-sm text-gray-500 mb-4">
+                  You don&apos;t have any active missions yet.
+                </p>
+                <Link
+                  href="/missions/create"
+                  className="inline-block px-5 py-2.5 bg-[#EF7C29] text-white rounded-md text-sm font-semibold"
+                >
+                  Create a Mission
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-72 overflow-y-auto">
+                {buyerMissions.map((mission) => (
+                  <Link
+                    key={mission.id}
+                    href={`/chat/${mission.id}?seller=${seller.id}`}
+                    className="block p-4 rounded-xl border border-gray-200 hover:border-[#EF7C29] hover:bg-orange-50 transition-colors"
+                  >
+                    <p className="font-semibold text-sm text-gray-900">
+                      {mission.product}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {mission.category} · {mission.location}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            )}
+            <button
+              onClick={() => setShowMissionPicker(false)}
+              className="w-full mt-4 py-3 rounded-xl border border-gray-200 text-gray-700 font-medium text-sm"
             >
-              <IoChatbubble className="w-5 h-5" />
-              Start Conversation
-            </Link>
+              Cancel
+            </button>
           </div>
         </div>
       )}
