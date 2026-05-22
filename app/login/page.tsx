@@ -5,10 +5,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { isFirebaseConfigured } from "@/lib/firebase";
-import { signIn, signInWithGoogle, forgotPassword } from "@/lib/auth";
+import { signIn, forgotPassword } from "@/lib/auth";
 import { getUserProfile } from "@/lib/storage";
 import { useTranslation } from "@/lib/i18n";
-import { FcGoogle } from "react-icons/fc";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -63,30 +62,6 @@ export default function LoginPage() {
       } else {
         setError(err.message || t("login.errorLoginFailed"));
       }
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    if (!isConfigured) {
-      setError(t("login.errorGoogleConfig"));
-      return;
-    }
-
-    setError("");
-    setIsSubmitting(true);
-
-    try {
-      const user = await signInWithGoogle();
-      if (user) {
-        router.push("/");
-      } else {
-        setError(t("login.errorGoogleFailed"));
-        setIsSubmitting(false);
-      }
-    } catch (err: any) {
-      console.error("Google sign-in error:", err);
-      setIsSubmitting(false);
-      setError(err.message || t("login.errorGoogleFailed"));
     }
   };
 
@@ -197,24 +172,6 @@ export default function LoginPage() {
             t("login.signIn")
           )}
         </button>
-
-        {isConfigured && (
-          <>
-            <div className="flex items-center gap-3 my-5">
-              <div className="flex-1 h-px bg-white/15" />
-              <span className="text-xs text-slate-400">{t("login.orContinueWith")}</span>
-              <div className="flex-1 h-px bg-white/15" />
-            </div>
-            <button
-              onClick={handleGoogleSignIn}
-              disabled={isSubmitting}
-              className="w-full py-4 bg-white rounded-md font-semibold text-gray-700 flex items-center justify-center gap-3 hover:bg-gray-50 disabled:opacity-50"
-            >
-              <FcGoogle className="w-5 h-5" />
-              {t("login.signInGoogle")}
-            </button>
-          </>
-        )}
 
         <p className="text-center text-slate-300 mt-8">
           {t("login.noAccount")}{" "}
