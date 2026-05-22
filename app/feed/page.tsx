@@ -36,9 +36,9 @@ export default function FeedPage() {
     "all",
   );
   const [mounted, setMounted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    router.refresh();
     requestAnimationFrame(() => setMounted(true));
   }, []);
 
@@ -54,8 +54,15 @@ export default function FeedPage() {
           return;
         }
         currentUser = authUser;
-        const fbPosts = await getAllFeedPosts();
-        setPosts(fbPosts);
+        try {
+          const fbPosts = await getAllFeedPosts();
+          setPosts(fbPosts);
+        } catch (err) {
+          console.error("Failed to load feed posts:", err);
+          setError(
+            err instanceof Error ? err.message : "Failed to load posts. Check Firestore permissions.",
+          );
+        }
       } else {
         const localUser = getUserProfile();
         if (!localUser) {
@@ -208,6 +215,13 @@ export default function FeedPage() {
             </button>
           ))}
         </div>
+
+        {/* Error Banner */}
+        {error && (
+          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+            <strong>Could not load posts:</strong> {error}
+          </div>
+        )}
 
         {/* Posts */}
         <div className="space-y-4 mt-4">

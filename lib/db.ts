@@ -449,15 +449,9 @@ export async function getChatsForSeller(
 
 export async function createFeedPost(post: FeedPost): Promise<string> {
   if (!isFirebaseConfigured() || !db) return post.id;
-  return safeCall(
-    "createFeedPost",
-    async () => {
-      const postRef = doc(db!, COLLECTIONS.FEED_POSTS, post.id);
-      await setDoc(postRef, post);
-      return post.id;
-    },
-    post.id,
-  );
+  const postRef = doc(db!, COLLECTIONS.FEED_POSTS, post.id);
+  await setDoc(postRef, post);
+  return post.id;
 }
 
 export async function getFeedPostById(id: string): Promise<FeedPost | null> {
@@ -475,18 +469,12 @@ export async function getFeedPostById(id: string): Promise<FeedPost | null> {
 
 export async function getAllFeedPosts(): Promise<FeedPost[]> {
   if (!isFirebaseConfigured() || !db) return [];
-  return safeCall(
-    "getAllFeedPosts",
-    async () => {
-      const postsRef = collection(db!, COLLECTIONS.FEED_POSTS);
-      const q = query(postsRef, where("status", "==", "active"));
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs
-        .map((doc) => doc.data() as FeedPost)
-        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    },
-    [],
-  );
+  const postsRef = collection(db!, COLLECTIONS.FEED_POSTS);
+  const querySnapshot = await getDocs(postsRef);
+  return querySnapshot.docs
+    .map((doc) => doc.data() as FeedPost)
+    .filter((p) => p.status === "active")
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export async function getFeedPostsByUser(userId: string): Promise<FeedPost[]> {

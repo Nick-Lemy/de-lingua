@@ -75,6 +75,7 @@ export default function CreateFeedPostPage() {
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     type: "looking-for" as "looking-for" | "offering",
@@ -189,8 +190,8 @@ export default function CreateFeedPostPage() {
         saveFeedPost(post);
       }
 
-      // Redirect right away — user can see the post in the feed
-      router.push("/feed");
+      // Full reload so the feed page re-fetches from localStorage/Firebase fresh
+      window.location.href = "/feed";
 
       // AI suggestions run after redirect (best-effort, non-blocking)
       if (formData.type === "looking-for") {
@@ -219,6 +220,9 @@ export default function CreateFeedPostPage() {
       }
     } catch (error) {
       console.error("Failed to create post:", error);
+      setSubmitError(
+        error instanceof Error ? error.message : "Failed to create post. Check your Firestore permissions.",
+      );
       setIsSubmitting(false);
     }
   };
@@ -572,6 +576,13 @@ export default function CreateFeedPostPage() {
           </div>
         )}
       </div>
+
+      {/* Submit Error */}
+      {submitError && (
+        <div className="px-5 max-w-lg mx-auto mt-4 p-4 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+          <strong>Error:</strong> {submitError}
+        </div>
+      )}
 
       {/* Bottom Actions */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-5 py-4 z-50">
