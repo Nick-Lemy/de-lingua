@@ -90,7 +90,7 @@ export default function MessagesPage() {
       // Group messages by conversation (missionId + sellerId)
       const conversationMap = new Map<string, ChatMessage[]>();
       messages.forEach((msg) => {
-        const key = `${msg.missionId}_${msg.sellerId}`;
+        const key = `${msg.missionId}|||${msg.sellerId}`;
         if (!conversationMap.has(key)) {
           conversationMap.set(key, []);
         }
@@ -101,7 +101,9 @@ export default function MessagesPage() {
       const convList: Conversation[] = [];
 
       for (const [key, msgs] of conversationMap) {
-        const [missionId, sellerId] = key.split("_");
+        const sepIdx = key.indexOf("|||");
+        const missionId = key.slice(0, sepIdx);
+        const sellerId = key.slice(sepIdx + 3);
         const sortedMsgs = msgs.sort(
           (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime(),
         );
@@ -240,7 +242,7 @@ export default function MessagesPage() {
                   className="block bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:shadow-md hover:border-[#1152A2]/20 transition-all group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-13 h-13 rounded-xl bg-gradient-to-br from-[#1152A2] to-[#1a6bc9] text-white flex items-center justify-center text-lg font-bold shrink-0 w-12 h-12 shadow-sm">
+                    <div className="w-12 h-12 rounded-xl bg-linear-to-br from-[#1152A2] to-[#1a6bc9] text-white flex items-center justify-center text-lg font-bold shrink-0 shadow-sm">
                       {partnerAvatar}
                     </div>
                     <div className="flex-1 min-w-0">
