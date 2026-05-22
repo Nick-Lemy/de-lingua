@@ -53,7 +53,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!mounted) return;
         setFirebaseUser(fbUser);
         if (fbUser) {
-          const userProfile = await getUserById(fbUser.uid);
+          let userProfile = await getUserById(fbUser.uid);
+          if (!userProfile) {
+            // Firestore document missing or rules blocked the read — construct from Auth data
+            userProfile = {
+              id: fbUser.uid,
+              name: fbUser.displayName || fbUser.email?.split("@")[0] || "User",
+              email: fbUser.email || "",
+              role: "buyer",
+              avatar: (fbUser.displayName?.charAt(0) || fbUser.email?.charAt(0) || "U").toUpperCase(),
+              createdAt: fbUser.metadata.creationTime || new Date().toISOString(),
+            };
+          }
           if (!mounted) return;
           setUser(userProfile);
         } else {
@@ -88,7 +99,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshUser = async () => {
     if (isConfigured && firebaseUser) {
-      const userProfile = await getUserById(firebaseUser.uid);
+      let userProfile = await getUserById(firebaseUser.uid);
+      if (!userProfile) {
+        userProfile = {
+          id: firebaseUser.uid,
+          name: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "User",
+          email: firebaseUser.email || "",
+          role: "buyer",
+          avatar: (firebaseUser.displayName?.charAt(0) || firebaseUser.email?.charAt(0) || "U").toUpperCase(),
+          createdAt: firebaseUser.metadata.creationTime || new Date().toISOString(),
+        };
+      }
       setUser(userProfile);
     } else if (!isConfigured) {
       const localUser = getLocalUserProfile();

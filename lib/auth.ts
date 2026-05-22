@@ -100,7 +100,21 @@ export async function signIn(
     email,
     password,
   );
-  const userProfile = await getUserById(userCredential.user.uid);
+  const fbUser = userCredential.user;
+  let userProfile = await getUserById(fbUser.uid);
+
+  if (!userProfile) {
+    // Firestore document missing or rules blocked the read — construct from Auth data
+    userProfile = {
+      id: fbUser.uid,
+      name: fbUser.displayName || email.split("@")[0],
+      email: fbUser.email || email,
+      role: "buyer",
+      avatar: initialFor(fbUser.displayName || email),
+      createdAt: fbUser.metadata.creationTime || new Date().toISOString(),
+    };
+    await createOrUpdateUser(userProfile);
+  }
 
   return userProfile;
 }
@@ -120,12 +134,11 @@ export async function signInWithGoogle(): Promise<UserProfile | null> {
   let userProfile = await getUserById(user.uid);
 
   if (!userProfile) {
-    // Create new user profile from Google data
     userProfile = {
       id: user.uid,
       name: user.displayName || "User",
       email: user.email || "",
-      role: "buyer", // Default role, user can change later
+      role: "buyer",
       avatar: initialFor(user.displayName),
       createdAt: new Date().toISOString(),
     };
