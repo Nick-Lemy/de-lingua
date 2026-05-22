@@ -47,6 +47,18 @@ const COLLECTIONS = {
   PAYMENTS: "paymentRequests",
 };
 
+function stripUndefined<T>(obj: T): T {
+  if (Array.isArray(obj)) return obj.map(stripUndefined) as unknown as T;
+  if (obj !== null && typeof obj === "object") {
+    return Object.fromEntries(
+      Object.entries(obj)
+        .filter(([, v]) => v !== undefined)
+        .map(([k, v]) => [k, stripUndefined(v)]),
+    ) as T;
+  }
+  return obj;
+}
+
 async function safeCall<T>(
   label: string,
   fn: () => Promise<T>,
@@ -68,7 +80,7 @@ export async function createOrUpdateUser(user: UserProfile): Promise<void> {
     "createOrUpdateUser",
     async () => {
       const userRef = doc(db!, COLLECTIONS.USERS, user.id);
-      await setDoc(userRef, user, { merge: true });
+      await setDoc(userRef, stripUndefined(user), { merge: true });
     },
     undefined,
   );
@@ -110,7 +122,7 @@ export async function createMission(mission: Mission): Promise<string> {
     "createMission",
     async () => {
       const missionRef = doc(db!, COLLECTIONS.MISSIONS, mission.id);
-      await setDoc(missionRef, mission);
+      await setDoc(missionRef, stripUndefined(mission));
       return mission.id;
     },
     mission.id,
@@ -181,7 +193,7 @@ export async function createMatch(match: Match): Promise<string> {
     "createMatch",
     async () => {
       const matchRef = doc(db!, COLLECTIONS.MATCHES, match.id);
-      await setDoc(matchRef, match);
+      await setDoc(matchRef, stripUndefined(match));
       return match.id;
     },
     match.id,
@@ -248,7 +260,7 @@ export async function createSeller(seller: Seller): Promise<string> {
     "createSeller",
     async () => {
       const sellerRef = doc(db!, COLLECTIONS.SELLERS, seller.id);
-      await setDoc(sellerRef, seller);
+      await setDoc(sellerRef, stripUndefined(seller));
       return seller.id;
     },
     seller.id,
@@ -349,7 +361,7 @@ export async function updateSellerInventory(
     "updateSellerInventory",
     async () => {
       const sellerRef = doc(db!, COLLECTIONS.SELLERS, sellerId);
-      await setDoc(sellerRef, { inventory }, { merge: true });
+      await setDoc(sellerRef, stripUndefined({ inventory }), { merge: true });
     },
     undefined,
   );
@@ -365,7 +377,7 @@ export async function createSellerFromUser(
     async () => {
       const seller: Seller = { id: userId, ...sellerData };
       const sellerRef = doc(db!, COLLECTIONS.SELLERS, userId);
-      await setDoc(sellerRef, seller);
+      await setDoc(sellerRef, stripUndefined(seller));
     },
     undefined,
   );
@@ -379,7 +391,7 @@ export async function sendChatMessage(message: ChatMessage): Promise<string> {
     "sendChatMessage",
     async () => {
       const chatRef = doc(db!, COLLECTIONS.CHATS, message.id);
-      await setDoc(chatRef, message);
+      await setDoc(chatRef, stripUndefined(message));
       return message.id;
     },
     message.id,
@@ -450,10 +462,7 @@ export async function getChatsForSeller(
 export async function createFeedPost(post: FeedPost): Promise<string> {
   if (!isFirebaseConfigured() || !db) return post.id;
   const postRef = doc(db!, COLLECTIONS.FEED_POSTS, post.id);
-  const clean = Object.fromEntries(
-    Object.entries(post).filter(([, v]) => v !== undefined),
-  );
-  await setDoc(postRef, clean);
+  await setDoc(postRef, stripUndefined(post));
   return post.id;
 }
 
@@ -531,7 +540,7 @@ export async function createFeedReply(reply: FeedReply): Promise<string> {
     "createFeedReply",
     async () => {
       const replyRef = doc(db!, COLLECTIONS.FEED_REPLIES, reply.id);
-      await setDoc(replyRef, reply);
+      await setDoc(replyRef, stripUndefined(reply));
 
       const postRef = doc(db!, COLLECTIONS.FEED_POSTS, reply.postId);
       await updateDoc(postRef, { repliesCount: increment(1) });
@@ -708,7 +717,7 @@ export async function addToWishlist(item: WishlistItem): Promise<string> {
         return existing.docs[0].id;
       }
       const ref = doc(db!, COLLECTIONS.WISHLIST, item.id);
-      await setDoc(ref, item);
+      await setDoc(ref, stripUndefined(item));
       return item.id;
     },
     item.id,
