@@ -361,7 +361,7 @@ export default function ChatPage() {
     isBuyer && messages.length >= 3 && !alreadyReviewed;
 
   return (
-    <div className="min-h-screen bg-[#f8faff] flex flex-col">
+    <div className="h-dvh bg-[#f8faff] flex flex-col">
       {/* Header */}
       <div className="bg-gradient-to-br from-[#1152A2] via-[#1a6bc9] to-[#0d3d7a] text-white px-5 pt-14 pb-5 shrink-0">
         <div className="max-w-2xl mx-auto">

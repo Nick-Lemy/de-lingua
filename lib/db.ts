@@ -136,13 +136,11 @@ export async function getMissionsByBuyer(buyerId: string): Promise<Mission[]> {
     "getMissionsByBuyer",
     async () => {
       const missionsRef = collection(db!, COLLECTIONS.MISSIONS);
-      const q = query(
-        missionsRef,
-        where("buyerId", "==", buyerId),
-        orderBy("createdAt", "desc"),
-      );
+      const q = query(missionsRef, where("buyerId", "==", buyerId));
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map((doc) => doc.data() as Mission);
+      return querySnapshot.docs
+        .map((doc) => doc.data() as Mission)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     },
     [],
   );
@@ -401,10 +399,11 @@ export async function getChatMessages(
         chatsRef,
         where("missionId", "==", missionId),
         where("sellerId", "==", sellerId),
-        orderBy("time", "asc"),
       );
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map((doc) => doc.data() as ChatMessage);
+      return querySnapshot.docs
+        .map((doc) => doc.data() as ChatMessage)
+        .sort((a, b) => a.time.localeCompare(b.time));
     },
     [],
   );
@@ -418,13 +417,11 @@ export async function getChatsForBuyer(
     "getChatsForBuyer",
     async () => {
       const chatsRef = collection(db!, COLLECTIONS.CHATS);
-      const q = query(
-        chatsRef,
-        where("buyerId", "==", buyerId),
-        orderBy("time", "desc"),
-      );
+      const q = query(chatsRef, where("buyerId", "==", buyerId));
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map((doc) => doc.data() as ChatMessage);
+      return querySnapshot.docs
+        .map((doc) => doc.data() as ChatMessage)
+        .sort((a, b) => b.time.localeCompare(a.time));
     },
     [],
   );
@@ -438,13 +435,11 @@ export async function getChatsForSeller(
     "getChatsForSeller",
     async () => {
       const chatsRef = collection(db!, COLLECTIONS.CHATS);
-      const q = query(
-        chatsRef,
-        where("sellerId", "==", sellerId),
-        orderBy("time", "desc"),
-      );
+      const q = query(chatsRef, where("sellerId", "==", sellerId));
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map((doc) => doc.data() as ChatMessage);
+      return querySnapshot.docs
+        .map((doc) => doc.data() as ChatMessage)
+        .sort((a, b) => b.time.localeCompare(a.time));
     },
     [],
   );
@@ -484,13 +479,11 @@ export async function getAllFeedPosts(): Promise<FeedPost[]> {
     "getAllFeedPosts",
     async () => {
       const postsRef = collection(db!, COLLECTIONS.FEED_POSTS);
-      const q = query(
-        postsRef,
-        where("status", "==", "active"),
-        orderBy("createdAt", "desc"),
-      );
+      const q = query(postsRef, where("status", "==", "active"));
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map((doc) => doc.data() as FeedPost);
+      return querySnapshot.docs
+        .map((doc) => doc.data() as FeedPost)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     },
     [],
   );
@@ -502,13 +495,11 @@ export async function getFeedPostsByUser(userId: string): Promise<FeedPost[]> {
     "getFeedPostsByUser",
     async () => {
       const postsRef = collection(db!, COLLECTIONS.FEED_POSTS);
-      const q = query(
-        postsRef,
-        where("userId", "==", userId),
-        orderBy("createdAt", "desc"),
-      );
+      const q = query(postsRef, where("userId", "==", userId));
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map((doc) => doc.data() as FeedPost);
+      return querySnapshot.docs
+        .map((doc) => doc.data() as FeedPost)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     },
     [],
   );
@@ -566,13 +557,11 @@ export async function getRepliesByPost(postId: string): Promise<FeedReply[]> {
     "getRepliesByPost",
     async () => {
       const repliesRef = collection(db!, COLLECTIONS.FEED_REPLIES);
-      const q = query(
-        repliesRef,
-        where("postId", "==", postId),
-        orderBy("createdAt", "asc"),
-      );
+      const q = query(repliesRef, where("postId", "==", postId));
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map((doc) => doc.data() as FeedReply);
+      return querySnapshot.docs
+        .map((doc) => doc.data() as FeedReply)
+        .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
     },
     [],
   );
@@ -584,13 +573,11 @@ export async function getRepliesByUser(userId: string): Promise<FeedReply[]> {
     "getRepliesByUser",
     async () => {
       const repliesRef = collection(db!, COLLECTIONS.FEED_REPLIES);
-      const q = query(
-        repliesRef,
-        where("userId", "==", userId),
-        orderBy("createdAt", "desc"),
-      );
+      const q = query(repliesRef, where("userId", "==", userId));
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map((doc) => doc.data() as FeedReply);
+      return querySnapshot.docs
+        .map((doc) => doc.data() as FeedReply)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     },
     [],
   );
@@ -617,13 +604,11 @@ export async function getReviewsBySeller(sellerId: string): Promise<Review[]> {
     "getReviewsBySeller",
     async () => {
       const reviewsRef = collection(db!, COLLECTIONS.REVIEWS);
-      const q = query(
-        reviewsRef,
-        where("sellerId", "==", sellerId),
-        orderBy("createdAt", "desc"),
-      );
+      const q = query(reviewsRef, where("sellerId", "==", sellerId));
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map((doc) => doc.data() as Review);
+      return querySnapshot.docs
+        .map((doc) => doc.data() as Review)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     },
     [],
   );
@@ -849,13 +834,11 @@ export async function getWishlistAlertsByBuyer(buyerId: string): Promise<Wishlis
     "getWishlistAlertsByBuyer",
     async () => {
       const alertsRef = collection(db!, COLLECTIONS.WISHLIST_ALERTS);
-      const q = query(
-        alertsRef,
-        where("buyerId", "==", buyerId),
-        orderBy("createdAt", "desc"),
-      );
+      const q = query(alertsRef, where("buyerId", "==", buyerId));
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map((d) => d.data() as WishlistAlert);
+      return querySnapshot.docs
+        .map((d) => d.data() as WishlistAlert)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     },
     [],
   );
