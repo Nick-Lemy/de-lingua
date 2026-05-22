@@ -13,6 +13,7 @@ import {
   createSellerFromUser,
 } from "@/lib/storage";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import type { SubscriptionTier } from "@/lib/types";
 
 const CATEGORY_DISPLAY_TO_KEY: Record<string, string> = {
   "Agricultural Products": "agriculture",
@@ -148,6 +149,8 @@ export default function OnboardingPage() {
   const [password, setPassword] = useState("");
   const [storeName, setStoreName] = useState("");
   const [showNameEmail, setShowNameEmail] = useState(false);
+  const [showSubscription, setShowSubscription] = useState(false);
+  const [selectedTier, setSelectedTier] = useState<SubscriptionTier>("lite");
   const [preferences, setPreferences] = useState<Record<string, string[]>>({});
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -210,6 +213,8 @@ export default function OnboardingPage() {
     }
     if (step < steps.length - 1) {
       setStep(step + 1);
+    } else if (role === "seller") {
+      setShowSubscription(true);
     } else {
       setShowNameEmail(true);
     }
@@ -251,6 +256,8 @@ export default function OnboardingPage() {
             }
           : undefined;
 
+      const tierForRole = role === "seller" ? selectedTier : undefined;
+
       if (isConfigured) {
         // Use Firebase Auth
         await signUp(
@@ -260,6 +267,7 @@ export default function OnboardingPage() {
           role!,
           userPreferences,
           businessProfile,
+          tierForRole,
         );
       } else {
         // Use localStorage
@@ -270,6 +278,7 @@ export default function OnboardingPage() {
           email: email.trim(),
           role: role!,
           avatar: name.trim()[0].toUpperCase(),
+          subscriptionTier: tierForRole,
           preferences: userPreferences,
           businessProfile,
         };
@@ -380,6 +389,139 @@ export default function OnboardingPage() {
           >
             {t("onboarding.haveAccount")}
           </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (showSubscription) {
+    const tiers: { id: SubscriptionTier; price: string; label: string; badge?: string; features: string[] }[] = [
+      {
+        id: "lite",
+        price: "FREE",
+        label: "DeLingua Lite",
+        features: [
+          "Up to 10 active product listings",
+          "Standard search visibility",
+          "Basic seller profile",
+        ],
+      },
+      {
+        id: "plus",
+        price: "3,000 RWF/mo",
+        label: "DeLingua Plus",
+        badge: "Popular",
+        features: [
+          "Up to 50 active product listings",
+          "Eligible for Fast Reply badge",
+          "Monthly customer view insights",
+        ],
+      },
+      {
+        id: "pro",
+        price: "7,000 RWF/mo",
+        label: "DeLingua Pro",
+        badge: "Premium",
+        features: [
+          "Unlimited product listings",
+          "Always pinned at top of searches",
+          "Verified Stock premium badge",
+          "Single-tap WhatsApp connection",
+        ],
+      },
+    ];
+
+    return (
+      <div className="min-h-screen bg-[#1152A2] flex flex-col">
+        <div className="flex-1 px-6 lg:px-8 pt-14 pb-6 max-w-2xl mx-auto w-full overflow-y-auto">
+          <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2">
+            Choose your plan
+          </h1>
+          <p className="text-slate-300 text-sm mb-7">
+            You can upgrade or change your plan anytime.
+          </p>
+
+          <div className="space-y-3">
+            {tiers.map((tier) => (
+              <button
+                key={tier.id}
+                onClick={() => setSelectedTier(tier.id)}
+                className={`w-full text-left rounded-xl border-2 p-4 transition-all ${
+                  selectedTier === tier.id
+                    ? "border-[#EF7C29] bg-white/15"
+                    : "border-white/20 bg-white/8 hover:bg-white/12"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                        selectedTier === tier.id
+                          ? "border-[#EF7C29] bg-[#EF7C29]"
+                          : "border-white/40"
+                      }`}
+                    >
+                      {selectedTier === tier.id && (
+                        <div className="w-2 h-2 rounded-full bg-white" />
+                      )}
+                    </div>
+                    <span className="font-bold text-white text-base">{tier.label}</span>
+                    {tier.badge && (
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          tier.id === "pro"
+                            ? "bg-[#EF7C29] text-white"
+                            : "bg-white/20 text-white"
+                        }`}
+                      >
+                        {tier.badge}
+                      </span>
+                    )}
+                  </div>
+                  <span
+                    className={`text-sm font-bold ${
+                      tier.id === "lite" ? "text-green-400" : "text-[#EF7C29]"
+                    }`}
+                  >
+                    {tier.price}
+                  </span>
+                </div>
+                <ul className="space-y-1.5 pl-7">
+                  {tier.features.map((f) => (
+                    <li key={f} className="text-xs text-slate-300 flex items-start gap-1.5">
+                      <span className="text-[#EF7C29] mt-0.5 shrink-0">✓</span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="px-6 lg:px-8 pb-10 max-w-2xl mx-auto w-full">
+          <div className="flex gap-4">
+            <button
+              onClick={() => setShowSubscription(false)}
+              className="flex-1 py-4 border border-white/20 text-white font-semibold rounded-md"
+            >
+              Back
+            </button>
+            <button
+              onClick={() => {
+                setShowSubscription(false);
+                setShowNameEmail(true);
+              }}
+              className="flex-1 py-4 bg-[#EF7C29] text-white font-semibold rounded-md hover:bg-[#d96a1f]"
+            >
+              Continue
+            </button>
+          </div>
+          {selectedTier !== "lite" && (
+            <p className="text-center text-xs text-slate-400 mt-3">
+              Payment collected after account creation via MTN MoMo or Airtel Money.
+            </p>
+          )}
         </div>
       </div>
     );

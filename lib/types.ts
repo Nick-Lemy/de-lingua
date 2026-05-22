@@ -1,5 +1,19 @@
 // Shared types for DeLingua
 
+export type SubscriptionTier = "lite" | "plus" | "pro";
+
+export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, number> = {
+  lite: 10,
+  plus: 50,
+  pro: Infinity,
+};
+
+export const SUBSCRIPTION_PRICE: Record<SubscriptionTier, number> = {
+  lite: 0,
+  plus: 3000,
+  pro: 7000,
+};
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -8,6 +22,7 @@ export interface UserProfile {
   avatar: string;
   createdAt?: string;
   phoneNumber?: string;
+  subscriptionTier?: SubscriptionTier;
   preferences?: {
     categories: string[];
     budgetBehavior: string;
@@ -79,6 +94,8 @@ export interface Seller {
   certifications: string[];
   inventory: InventoryItem[];
   badges?: SellerBadge[];
+  subscriptionTier?: SubscriptionTier;
+  whatsappNumber?: string;
 }
 
 export interface InventoryItem {

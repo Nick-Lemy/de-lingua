@@ -18,7 +18,7 @@ function initialFor(name: string | null | undefined): string {
 }
 import { auth, isFirebaseConfigured } from "./firebase";
 import { createOrUpdateUser, getUserById, createSellerFromUser } from "./db";
-import type { UserProfile, Seller } from "./types";
+import type { UserProfile, Seller, SubscriptionTier } from "./types";
 
 // Sign up with email and password
 export async function signUp(
@@ -28,6 +28,7 @@ export async function signUp(
   role: "buyer" | "seller",
   preferences?: UserProfile["preferences"],
   businessProfile?: UserProfile["businessProfile"],
+  subscriptionTier?: SubscriptionTier,
 ): Promise<UserProfile> {
   if (!isFirebaseConfigured() || !auth) {
     throw new Error("Firebase is not configured");
@@ -55,6 +56,7 @@ export async function signUp(
     role,
     avatar: initialFor(name),
     createdAt: new Date().toISOString(),
+    ...(subscriptionTier && { subscriptionTier }),
     ...(preferences && { preferences }),
     ...(businessProfile && { businessProfile }),
   };

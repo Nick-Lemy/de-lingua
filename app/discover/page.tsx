@@ -104,6 +104,14 @@ export default function DiscoverPage() {
       );
     }
 
+    // Pro sellers always pinned at top
+    filtered = [...filtered].sort((a, b) => {
+      const tierOrder = { pro: 0, plus: 1, lite: 2 };
+      const aOrder = tierOrder[a.subscriptionTier || "lite"];
+      const bOrder = tierOrder[b.subscriptionTier || "lite"];
+      return aOrder - bOrder;
+    });
+
     setFilteredSellers(filtered);
   }, [searchQuery, selectedCategory, sellers]);
 

@@ -21,6 +21,7 @@ import {
 } from "@/lib/db";
 import type { InventoryItem as InventoryItemType } from "@/lib/types";
 import type { UserProfile, Seller, InventoryItem } from "@/lib/types";
+import { SUBSCRIPTION_LIMITS } from "@/lib/types";
 import { BottomNav } from "@/components/BottomNav";
 import { IoArrowBack, IoAdd, IoTrash, IoSave, IoClose } from "react-icons/io5";
 import { useTranslation } from "@/lib/i18n";
@@ -99,7 +100,12 @@ export default function InventoryPage() {
     loadData();
   }, [mounted, loading, authUser, isConfigured, router]);
 
+  const tier = user?.subscriptionTier || "lite";
+  const listingLimit = SUBSCRIPTION_LIMITS[tier as keyof typeof SUBSCRIPTION_LIMITS] ?? SUBSCRIPTION_LIMITS.lite;
+  const atLimit = inventory.length >= listingLimit;
+
   const handleAddItem = () => {
+    if (atLimit) return;
     setFormData({
       name: "",
       price: "",
@@ -261,13 +267,38 @@ export default function InventoryPage() {
           </div>
         </div>
 
+        {/* Subscription listing cap */}
+        <div className={`mb-4 px-4 py-3 rounded-xl flex items-center justify-between text-sm ${
+          atLimit
+            ? "bg-red-50 border border-red-100"
+            : "bg-blue-50 border border-blue-100"
+        }`}>
+          <span className={atLimit ? "text-red-700 font-medium" : "text-[#1152A2]"}>
+            {listingLimit === Infinity
+              ? `${inventory.length} listings · Unlimited (Pro)`
+              : `${inventory.length} / ${listingLimit} listings · ${tier === "lite" ? "Lite" : "Plus"}`}
+          </span>
+          {atLimit && (
+            <a href="/subscription" className="text-xs font-bold text-[#EF7C29] underline">
+              Upgrade
+            </a>
+          )}
+        </div>
+
         {/* Add Button */}
         <button
           onClick={handleAddItem}
-          className="w-full bg-[#EF7C29] text-white rounded-md p-4 flex items-center justify-center gap-2 mb-5 hover:bg-[#d96a1f]"
+          disabled={atLimit}
+          className={`w-full rounded-md p-4 flex items-center justify-center gap-2 mb-5 ${
+            atLimit
+              ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+              : "bg-[#EF7C29] text-white hover:bg-[#d96a1f]"
+          }`}
         >
           <IoAdd className="w-5 h-5" />
-          {t("inventory.addNewProduct")}
+          {atLimit
+            ? `Limit reached — upgrade to add more`
+            : t("inventory.addNewProduct")}
         </button>
 
         {/* Inventory List */}

@@ -8,7 +8,8 @@ import { createOrUpdateUser } from "@/lib/db";
 import type { UserProfile } from "@/lib/types";
 import { Button } from "@/components/ui";
 import { BottomNav } from "@/components/BottomNav";
-import { IoArrowBack, IoMail, IoLogOut, IoPencil, IoCheckmark, IoClose } from "react-icons/io5";
+import Link from "next/link";
+import { IoArrowBack, IoMail, IoLogOut, IoPencil, IoCheckmark, IoClose, IoStar } from "react-icons/io5";
 import { useTranslation } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
@@ -171,6 +172,27 @@ export default function AccountPage() {
       {/* Menu Items */}
       <div className="px-5 max-w-xl mx-auto mt-6 space-y-6">
         <LanguageSwitcher />
+
+        {/* Subscription (sellers only) */}
+        {user.role === "seller" && (
+          <Link
+            href="/subscription"
+            className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 shadow-sm"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#EF7C29]/10 flex items-center justify-center">
+                <IoStar className="w-5 h-5 text-[#EF7C29]" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm text-gray-900">Subscription Plan</p>
+                <p className="text-xs text-gray-500 capitalize">
+                  DeLingua {user.subscriptionTier || "Lite"}
+                </p>
+              </div>
+            </div>
+            <span className="text-xs font-semibold text-[#1152A2]">Manage →</span>
+          </Link>
+        )}
 
         {/* Preferences Summary */}
         {user.preferences && (
