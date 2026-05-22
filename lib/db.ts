@@ -450,7 +450,10 @@ export async function getChatsForSeller(
 export async function createFeedPost(post: FeedPost): Promise<string> {
   if (!isFirebaseConfigured() || !db) return post.id;
   const postRef = doc(db!, COLLECTIONS.FEED_POSTS, post.id);
-  await setDoc(postRef, post);
+  const clean = Object.fromEntries(
+    Object.entries(post).filter(([, v]) => v !== undefined),
+  );
+  await setDoc(postRef, clean);
   return post.id;
 }
 
