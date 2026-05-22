@@ -6,12 +6,14 @@ import { useAuth } from "@/lib/AuthContext";
 import {
   getUserProfile,
   saveFeedPost,
+  updateFeedPost as updateLocalFeedPost,
   generateId,
   getSellers,
   getSellerById,
 } from "@/lib/storage";
 import {
   createFeedPost,
+  updateFeedPost as updateFirebaseFeedPost,
   generateId as generateFirebaseId,
   getAllSellers,
   getSellerById as getFirebaseSeller,
@@ -161,26 +163,6 @@ export default function CreateFeedPostPage() {
         ? generateFirebaseId("post")
         : generateId("post");
 
-      // Get AI suggestions if looking for something
-      let aiSuggestions: FeedAISuggestion[] = [];
-      if (formData.type === "looking-for") {
-        try {
-          const sellers = isConfigured ? await getAllSellers() : getSellers();
-          aiSuggestions = await generateFeedAISuggestions(
-            {
-              title: formData.title,
-              description: formData.description,
-              category: formData.category,
-              budget: formData.budget,
-              location: formData.location,
-            },
-            sellers,
-          );
-        } catch (error) {
-          console.error("AI suggestions failed:", error);
-        }
-      }
-
       const post: FeedPost = {
         id: postId,
         userId: user.id,
@@ -198,16 +180,43 @@ export default function CreateFeedPostPage() {
         status: "active",
         createdAt: new Date().toISOString(),
         repliesCount: 0,
-        aiSuggestions: aiSuggestions.length > 0 ? aiSuggestions : undefined,
       };
 
+      // Save the post immediately so it always appears in the feed
       if (isConfigured) {
         await createFeedPost(post);
       } else {
         saveFeedPost(post);
       }
 
-      router.push(`/feed/${post.id}`);
+      // Redirect right away — user can see the post in the feed
+      router.push("/feed");
+
+      // AI suggestions run after redirect (best-effort, non-blocking)
+      if (formData.type === "looking-for") {
+        try {
+          const sellers = isConfigured ? await getAllSellers() : getSellers();
+          const aiSuggestions = await generateFeedAISuggestions(
+            {
+              title: formData.title,
+              description: formData.description,
+              category: formData.category,
+              budget: formData.budget,
+              location: formData.location,
+            },
+            sellers,
+          );
+          if (aiSuggestions.length > 0) {
+            if (isConfigured) {
+              await updateFirebaseFeedPost(postId, { aiSuggestions });
+            } else {
+              updateLocalFeedPost(postId, { aiSuggestions });
+            }
+          }
+        } catch {
+          // AI is optional — silently ignore failures
+        }
+      }
     } catch (error) {
       console.error("Failed to create post:", error);
       setIsSubmitting(false);

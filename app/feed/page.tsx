@@ -38,6 +38,7 @@ export default function FeedPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    router.refresh();
     requestAnimationFrame(() => setMounted(true));
   }, []);
 
