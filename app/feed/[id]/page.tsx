@@ -114,6 +114,14 @@ export default function FeedPostDetailPage() {
 
       setPost(foundPost);
       setReplies(foundReplies);
+
+      if (foundPost.type === "offering" && currentUser.id !== foundPost.userId) {
+        setReplyType("interested");
+      } else if (currentUser.role === "seller" && foundPost.type === "looking-for" && currentUser.id !== foundPost.userId) {
+        setReplyType("have-it");
+      } else {
+        setReplyType("comment");
+      }
     };
 
     loadData();
@@ -148,8 +156,8 @@ export default function FeedPostDetailPage() {
         saveFeedReply(reply);
       }
 
-      setReplies([...replies, reply]);
-      setShowReplyForm(false);
+      setReplies((prev) => [...prev, reply]);
+      setPost((prev) => (prev ? { ...prev, repliesCount: (prev.repliesCount || 0) + 1 } : null));
       setReplyMessage("");
       setReplyPrice("");
       setReplyAvailability("");
@@ -218,10 +226,18 @@ export default function FeedPostDetailPage() {
     );
   }
 
-  const isOwner = post.userId === user.id;
-  const canReply =
-    user.role === "seller" && post.type === "looking-for" && !isOwner;
-  const hasReplied = replies.some((r) => r.userId === user.id);
+  const isOwner = Boolean(user && post && post.userId === user.id);
+  const canReply = Boolean(user && post && post.status === "active");
+
+  const availableTypes: Array<"have-it" | "interested" | "comment"> = (() => {
+    if (user?.role === "seller" && post.type === "looking-for" && !isOwner) {
+      return ["have-it", "interested", "comment"];
+    }
+    if (post.type === "offering" && !isOwner) {
+      return ["interested", "comment"];
+    }
+    return ["comment"];
+  })();
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
@@ -401,7 +417,7 @@ export default function FeedPostDetailPage() {
           {replies.length === 0 ? (
             <div className="bg-white rounded-md border border-gray-200 p-6 text-center">
               <p className="text-gray-500">No responses yet</p>
-              {canReply && !hasReplied && (
+              {canReply && (
                 <p className="text-sm text-gray-400 mt-1">
                   Be the first to respond!
                 </p>
@@ -470,111 +486,92 @@ export default function FeedPostDetailPage() {
         </div>
       </div>
 
-      {/* Reply Form (for sellers) */}
-      {canReply && !hasReplied && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-5 py-4 z-50">
+      {/* Reply Form / Input Bar */}
+      {canReply ? (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-5 py-3.5 z-50 shadow-lg">
           <div className="max-w-lg mx-auto">
-            {!showReplyForm ? (
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    setReplyType("have-it");
-                    setShowReplyForm(true);
-                  }}
-                  className="flex-1 py-3 bg-green-500 text-white rounded-md font-semibold flex items-center justify-center gap-2"
-                >
-                  <IoCheckmarkCircle className="w-5 h-5" />I Have This
-                </button>
-                <button
-                  onClick={() => {
-                    setReplyType("pass");
-                    handleSendReply();
-                  }}
-                  className="px-5 py-3 bg-gray-200 text-gray-700 rounded-md font-semibold flex items-center justify-center gap-2"
-                >
-                  <IoCloseCircle className="w-5 h-5" />
-                  Pass
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="flex gap-2">
-                  {(["have-it", "interested", "comment"] as const).map(
-                    (type) => (
-                      <button
-                        key={type}
-                        onClick={() => setReplyType(type)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border ${
-                          replyType === type
-                            ? getReplyTypeStyle(type)
-                            : "bg-gray-50 text-gray-600 border-gray-200"
-                        }`}
-                      >
-                        {getReplyTypeLabel(type)}
-                      </button>
-                    ),
-                  )}
-                </div>
-
-                {replyType === "have-it" && (
-                  <div className="grid grid-cols-2 gap-3">
-                    <input
-                      type="text"
-                      placeholder={t("feed.reply.pricePlaceholder")}
-                      value={replyPrice}
-                      onChange={(e) => setReplyPrice(e.target.value)}
-                      className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#1152A2] focus:outline-none"
-                    />
-                    <input
-                      type="text"
-                      placeholder={t("feed.reply.availabilityPlaceholder")}
-                      value={replyAvailability}
-                      onChange={(e) => setReplyAvailability(e.target.value)}
-                      className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#1152A2] focus:outline-none"
-                    />
-                  </div>
-                )}
-
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    placeholder={t("feed.reply.messagePlaceholder")}
-                    value={replyMessage}
-                    onChange={(e) => setReplyMessage(e.target.value)}
-                    className="flex-1 px-4 py-3 border border-gray-200 rounded-md text-sm focus:border-[#1152A2] focus:outline-none"
-                  />
+            {/* Type selector tabs if multiple available */}
+            {availableTypes.length > 1 && (
+              <div className="flex gap-2 mb-2.5">
+                {availableTypes.map((type) => (
                   <button
-                    onClick={handleSendReply}
-                    disabled={!replyMessage.trim() || isSending}
-                    className="px-4 py-3 bg-[#1152A2] text-white rounded-md disabled:opacity-50"
+                    key={type}
+                    type="button"
+                    onClick={() => setReplyType(type)}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
+                      replyType === type
+                        ? getReplyTypeStyle(type)
+                        : "bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
+                    }`}
                   >
-                    <IoSend className="w-5 h-5" />
+                    {getReplyTypeLabel(type)}
                   </button>
-                </div>
-
-                <button
-                  onClick={() => setShowReplyForm(false)}
-                  className="w-full text-sm text-gray-500 py-2"
-                >
-                  {t("feed.reply.cancel")}
-                </button>
+                ))}
               </div>
             )}
-          </div>
-        </div>
-      )}
 
-      {/* Already replied message */}
-      {canReply && hasReplied && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-5 py-4 z-50">
-          <div className="max-w-lg mx-auto text-center">
-            <p className="text-gray-500 text-sm">
-              <IoCheckmarkCircle className="w-4 h-4 inline mr-1 text-green-500" />
-              {t("feed.reply.alreadyReplied")}
-            </p>
+            {/* Price and Availability fields for 'have-it' */}
+            {replyType === "have-it" && (
+              <div className="grid grid-cols-2 gap-2 mb-2.5">
+                <input
+                  type="text"
+                  placeholder={t("feed.reply.pricePlaceholder")}
+                  value={replyPrice}
+                  onChange={(e) => setReplyPrice(e.target.value)}
+                  className="px-3 py-1.5 border border-gray-200 rounded-xl text-xs focus:border-[#1152A2] focus:ring-1 focus:ring-[#1152A2] focus:outline-none"
+                />
+                <input
+                  type="text"
+                  placeholder={t("feed.reply.availabilityPlaceholder")}
+                  value={replyAvailability}
+                  onChange={(e) => setReplyAvailability(e.target.value)}
+                  className="px-3 py-1.5 border border-gray-200 rounded-xl text-xs focus:border-[#1152A2] focus:ring-1 focus:ring-[#1152A2] focus:outline-none"
+                />
+              </div>
+            )}
+
+            {/* Input and Send Button */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSendReply();
+              }}
+              className="flex items-center gap-2"
+            >
+              <input
+                type="text"
+                placeholder={
+                  replyType === "have-it"
+                    ? "Specify details (e.g. 50kg fresh tree tomatoes available in Kimironko)..."
+                    : replyType === "interested"
+                      ? "Express interest or ask a question..."
+                      : t("feed.reply.messagePlaceholder")
+                }
+                value={replyMessage}
+                onChange={(e) => setReplyMessage(e.target.value)}
+                className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-[#1152A2] focus:ring-1 focus:ring-[#1152A2] focus:outline-none transition-all"
+              />
+              <button
+                type="submit"
+                disabled={!replyMessage.trim() || isSending}
+                className="w-10 h-10 rounded-xl bg-[#1152A2] text-white flex items-center justify-center hover:bg-[#0d3d7a] disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0 shadow-sm"
+                aria-label={t("feed.reply.send")}
+              >
+                <IoSend className="w-4 h-4" />
+              </button>
+            </form>
           </div>
         </div>
-      )}
+      ) : !user ? (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-5 py-4 z-50 text-center">
+          <Link
+            href="/login"
+            className="text-xs font-semibold text-[#1152A2] hover:underline"
+          >
+            Log in to join the conversation
+          </Link>
+        </div>
+      ) : null}
     </div>
   );
 }

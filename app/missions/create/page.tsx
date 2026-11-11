@@ -7,6 +7,7 @@ import {
   getUserProfile,
   saveMission,
   getSellers,
+  getFeedPosts,
   saveMatch,
   generateId,
 } from "@/lib/storage";
@@ -14,6 +15,7 @@ import {
   createMission as createFirebaseMission,
   createMatch as createFirebaseMatch,
   getAllSellers,
+  getAllFeedPosts,
   generateId as generateFirebaseId,
 } from "@/lib/db";
 import { generateAIMatches } from "@/app/actions/matching";
@@ -157,13 +159,20 @@ export default function CreateMissionPage() {
       saveMission(mission);
     }
 
-    // Get sellers and generate AI-powered matches
-    const sellers = isConfigured ? await getAllSellers() : getSellers();
+    // Get sellers and active feed posts for comprehensive matching
+    const [sellers, feedPosts] = isConfigured
+      ? await Promise.all([getAllSellers(), getAllFeedPosts()])
+      : [getSellers(), getFeedPosts()];
     const idPrefix = isConfigured ? "match" : "match";
 
     try {
-      // Use AI matching (server action)
-      const matches = await generateAIMatches(mission, sellers, idPrefix);
+      // Use AI/smart matching with feed posts included
+      const matches = await generateAIMatches(
+        mission,
+        sellers,
+        idPrefix,
+        feedPosts,
+      );
 
       // Save matches
       for (const match of matches) {
