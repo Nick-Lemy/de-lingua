@@ -18,10 +18,10 @@ export default function AccountPage() {
   const router = useRouter();
   const { t } = useTranslation();
   const { user: authUser, signOut, isConfigured, loading, refreshUser } = useAuth();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(() => authUser || (typeof window !== "undefined" ? getUserProfile() : null));
   const [mounted, setMounted] = useState(false);
   const [editingName, setEditingName] = useState(false);
-  const [nameValue, setNameValue] = useState("");
+  const [nameValue, setNameValue] = useState(() => (authUser?.name || (typeof window !== "undefined" ? getUserProfile()?.name : "") || ""));
   const [savingName, setSavingName] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -31,25 +31,26 @@ export default function AccountPage() {
   }, []);
 
   useEffect(() => {
-    if (!mounted) return;
+    if (authUser) {
+      setUser(authUser);
+      if (!editingName) setNameValue(authUser.name);
+    }
+  }, [authUser, editingName]);
+
+  useEffect(() => {
+    if (!mounted || (loading && !user)) return;
 
     if (isConfigured) {
-      if (!loading && !authUser) {
+      if (!loading && !authUser && !user) {
         router.push("/onboarding");
-      } else {
-        setUser(authUser);
-        setNameValue(authUser?.name || "");
       }
     } else {
-      const localUser = getUserProfile();
+      const localUser = user || getUserProfile();
       if (!localUser) {
         router.push("/onboarding");
-      } else {
-        setUser(localUser);
-        setNameValue(localUser.name);
       }
     }
-  }, [mounted, loading, authUser, isConfigured, router]);
+  }, [mounted, loading, authUser, isConfigured, router, user]);
 
   const handleSignOut = async () => {
     if (isConfigured) {
@@ -97,13 +98,15 @@ export default function AccountPage() {
     }
   };
 
-  if (!mounted || loading || !user) {
+  if ((!mounted && !user) || (loading && !user)) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
+
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-white pb-24">
@@ -322,9 +325,11 @@ export default function AccountPage() {
                 <IoTrashOutline className="w-6 h-6" />
               </div>
               <div className="text-center">
-                <h3 className="text-lg font-bold text-gray-900">Delete Account?</h3>
+                <h3 className="text-lg font-bold text-gray-900">
+                  {t("account.deleteAccountConfirmTitle")}
+                </h3>
                 <p className="text-xs text-gray-500 mt-2 leading-relaxed">
-                  Are you sure you want to permanently delete your account? All your profile information, {user.role === "seller" ? "store listings, and records" : "missions, and wishlist"} will be permanently removed.
+                  {t("account.deleteAccountConfirmDesc")}
                 </p>
               </div>
               <div className="space-y-2 pt-2">
@@ -336,10 +341,10 @@ export default function AccountPage() {
                   {deleting ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Deleting Account...
+                      {t("account.deleting")}
                     </>
                   ) : (
-                    "Yes, Delete My Account"
+                    t("account.deleteAccountConfirmBtn")
                   )}
                 </button>
                 <button
@@ -347,7 +352,7 @@ export default function AccountPage() {
                   disabled={deleting}
                   className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold transition-colors"
                 >
-                  Cancel
+                  {t("account.deleteAccountCancelBtn")}
                 </button>
               </div>
             </div>

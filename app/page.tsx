@@ -27,7 +27,7 @@ export default function HomePage() {
   const router = useRouter();
   const { t } = useTranslation();
   const { user: authUser, isConfigured, loading } = useAuth();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(() => authUser || (typeof window !== "undefined" ? getUserProfile() : null));
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [missions, setMissions] = useState<Mission[]>([]);
   const [unseenAlerts, setUnseenAlerts] = useState(0);
@@ -38,28 +38,31 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    if (!mounted || loading) return;
+    if (authUser) setUser(authUser);
+  }, [authUser]);
+
+  useEffect(() => {
+    if (!mounted || (loading && !user)) return;
 
     const loadData = async () => {
-      let currentUser: UserProfile | null = null;
+      let currentUser: UserProfile | null = authUser || user;
 
       if (isConfigured) {
-        if (!authUser) {
+        if (!currentUser) {
           router.push("/onboarding");
           return;
         }
-        currentUser = authUser;
 
-        const [fbSellers, fbMissions] = await Promise.all([
+        const [fbSellers, fbMissions, fbAlerts] = await Promise.all([
           getAllSellers(),
           getMissionsByBuyer(currentUser.id),
+          getFirebaseAlerts(currentUser.id),
         ]);
         setSellers(fbSellers);
         setMissions(fbMissions);
-        const fbAlerts = await getFirebaseAlerts(currentUser.id);
         setUnseenAlerts(fbAlerts.filter((a) => !a.seen).length);
       } else {
-        const localUser = getUserProfile();
+        const localUser = currentUser || getUserProfile();
         if (!localUser) {
           router.push("/onboarding");
           return;
@@ -82,13 +85,15 @@ export default function HomePage() {
     loadData();
   }, [mounted, loading, authUser, isConfigured, router]);
 
-  if (!mounted || loading || !user) {
+  if ((!mounted && !user) || (loading && !user)) {
     return (
       <div className="min-h-screen bg-[#f8faff] flex items-center justify-center">
         <div className="w-10 h-10 border-3 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
+
+  if (!user) return null;
 
   const activeMissionCount = missions.filter(
     (m) => m.status === "finding" || m.status === "matched",
@@ -138,7 +143,9 @@ export default function HomePage() {
                   <IoRocket className="w-4.5 h-4.5 text-white" />
                 </div>
                 <div>
-                  <p className="font-semibold text-sm">{activeMissionCount} active {activeMissionCount === 1 ? "mission" : "missions"}</p>
+                  <p className="font-semibold text-sm">
+                    {t("home.activeMissionsBanner", { count: activeMissionCount })}
+                  </p>
                   <p className="text-blue-200 text-xs">{t("home.activeMissions")}</p>
                 </div>
               </div>

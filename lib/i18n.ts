@@ -1,12 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import en from "../public/i18n/en.json";
+import rw from "../public/i18n/rw.json";
+import fr from "../public/i18n/fr.json";
+import de from "../public/i18n/de.json";
+import es from "../public/i18n/es.json";
+import zh from "../public/i18n/zh.json";
 
-const LANGUAGE_FILES: Record<string, string> = {
-  en: "/i18n/en.json",
-  fr: "/i18n/fr.json",
-  de: "/i18n/de.json",
-  es: "/i18n/es.json",
-  zh: "/i18n/zh.json",
-  rw: "/i18n/rw.json",
+export const DICTIONARIES: Record<string, Record<string, string>> = {
+  en,
+  rw,
+  fr,
+  de,
+  es,
+  zh,
 };
 
 const STORAGE_KEY = "preferredLanguage";
@@ -16,7 +22,7 @@ export function getPreferredLanguage(): string {
   if (typeof window !== "undefined") {
     try {
       const lang = localStorage.getItem(STORAGE_KEY);
-      if (lang && LANGUAGE_FILES[lang]) return lang;
+      if (lang && DICTIONARIES[lang]) return lang;
     } catch {
       // ignore
     }
@@ -26,7 +32,7 @@ export function getPreferredLanguage(): string {
 
 export function setLanguage(lang: string): void {
   if (typeof window === "undefined") return;
-  if (!LANGUAGE_FILES[lang]) return;
+  if (!DICTIONARIES[lang]) return;
   try {
     localStorage.setItem(STORAGE_KEY, lang);
   } catch (err) {
@@ -35,44 +41,35 @@ export function setLanguage(lang: string): void {
   window.dispatchEvent(new CustomEvent(CHANGE_EVENT, { detail: lang }));
 }
 
+function subscribeToLanguageChange(callback: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  const handler = () => callback();
+  window.addEventListener(CHANGE_EVENT, handler);
+  window.addEventListener("storage", handler);
+  return () => {
+    window.removeEventListener(CHANGE_EVENT, handler);
+    window.removeEventListener("storage", handler);
+  };
+}
+
 export function useTranslation() {
-  const [lang, setLang] = useState<string>(() => getPreferredLanguage());
-  const [translations, setTranslations] = useState<Record<string, string>>({});
+  const lang = useSyncExternalStore(
+    subscribeToLanguageChange,
+    getPreferredLanguage,
+    () => "en",
+  );
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch(LANGUAGE_FILES[lang])
-      .then((res) => res.json())
-      .then((data) => {
-        if (!cancelled) setTranslations(data);
-      })
-      .catch((err) => console.error("i18n load failed", err));
-    return () => {
-      cancelled = true;
-    };
-  }, [lang]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const onChange = (e: Event) => {
-      const detail = (e as CustomEvent<string>).detail;
-      if (detail && LANGUAGE_FILES[detail]) setLang(detail);
-    };
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY && e.newValue && LANGUAGE_FILES[e.newValue]) {
-        setLang(e.newValue);
-      }
-    };
-    window.addEventListener(CHANGE_EVENT, onChange);
-    window.addEventListener("storage", onStorage);
-    return () => {
-      window.removeEventListener(CHANGE_EVENT, onChange);
-      window.removeEventListener("storage", onStorage);
-    };
-  }, []);
-
-  function t(key: string, vars?: Record<string, string | number>) {
-    let text = translations[key] || key;
+  function t(key: string, vars?: Record<string, string | number>): string {
+    const dict = DICTIONARIES[lang] || DICTIONARIES.en;
+    let text = dict[key];
+    // Fallback to English if translation is missing in the chosen language
+    if (text === undefined && lang !== "en") {
+      text = DICTIONARIES.en[key];
+    }
+    // NEVER expose raw variable keys (e.g. "nav.messages", "home.stats.matches") to the user!
+    if (text === undefined) {
+      return "";
+    }
     if (vars) {
       text = applyPlurals(text, vars, lang);
       Object.entries(vars).forEach(([k, v]) => {

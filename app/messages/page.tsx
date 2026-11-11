@@ -38,31 +38,33 @@ export default function MessagesPage() {
   const router = useRouter();
   const { t } = useTranslation();
   const { user: authUser, isConfigured, loading } = useAuth();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(() => authUser || (typeof window !== "undefined" ? getUserProfile() : null));
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [mounted, setMounted] = useState(false);
-  const [loadingChats, setLoadingChats] = useState(false);
+  const [loadingChats, setLoadingChats] = useState(true);
 
   useEffect(() => {
-    // Use requestAnimationFrame to avoid cascading renders
-    requestAnimationFrame(() => setMounted(true));
+    setMounted(true);
   }, []);
 
   useEffect(() => {
-    if (!mounted || loading) return;
+    if (authUser) setUser(authUser);
+  }, [authUser]);
+
+  useEffect(() => {
+    if (!mounted || (loading && !user)) return;
 
     const loadData = async () => {
       setLoadingChats(true);
-      let currentUser: UserProfile | null = null;
+      let currentUser: UserProfile | null = authUser || user;
 
       if (isConfigured) {
-        if (!authUser) {
+        if (!currentUser) {
           router.push("/onboarding");
           return;
         }
-        currentUser = authUser;
       } else {
-        currentUser = getUserProfile();
+        currentUser = currentUser || getUserProfile();
         if (!currentUser) {
           router.push("/onboarding");
           return;
@@ -97,6 +99,38 @@ export default function MessagesPage() {
         conversationMap.get(key)!.push(msg);
       });
 
+      // Collect unique IDs to batch fetch in parallel
+      const uniqueMissionIds = Array.from(new Set(Array.from(conversationMap.keys()).map((k) => k.split("|||")[0])));
+      const uniqueSellerIds = Array.from(new Set(Array.from(conversationMap.keys()).map((k) => k.split("|||")[1])));
+      const uniqueBuyerIds = currentUser.role === "seller"
+        ? Array.from(new Set(Array.from(conversationMap.values()).map((msgs) => msgs[0]?.buyerId).filter(Boolean) as string[]))
+        : [];
+
+      const missionMap = new Map<string, Mission>();
+      const sellerMap = new Map<string, Seller>();
+      const buyerMap = new Map<string, UserProfile>();
+
+      await Promise.all([
+        Promise.all(
+          uniqueMissionIds.map(async (id) => {
+            const m = isConfigured ? await getFirebaseMission(id) : getMissionById(id);
+            if (m) missionMap.set(id, m);
+          }),
+        ),
+        Promise.all(
+          uniqueSellerIds.map(async (id) => {
+            const s = isConfigured ? await getFirebaseSeller(id) : getSellerById(id);
+            if (s) sellerMap.set(id, s);
+          }),
+        ),
+        Promise.all(
+          uniqueBuyerIds.map(async (id) => {
+            const b = isConfigured ? await getUserById(id) : null;
+            if (b) buyerMap.set(id, b);
+          }),
+        ),
+      ]);
+
       // Build conversation list
       const convList: Conversation[] = [];
 
@@ -109,29 +143,9 @@ export default function MessagesPage() {
         );
         const lastMessage = sortedMsgs[0];
 
-        // Load mission info
-        let mission: Mission | null = null;
-        if (isConfigured) {
-          mission = await getFirebaseMission(missionId);
-        } else {
-          mission = getMissionById(missionId);
-        }
-
-        // Load seller info
-        let seller: Seller | null = null;
-        if (isConfigured) {
-          seller = await getFirebaseSeller(sellerId);
-        } else {
-          seller = getSellerById(sellerId);
-        }
-
-        // Load buyer info (for sellers)
-        let buyer: UserProfile | null = null;
-        if (currentUser.role === "seller" && lastMessage.buyerId) {
-          if (isConfigured) {
-            buyer = await getUserById(lastMessage.buyerId);
-          }
-        }
+        const mission = missionMap.get(missionId);
+        const seller = sellerMap.get(sellerId);
+        const buyer = lastMessage.buyerId ? buyerMap.get(lastMessage.buyerId) : undefined;
 
         convList.push({
           missionId,
@@ -141,7 +155,7 @@ export default function MessagesPage() {
           seller: seller || undefined,
           buyer: buyer || undefined,
           lastMessage,
-          unreadCount: 0, // TODO: Implement unread count
+          unreadCount: 0,
         });
       }
 
@@ -177,13 +191,15 @@ export default function MessagesPage() {
     }
   };
 
-  if (!mounted || loading || !user) {
+  if ((!mounted && !user) || (loading && !user)) {
     return (
       <div className="min-h-screen bg-[#f8faff] flex items-center justify-center">
         <div className="w-10 h-10 border-3 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
+
+  if (!user) return null;
 
   const isBuyer = user.role === "buyer";
 

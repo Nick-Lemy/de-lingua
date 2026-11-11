@@ -594,7 +594,7 @@ export default function ChatPage() {
             className="pointer-events-auto absolute -top-12 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 bg-[#1152A2] text-white rounded-full shadow-lg text-xs font-semibold hover:bg-[#0d3d7a] transition-all active:scale-95 cursor-pointer"
           >
             <span>↓</span>
-            <span>Latest</span>
+            <span>{t("chat.latest")}</span>
           </button>
         </div>
       )}

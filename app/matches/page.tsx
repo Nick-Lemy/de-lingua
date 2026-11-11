@@ -24,7 +24,7 @@ import { BottomNav } from "@/components/BottomNav";
 export default function MatchesPage() {
   const router = useRouter();
   const { user: authUser, loading: authLoading } = useAuth();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(() => authUser || (typeof window !== "undefined" ? getUserProfile() : null));
   const [matches, setMatches] = useState<Match[]>([]);
   const [missionsMap, setMissionsMap] = useState<Record<string, Mission>>({});
   const [sellersMap, setSellersMap] = useState<Record<string, Seller>>({});
@@ -35,19 +35,24 @@ export default function MatchesPage() {
   }, []);
 
   useEffect(() => {
-    if (!mounted || authLoading) return;
+    if (authUser) setUser(authUser);
+  }, [authUser]);
+
+  useEffect(() => {
+    if (!mounted || (authLoading && !user)) return;
 
     const loadData = async () => {
       const isConfigured = isFirebaseConfigured();
+      let currentUser: UserProfile | null = authUser || user;
 
       if (isConfigured) {
-        if (!authUser) {
+        if (!currentUser) {
           router.push("/onboarding");
           return;
         }
-        setUser(authUser);
+        setUser(currentUser);
 
-        const allMatches = await getAllMatchesForBuyer(authUser.id);
+        const allMatches = await getAllMatchesForBuyer(currentUser.id);
         const sorted = allMatches.sort((a, b) => b.matchScore - a.matchScore);
         setMatches(sorted);
 
@@ -86,13 +91,15 @@ export default function MatchesPage() {
     loadData();
   }, [mounted, authLoading, authUser, router]);
 
-  if (!mounted || !user) {
+  if ((!mounted && !user) || (authLoading && !user)) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
+
+  if (!user) return null;
 
   const getBudgetFitColor = (fit: string) => {
     switch (fit) {

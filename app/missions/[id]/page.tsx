@@ -32,10 +32,12 @@ export default function MissionDetailPage() {
       let foundMatches: Match[] = [];
 
       if (isConfigured) {
-        foundMission = await getFirebaseMission(id);
-        if (foundMission) {
-          foundMatches = await getFirebaseMatches(id);
-        }
+        const [m, matches] = await Promise.all([
+          getFirebaseMission(id),
+          getFirebaseMatches(id),
+        ]);
+        foundMission = m;
+        foundMatches = matches;
       } else {
         foundMission = getMissionById(id);
         if (foundMission) {

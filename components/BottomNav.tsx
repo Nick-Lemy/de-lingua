@@ -58,6 +58,7 @@ export function BottomNav({ role = "buyer" }: BottomNavProps) {
             <Link
               key={item.href}
               href={item.href}
+              prefetch={true}
               className={`relative flex flex-col items-center gap-1 px-4 py-1.5 rounded-xl transition-all duration-200 ${
                 isActive
                   ? "text-[#1152A2]"

@@ -31,7 +31,7 @@ export default function InventoryPage() {
   const router = useRouter();
   const { t } = useTranslation();
   const { user: authUser, isConfigured, loading } = useAuth();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(() => authUser || (typeof window !== "undefined" ? getUserProfile() : null));
   const [seller, setSeller] = useState<Seller | null>(null);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -55,19 +55,22 @@ export default function InventoryPage() {
   }, []);
 
   useEffect(() => {
-    if (!mounted || loading) return;
+    if (authUser) setUser(authUser);
+  }, [authUser]);
+
+  useEffect(() => {
+    if (!mounted || (loading && !user)) return;
 
     const loadData = async () => {
-      let currentUser: UserProfile | null = null;
+      let currentUser: UserProfile | null = authUser || user;
 
       if (isConfigured) {
-        if (!authUser) {
+        if (!currentUser) {
           router.push("/onboarding");
           return;
         }
-        currentUser = authUser;
       } else {
-        currentUser = getUserProfile();
+        currentUser = currentUser || getUserProfile();
         if (!currentUser) {
           router.push("/onboarding");
           return;
@@ -240,13 +243,15 @@ export default function InventoryPage() {
     setSaving(false);
   };
 
-  if (!mounted || loading || !user) {
+  if ((!mounted && !user) || (loading && !user)) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
+
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-white pb-28">

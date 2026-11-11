@@ -35,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/site.webmanifest" />
         <link
@@ -62,7 +62,7 @@ export default function RootLayout({
         />
         <meta name="theme-color" content="#ffffff" />
       </head>
-      <body className={`${inter.variable} antialiased font-sans`}>
+      <body className={`${inter.variable} antialiased font-sans`} suppressHydrationWarning>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

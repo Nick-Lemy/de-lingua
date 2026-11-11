@@ -51,9 +51,9 @@ const TIERS: {
 export default function SubscriptionPage() {
   const router = useRouter();
   const { user: authUser, isConfigured, loading, refreshUser } = useAuth();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(() => authUser || (typeof window !== "undefined" ? getUserProfile() : null));
   const [mounted, setMounted] = useState(false);
-  const [selectedTier, setSelectedTier] = useState<SubscriptionTier>("lite");
+  const [selectedTier, setSelectedTier] = useState<SubscriptionTier>(() => authUser?.subscriptionTier || (typeof window !== "undefined" ? getUserProfile()?.subscriptionTier : "lite") || "lite");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -62,19 +62,25 @@ export default function SubscriptionPage() {
   }, []);
 
   useEffect(() => {
-    if (!mounted || loading) return;
-    let currentUser: UserProfile | null = null;
+    if (authUser) {
+      setUser(authUser);
+      if (authUser.subscriptionTier) setSelectedTier(authUser.subscriptionTier);
+    }
+  }, [authUser]);
+
+  useEffect(() => {
+    if (!mounted || (loading && !user)) return;
+    let currentUser: UserProfile | null = authUser || user;
     if (isConfigured) {
-      if (!authUser) { router.push("/onboarding"); return; }
-      currentUser = authUser;
+      if (!currentUser) { router.push("/onboarding"); return; }
     } else {
-      currentUser = getUserProfile();
+      currentUser = currentUser || getUserProfile();
       if (!currentUser) { router.push("/onboarding"); return; }
     }
     if (currentUser.role !== "seller") { router.push("/"); return; }
     setUser(currentUser);
     setSelectedTier(currentUser.subscriptionTier || "lite");
-  }, [mounted, loading, authUser, isConfigured, router]);
+  }, [mounted, loading, authUser, isConfigured, router, user]);
 
   const handleSave = async () => {
     if (!user || selectedTier === (user.subscriptionTier || "lite")) {
@@ -100,13 +106,15 @@ export default function SubscriptionPage() {
     }
   };
 
-  if (!mounted || loading || !user) {
+  if ((!mounted && !user) || (loading && !user)) {
     return (
       <div className="min-h-screen bg-[#f8faff] flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
+
+  if (!user) return null;
 
   const currentTier = user.subscriptionTier || "lite";
 

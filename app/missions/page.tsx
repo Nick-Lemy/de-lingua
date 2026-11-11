@@ -23,7 +23,7 @@ export default function MissionsPage() {
   const router = useRouter();
   const { t } = useTranslation();
   const { user: authUser, loading: authLoading } = useAuth();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(() => authUser || (typeof window !== "undefined" ? getUserProfile() : null));
   const [missions, setMissions] = useState<Mission[]>([]);
   const [matchMap, setMatchMap] = useState<Map<string, number>>(new Map());
   const [mounted, setMounted] = useState(false);
@@ -33,20 +33,25 @@ export default function MissionsPage() {
   }, []);
 
   useEffect(() => {
-    if (!mounted || authLoading) return;
+    if (authUser) setUser(authUser);
+  }, [authUser]);
+
+  useEffect(() => {
+    if (!mounted || (authLoading && !user)) return;
 
     const loadData = async () => {
       const isConfigured = isFirebaseConfigured();
+      let currentUser: UserProfile | null = authUser || user;
 
       if (isConfigured) {
-        if (!authUser) {
+        if (!currentUser) {
           router.push("/onboarding");
           return;
         }
-        setUser(authUser);
+        setUser(currentUser);
         const [allMissions, allMatches] = await Promise.all([
-          getFirebaseMissions(authUser.id),
-          getAllMatchesForBuyer(authUser.id),
+          getFirebaseMissions(currentUser.id),
+          getAllMatchesForBuyer(currentUser.id),
         ]);
         const map = new Map<string, number>();
         allMatches.forEach((m) => {
@@ -60,7 +65,7 @@ export default function MissionsPage() {
           ),
         );
       } else {
-        const profile = getUserProfile();
+        const profile = currentUser || getUserProfile();
         if (!profile) {
           router.push("/onboarding");
           return;
@@ -86,13 +91,15 @@ export default function MissionsPage() {
     loadData();
   }, [mounted, authLoading, authUser, router]);
 
-  if (!mounted || !user) {
+  if ((!mounted && !user) || (authLoading && !user)) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
+
+  if (!user) return null;
 
   const getStatusColor = (status: string) => {
     switch (status) {

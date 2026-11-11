@@ -38,7 +38,7 @@ export default function DiscoverPage() {
   const router = useRouter();
   const { t } = useTranslation();
   const { user: authUser, isConfigured, loading } = useAuth();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(() => authUser || (typeof window !== "undefined" ? getUserProfile() : null));
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [filteredSellers, setFilteredSellers] = useState<Seller[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -50,22 +50,25 @@ export default function DiscoverPage() {
   }, []);
 
   useEffect(() => {
-    if (!mounted || loading) return;
+    if (authUser) setUser(authUser);
+  }, [authUser]);
+
+  useEffect(() => {
+    if (!mounted || (loading && !user)) return;
 
     const loadData = async () => {
-      let currentUser: UserProfile | null = null;
+      let currentUser: UserProfile | null = authUser || user;
 
       if (isConfigured) {
-        if (!authUser) {
+        if (!currentUser) {
           router.push("/onboarding");
           return;
         }
-        currentUser = authUser;
         const fbSellers = await getAllSellers();
         setSellers(fbSellers);
         setFilteredSellers(fbSellers);
       } else {
-        const localUser = getUserProfile();
+        const localUser = currentUser || getUserProfile();
         if (!localUser) {
           router.push("/onboarding");
           return;
@@ -115,13 +118,15 @@ export default function DiscoverPage() {
     setFilteredSellers(filtered);
   }, [searchQuery, selectedCategory, sellers]);
 
-  if (!mounted || loading || !user) {
+  if ((!mounted && !user) || (loading && !user)) {
     return (
       <div className="min-h-screen bg-[#f8faff] flex items-center justify-center">
         <div className="w-10 h-10 border-3 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
+
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-[#f8faff] pb-28">

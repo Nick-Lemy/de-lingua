@@ -56,7 +56,7 @@ export default function SellerDashboardPage() {
   const router = useRouter();
   const { t } = useTranslation();
   const { user: authUser, loading } = useAuth();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(() => authUser || (typeof window !== "undefined" ? getUserProfile() : null));
   const [seller, setSeller] = useState<Seller | null>(null);
   const [requests, setRequests] = useState<RequestWithMission[]>([]);
   const [analytics, setAnalytics] = useState<SellerAnalytics | null>(null);
@@ -69,20 +69,23 @@ export default function SellerDashboardPage() {
   }, []);
 
   useEffect(() => {
-    if (!mounted || loading) return;
+    if (authUser) setUser(authUser);
+  }, [authUser]);
+
+  useEffect(() => {
+    if (!mounted || (loading && !user)) return;
 
     const loadData = async () => {
       const isConfigured = isFirebaseConfigured();
-      let currentUser: UserProfile | null = null;
+      let currentUser: UserProfile | null = authUser || user;
 
       if (isConfigured) {
-        if (!authUser) {
+        if (!currentUser) {
           router.push("/onboarding");
           return;
         }
-        currentUser = authUser;
       } else {
-        currentUser = getUserProfile();
+        currentUser = currentUser || getUserProfile();
         if (!currentUser) {
           router.push("/onboarding");
           return;
@@ -178,13 +181,15 @@ export default function SellerDashboardPage() {
     loadData();
   }, [mounted, loading, authUser, router]);
 
-  if (!mounted || loading || !user) {
+  if ((!mounted && !user) || (loading && !user)) {
     return (
       <div className="min-h-screen bg-[#f8faff] flex items-center justify-center">
         <div className="w-10 h-10 border-3 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
+
+  if (!user) return null;
 
   const pendingCount = requests.length;
   const productCount = seller?.inventory?.length || 0;

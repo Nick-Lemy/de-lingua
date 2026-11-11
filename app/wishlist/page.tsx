@@ -36,7 +36,7 @@ import {
 export default function WishlistPage() {
   const router = useRouter();
   const { user: authUser, loading, isConfigured } = useAuth();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(() => authUser || (typeof window !== "undefined" ? getUserProfile() : null));
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [alerts, setAlerts] = useState<WishlistAlert[]>([]);
   const [mounted, setMounted] = useState(false);
@@ -48,17 +48,20 @@ export default function WishlistPage() {
   }, []);
 
   useEffect(() => {
-    if (!mounted || loading) return;
+    if (authUser) setUser(authUser);
+  }, [authUser]);
+
+  useEffect(() => {
+    if (!mounted || (loading && !user)) return;
 
     const loadData = async () => {
-      let currentUser: UserProfile | null = null;
+      let currentUser: UserProfile | null = authUser || user;
 
       if (isConfigured) {
-        if (!authUser) {
+        if (!currentUser) {
           router.push("/onboarding");
           return;
         }
-        currentUser = authUser;
         const [wl, als] = await Promise.all([
           getFirebaseWishlist(currentUser.id),
           getFirebaseAlerts(currentUser.id),
@@ -66,7 +69,7 @@ export default function WishlistPage() {
         setWishlist(wl);
         setAlerts(als);
       } else {
-        currentUser = getUserProfile();
+        currentUser = currentUser || getUserProfile();
         if (!currentUser) {
           router.push("/onboarding");
           return;
@@ -126,13 +129,15 @@ export default function WishlistPage() {
 
   const unseenAlerts = alerts.filter((a) => !a.seen);
 
-  if (!mounted || loading || !user) {
+  if ((!mounted && !user) || (loading && !user)) {
     return (
       <div className="min-h-screen bg-[#f8faff] flex items-center justify-center">
         <div className="w-10 h-10 border-3 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
+
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-[#f8faff] pb-28">

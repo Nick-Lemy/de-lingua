@@ -27,7 +27,7 @@ interface RequestWithMission extends Match {
 export default function RequestsPage() {
   const router = useRouter();
   const { user: authUser, loading } = useAuth();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(() => authUser || (typeof window !== "undefined" ? getUserProfile() : null));
   const [requests, setRequests] = useState<RequestWithMission[]>([]);
   const [mounted, setMounted] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -37,20 +37,23 @@ export default function RequestsPage() {
   }, []);
 
   useEffect(() => {
-    if (!mounted || loading) return;
+    if (authUser) setUser(authUser);
+  }, [authUser]);
+
+  useEffect(() => {
+    if (!mounted || (loading && !user)) return;
 
     const loadData = async () => {
       const isConfigured = isFirebaseConfigured();
-      let currentUser: UserProfile | null = null;
+      let currentUser: UserProfile | null = authUser || user;
 
       if (isConfigured) {
-        if (!authUser) {
+        if (!currentUser) {
           router.push("/onboarding");
           return;
         }
-        currentUser = authUser;
       } else {
-        currentUser = getUserProfile();
+        currentUser = currentUser || getUserProfile();
         if (!currentUser) {
           router.push("/onboarding");
           return;
@@ -125,13 +128,15 @@ export default function RequestsPage() {
     setUpdatingId(null);
   };
 
-  if (!mounted || loading || !user) {
+  if ((!mounted && !user) || (loading && !user)) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
+
+  if (!user) return null;
 
   const pending = requests.filter((r) => r.status === "pending");
   const others = requests.filter((r) => r.status !== "pending");

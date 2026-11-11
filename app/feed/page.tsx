@@ -29,7 +29,7 @@ export default function FeedPage() {
   const router = useRouter();
   const { t } = useTranslation();
   const { user: authUser, isConfigured, loading } = useAuth();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(() => authUser || (typeof window !== "undefined" ? getUserProfile() : null));
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [activeTab, setActiveTab] = useState<"all" | "looking" | "offering">(
@@ -39,21 +39,24 @@ export default function FeedPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    requestAnimationFrame(() => setMounted(true));
+    setMounted(true);
   }, []);
 
   useEffect(() => {
-    if (!mounted || loading) return;
+    if (authUser) setUser(authUser);
+  }, [authUser]);
+
+  useEffect(() => {
+    if (!mounted || (loading && !user)) return;
 
     const loadData = async () => {
-      let currentUser: UserProfile | null = null;
+      let currentUser: UserProfile | null = authUser || user;
 
       if (isConfigured) {
-        if (!authUser) {
+        if (!currentUser) {
           router.push("/onboarding");
           return;
         }
-        currentUser = authUser;
         try {
           const fbPosts = await getAllFeedPosts();
           setPosts(fbPosts);
@@ -64,7 +67,7 @@ export default function FeedPage() {
           );
         }
       } else {
-        const localUser = getUserProfile();
+        const localUser = currentUser || getUserProfile();
         if (!localUser) {
           router.push("/onboarding");
           return;
@@ -134,13 +137,15 @@ export default function FeedPage() {
     }
   };
 
-  if (!mounted || loading || !user) {
+  if ((!mounted && !user) || (loading && !user)) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-[#1152A2] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
+
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-28">

@@ -334,5 +334,13 @@
   "payment.phoneInvalid": "Enter a 10-digit Rwandan number starting with 07.",
   "payment.sending": "Sending...",
   "payment.successMtn": "The other party will receive an MTN MoMo prompt.",
-  "payment.successAirtel": "The other party will receive an Airtel Money prompt."
+  "payment.successAirtel": "The other party will receive an Airtel Money prompt.",
+  "feed.categories.other": "Other",
+  "home.activeMissionsBanner": "{count} active {count, plural, one {mission} other {missions}}",
+  "account.deleteAccountConfirmTitle": "Delete Account?",
+  "account.deleteAccountConfirmDesc": "Are you sure you want to permanently delete your account? All your profile information, listings, and records will be permanently removed. This cannot be undone.",
+  "account.deleteAccountConfirmBtn": "Yes, Delete My Account",
+  "account.deleteAccountCancelBtn": "Cancel",
+  "account.deleting": "Deleting Account...",
+  "chat.latest": "Latest"
 }
