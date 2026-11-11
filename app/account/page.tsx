@@ -9,9 +9,10 @@ import type { UserProfile } from "@/lib/types";
 import { Button } from "@/components/ui";
 import { BottomNav } from "@/components/BottomNav";
 import Link from "next/link";
-import { IoArrowBack, IoMail, IoLogOut, IoPencil, IoCheckmark, IoClose, IoStar } from "react-icons/io5";
+import { IoArrowBack, IoMail, IoLogOut, IoPencil, IoCheckmark, IoClose, IoStar, IoTrashOutline } from "react-icons/io5";
 import { useTranslation } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { deleteAccount } from "@/lib/auth";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -22,6 +23,8 @@ export default function AccountPage() {
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState("");
   const [savingName, setSavingName] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -78,6 +81,19 @@ export default function AccountPage() {
       console.error("Failed to save name:", err);
     } finally {
       setSavingName(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user || deleting) return;
+    setDeleting(true);
+    try {
+      await deleteAccount(user.id);
+      await signOut();
+      router.push("/onboarding");
+    } catch (err) {
+      console.error("Failed to delete account:", err);
+      setDeleting(false);
     }
   };
 
@@ -278,7 +294,7 @@ export default function AccountPage() {
         )}
 
         {/* Sign Out Button */}
-        <div className="mt-8">
+        <div className="mt-8 space-y-3">
           <Button
             variant="danger"
             fullWidth
@@ -288,7 +304,55 @@ export default function AccountPage() {
             <IoLogOut className="w-5 h-5" />
             Sign Out
           </Button>
+
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="w-full py-3 px-4 rounded-md border border-red-200 text-red-600 hover:bg-red-50 text-sm font-medium transition-colors flex items-center justify-center gap-2"
+          >
+            <IoTrashOutline className="w-4 h-4" />
+            {t("account.deleteAccount")}
+          </button>
         </div>
+
+        {/* Delete Account Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+            <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+              <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto">
+                <IoTrashOutline className="w-6 h-6" />
+              </div>
+              <div className="text-center">
+                <h3 className="text-lg font-bold text-gray-900">Delete Account?</h3>
+                <p className="text-xs text-gray-500 mt-2 leading-relaxed">
+                  Are you sure you want to permanently delete your account? All your profile information, {user.role === "seller" ? "store listings, and records" : "missions, and wishlist"} will be permanently removed.
+                </p>
+              </div>
+              <div className="space-y-2 pt-2">
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleting}
+                  className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {deleting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Deleting Account...
+                    </>
+                  ) : (
+                    "Yes, Delete My Account"
+                  )}
+                </button>
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={deleting}
+                  className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-semibold transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Version Info */}
         <p className="text-center text-xs text-gray-400 mt-6">

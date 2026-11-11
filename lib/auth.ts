@@ -11,13 +11,21 @@ import {
   sendPasswordResetEmail,
   User,
   updateProfile,
+  deleteUser as firebaseDeleteUser,
 } from "firebase/auth";
 
 function initialFor(name: string | null | undefined): string {
   return (name?.trim()?.charAt(0) || "U").toUpperCase();
 }
 import { auth, isFirebaseConfigured } from "./firebase";
-import { createOrUpdateUser, getUserById, createSellerFromUser } from "./db";
+import {
+  createOrUpdateUser,
+  getUserById,
+  getSellerById,
+  createSellerFromUser,
+  deleteUserAccount,
+} from "./db";
+import { deleteUserAccountLocal } from "./storage";
 import type { UserProfile, Seller, SubscriptionTier } from "./types";
 
 // Sign up with email and password
@@ -102,16 +110,44 @@ export async function signIn(
   );
   const fbUser = userCredential.user;
   let userProfile = await getUserById(fbUser.uid);
+  const sellerDoc = await getSellerById(fbUser.uid);
 
   if (!userProfile) {
-    // Firestore document missing or rules blocked the read — construct from Auth data
+    const isSeller = !!sellerDoc;
     userProfile = {
       id: fbUser.uid,
-      name: fbUser.displayName || email.split("@")[0],
+      name: sellerDoc?.name || fbUser.displayName || email.split("@")[0],
       email: fbUser.email || email,
-      role: "buyer",
-      avatar: initialFor(fbUser.displayName || email),
+      role: isSeller ? "seller" : "buyer",
+      avatar: initialFor(sellerDoc?.name || fbUser.displayName || email),
       createdAt: fbUser.metadata.creationTime || new Date().toISOString(),
+      ...(sellerDoc && {
+        businessProfile: {
+          storeName: sellerDoc.name,
+          category: sellerDoc.category,
+          products: [sellerDoc.category],
+          minOrderQty: sellerDoc.minOrder,
+          location: sellerDoc.location,
+          serviceRange: sellerDoc.serviceRange,
+          capacity: "",
+        },
+      }),
+    };
+    await createOrUpdateUser(userProfile);
+  } else if (sellerDoc && userProfile.role !== "seller") {
+    // Auto-heal: If seller document exists, ensure role is seller
+    userProfile = {
+      ...userProfile,
+      role: "seller",
+      businessProfile: userProfile.businessProfile || {
+        storeName: sellerDoc.name,
+        category: sellerDoc.category,
+        products: [sellerDoc.category],
+        minOrderQty: sellerDoc.minOrder,
+        location: sellerDoc.location,
+        serviceRange: sellerDoc.serviceRange,
+        capacity: "",
+      },
     };
     await createOrUpdateUser(userProfile);
   }
@@ -132,21 +168,66 @@ export async function signInWithGoogle(): Promise<UserProfile | null> {
 
   // Check if user already exists
   let userProfile = await getUserById(user.uid);
+  const sellerDoc = await getSellerById(user.uid);
 
   if (!userProfile) {
+    const isSeller = !!sellerDoc;
     userProfile = {
       id: user.uid,
-      name: user.displayName || "User",
+      name: sellerDoc?.name || user.displayName || "User",
       email: user.email || "",
-      role: "buyer",
-      avatar: initialFor(user.displayName),
+      role: isSeller ? "seller" : "buyer",
+      avatar: initialFor(sellerDoc?.name || user.displayName),
       createdAt: new Date().toISOString(),
+      ...(sellerDoc && {
+        businessProfile: {
+          storeName: sellerDoc.name,
+          category: sellerDoc.category,
+          products: [sellerDoc.category],
+          minOrderQty: sellerDoc.minOrder,
+          location: sellerDoc.location,
+          serviceRange: sellerDoc.serviceRange,
+          capacity: "",
+        },
+      }),
     };
 
+    await createOrUpdateUser(userProfile);
+  } else if (sellerDoc && userProfile.role !== "seller") {
+    userProfile = {
+      ...userProfile,
+      role: "seller",
+      businessProfile: userProfile.businessProfile || {
+        storeName: sellerDoc.name,
+        category: sellerDoc.category,
+        products: [sellerDoc.category],
+        minOrderQty: sellerDoc.minOrder,
+        location: sellerDoc.location,
+        serviceRange: sellerDoc.serviceRange,
+        capacity: "",
+      },
+    };
     await createOrUpdateUser(userProfile);
   }
 
   return userProfile;
+}
+
+// Delete user account
+export async function deleteAccount(userId: string): Promise<void> {
+  if (isFirebaseConfigured()) {
+    await deleteUserAccount(userId);
+    if (auth && auth.currentUser && auth.currentUser.uid === userId) {
+      try {
+        await firebaseDeleteUser(auth.currentUser);
+      } catch (err) {
+        console.warn("Firebase Auth deleteUser failed, signing out:", err);
+        await firebaseSignOut(auth);
+      }
+    }
+  } else {
+    deleteUserAccountLocal(userId);
+  }
 }
 
 // Sign out

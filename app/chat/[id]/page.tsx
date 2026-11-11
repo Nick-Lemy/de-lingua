@@ -62,6 +62,10 @@ export default function ChatPage() {
   const [payments, setPayments] = useState<PaymentRequest[]>([]);
   const [alreadyReviewed, setAlreadyReviewed] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const isNearBottomRef = useRef(true);
+  const initialScrollDoneRef = useRef(false);
+  const [showScrollBottom, setShowScrollBottom] = useState(false);
   const sellerId = searchParams?.get("seller");
 
   const isBuyer = user?.role === "buyer";
@@ -88,8 +92,38 @@ export default function ChatPage() {
       chat = getChatByMissionAndSeller(mission.id, sellerId);
     }
 
-    setMessages(chat);
+    setMessages((prev) => {
+      if (prev.length === chat.length) {
+        const isIdentical = prev.every(
+          (m, idx) =>
+            m.id === chat[idx]?.id &&
+            m.text === chat[idx]?.text &&
+            m.type === chat[idx]?.type &&
+            m.time === chat[idx]?.time,
+        );
+        if (isIdentical) return prev;
+      }
+      return chat;
+    });
   }, [mission, sellerId]);
+
+  const handleScroll = () => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    const threshold = 120;
+    const isAtBottom =
+      el.scrollHeight - el.scrollTop - el.clientHeight <= threshold;
+    isNearBottomRef.current = isAtBottom;
+    setShowScrollBottom(!isAtBottom);
+  };
+
+  const scrollToBottom = (smooth = true) => {
+    isNearBottomRef.current = true;
+    setShowScrollBottom(false);
+    messagesEndRef.current?.scrollIntoView({
+      behavior: smooth ? "smooth" : "auto",
+    });
+  };
 
   useEffect(() => {
     if (!mounted || authLoading) return;
@@ -205,7 +239,17 @@ export default function ChatPage() {
   }, [mission, sellerId, loadMessages]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messages.length === 0) return;
+
+    if (!initialScrollDoneRef.current) {
+      // First load: scroll to bottom instantly so previous chats are right above
+      messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+      initialScrollDoneRef.current = true;
+    } else if (isNearBottomRef.current) {
+      // Only smooth scroll if user is already near the bottom
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+    // If the user has scrolled up to see previous chats, leave scroll position undisturbed!
   }, [messages]);
 
   const handleSend = async () => {
@@ -236,6 +280,7 @@ export default function ChatPage() {
       }
       setNewMessage("");
       await loadMessages();
+      scrollToBottom(true);
     } catch (error) {
       console.error("Failed to send message:", error);
     } finally {
@@ -361,7 +406,7 @@ export default function ChatPage() {
     isBuyer && messages.length >= 3 && !alreadyReviewed;
 
   return (
-    <div className="h-dvh bg-[#f8faff] flex flex-col">
+    <div className="h-dvh max-h-screen bg-[#f8faff] flex flex-col overflow-hidden">
       {/* Header */}
       <div className="bg-gradient-to-br from-[#1152A2] via-[#1a6bc9] to-[#0d3d7a] text-white px-5 pt-14 pb-5 shrink-0">
         <div className="max-w-2xl mx-auto">
@@ -384,7 +429,11 @@ export default function ChatPage() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-5">
+      <div
+        ref={messagesContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 min-h-0 overflow-y-auto px-4 py-5 overscroll-contain"
+      >
         <div className="max-w-2xl mx-auto space-y-3">
           {/* Mission Context pill */}
           <div className="bg-white border border-gray-100 shadow-sm rounded-2xl px-4 py-3 text-center mx-4">
@@ -534,6 +583,19 @@ export default function ChatPage() {
               ))}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Floating Scroll to Bottom Button */}
+      {showScrollBottom && (
+        <div className="relative max-w-2xl mx-auto w-full pointer-events-none">
+          <button
+            onClick={() => scrollToBottom(true)}
+            className="pointer-events-auto absolute -top-12 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 bg-[#1152A2] text-white rounded-full shadow-lg text-xs font-semibold hover:bg-[#0d3d7a] transition-all active:scale-95 cursor-pointer"
+          >
+            <span>↓</span>
+            <span>Latest</span>
+          </button>
         </div>
       )}
 

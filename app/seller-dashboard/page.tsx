@@ -22,6 +22,7 @@ import {
   getChatsForSeller as getFirebaseChats,
   getReviewsBySeller as getFirebaseReviews,
   getSellerAnalytics as getFirebaseAnalytics,
+  createSellerFromUser as createFirebaseSellerFromUser,
 } from "@/lib/db";
 import type {
   UserProfile,
@@ -103,7 +104,32 @@ export default function SellerDashboardPage() {
       }
 
       if (!sellerData) {
-        sellerData = createSellerFromUser(currentUser);
+        if (isConfigured) {
+          const displayName =
+            currentUser.businessProfile?.storeName?.trim() || currentUser.name;
+          const initial = (displayName?.trim()?.charAt(0) || "U").toUpperCase();
+          const sellerToCreate: Seller = {
+            id: currentUser.id,
+            name: displayName,
+            avatar: initial,
+            category: currentUser.businessProfile?.category || "General",
+            rating: 5.0,
+            reviews: 0,
+            verified: false,
+            location: currentUser.businessProfile?.location || "Kigali, Rwanda",
+            serviceRange: currentUser.businessProfile?.serviceRange || "Nationwide",
+            minOrder: currentUser.businessProfile?.minOrderQty || "1 unit",
+            responseTime: "< 24 hours",
+            description: `${displayName} is a supplier offering ${currentUser.businessProfile?.products?.join(", ") || "products"} in Rwanda.`,
+            certifications: [],
+            inventory: [],
+            badges: [],
+          };
+          await createFirebaseSellerFromUser(currentUser.id, sellerToCreate);
+          sellerData = sellerToCreate;
+        } else {
+          sellerData = createSellerFromUser(currentUser);
+        }
       }
 
       setSeller(sellerData);

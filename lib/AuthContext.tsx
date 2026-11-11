@@ -9,14 +9,16 @@ import React, {
 } from "react";
 import { User } from "firebase/auth";
 import { onAuthChange, signOut as authSignOut } from "@/lib/auth";
-import { getUserById } from "@/lib/db";
+import { getUserById, getSellerById, createOrUpdateUser } from "@/lib/db";
 import { isFirebaseConfigured } from "@/lib/firebase";
-import type { UserProfile } from "@/lib/types";
+import type { UserProfile, Seller } from "@/lib/types";
 
 // For local storage fallback
 import {
   getUserProfile as getLocalUserProfile,
   clearUserProfile as clearLocalUserProfile,
+  getSellerById as getLocalSeller,
+  saveUserProfile as saveLocalUserProfile,
 } from "@/lib/storage";
 
 interface AuthContextType {
@@ -54,17 +56,68 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setFirebaseUser(fbUser);
         if (fbUser) {
           let userProfile = await getUserById(fbUser.uid);
+
+          // If null, wait briefly and retry once in case signUp is still writing
           if (!userProfile) {
-            // Firestore document missing or rules blocked the read — construct from Auth data
+            await new Promise((res) => setTimeout(res, 500));
+            if (!mounted) return;
+            userProfile = await getUserById(fbUser.uid);
+          }
+
+          // Check if a seller document exists for this user in Firestore
+          let sellerDoc: Seller | null = null;
+          try {
+            sellerDoc = await getSellerById(fbUser.uid);
+          } catch {
+            // ignore
+          }
+
+          if (!userProfile) {
+            // Firestore document missing — construct from Auth & Seller data
+            const isSeller = !!sellerDoc;
             userProfile = {
               id: fbUser.uid,
-              name: fbUser.displayName || fbUser.email?.split("@")[0] || "User",
+              name: sellerDoc?.name || fbUser.displayName || fbUser.email?.split("@")[0] || "User",
               email: fbUser.email || "",
-              role: "buyer",
-              avatar: (fbUser.displayName?.charAt(0) || fbUser.email?.charAt(0) || "U").toUpperCase(),
+              role: isSeller ? "seller" : "buyer",
+              avatar: (
+                sellerDoc?.name?.charAt(0) ||
+                fbUser.displayName?.charAt(0) ||
+                fbUser.email?.charAt(0) ||
+                "U"
+              ).toUpperCase(),
               createdAt: fbUser.metadata.creationTime || new Date().toISOString(),
+              ...(sellerDoc && {
+                businessProfile: {
+                  storeName: sellerDoc.name,
+                  category: sellerDoc.category,
+                  products: [sellerDoc.category],
+                  minOrderQty: sellerDoc.minOrder,
+                  location: sellerDoc.location,
+                  serviceRange: sellerDoc.serviceRange,
+                  capacity: "",
+                },
+              }),
             };
+            await createOrUpdateUser(userProfile);
+          } else if (sellerDoc && userProfile.role !== "seller") {
+            // Auto-heal: If seller document exists, ensure user role is seller
+            userProfile = {
+              ...userProfile,
+              role: "seller",
+              businessProfile: userProfile.businessProfile || {
+                storeName: sellerDoc.name,
+                category: sellerDoc.category,
+                products: [sellerDoc.category],
+                minOrderQty: sellerDoc.minOrder,
+                location: sellerDoc.location,
+                serviceRange: sellerDoc.serviceRange,
+                capacity: "",
+              },
+            };
+            await createOrUpdateUser(userProfile);
           }
+
           if (!mounted) return;
           setUser(userProfile);
         } else {
@@ -78,7 +131,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         unsubscribe();
       };
     } else {
-      const localUser = getLocalUserProfile();
+      let localUser = getLocalUserProfile();
+      if (localUser) {
+        const localSeller = getLocalSeller(localUser.id);
+        if (localSeller && localUser.role !== "seller") {
+          localUser = { ...localUser, role: "seller" };
+          saveLocalUserProfile(localUser);
+        }
+      }
       setUser(localUser);
       setLoading(false);
       return () => {
@@ -100,19 +160,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshUser = async () => {
     if (isConfigured && firebaseUser) {
       let userProfile = await getUserById(firebaseUser.uid);
+      const sellerDoc = await getSellerById(firebaseUser.uid);
+
       if (!userProfile) {
+        const isSeller = !!sellerDoc;
         userProfile = {
           id: firebaseUser.uid,
-          name: firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "User",
+          name: sellerDoc?.name || firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "User",
           email: firebaseUser.email || "",
-          role: "buyer",
-          avatar: (firebaseUser.displayName?.charAt(0) || firebaseUser.email?.charAt(0) || "U").toUpperCase(),
+          role: isSeller ? "seller" : "buyer",
+          avatar: (
+            sellerDoc?.name?.charAt(0) ||
+            firebaseUser.displayName?.charAt(0) ||
+            firebaseUser.email?.charAt(0) ||
+            "U"
+          ).toUpperCase(),
           createdAt: firebaseUser.metadata.creationTime || new Date().toISOString(),
+          ...(sellerDoc && {
+            businessProfile: {
+              storeName: sellerDoc.name,
+              category: sellerDoc.category,
+              products: [sellerDoc.category],
+              minOrderQty: sellerDoc.minOrder,
+              location: sellerDoc.location,
+              serviceRange: sellerDoc.serviceRange,
+              capacity: "",
+            },
+          }),
         };
+        await createOrUpdateUser(userProfile);
+      } else if (sellerDoc && userProfile.role !== "seller") {
+        userProfile = {
+          ...userProfile,
+          role: "seller",
+          businessProfile: userProfile.businessProfile || {
+            storeName: sellerDoc.name,
+            category: sellerDoc.category,
+            products: [sellerDoc.category],
+            minOrderQty: sellerDoc.minOrder,
+            location: sellerDoc.location,
+            serviceRange: sellerDoc.serviceRange,
+            capacity: "",
+          },
+        };
+        await createOrUpdateUser(userProfile);
       }
       setUser(userProfile);
     } else if (!isConfigured) {
-      const localUser = getLocalUserProfile();
+      let localUser = getLocalUserProfile();
+      if (localUser) {
+        const localSeller = getLocalSeller(localUser.id);
+        if (localSeller && localUser.role !== "seller") {
+          localUser = { ...localUser, role: "seller" };
+          saveLocalUserProfile(localUser);
+        }
+      }
       setUser(localUser);
     }
   };

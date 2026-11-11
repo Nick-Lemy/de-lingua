@@ -6,12 +6,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { isFirebaseConfigured } from "@/lib/firebase";
 import { signIn, forgotPassword } from "@/lib/auth";
-import { getUserProfile } from "@/lib/storage";
+import { getUserProfile, getUserByEmail, saveUserProfile } from "@/lib/storage";
+import { useAuth } from "@/lib/AuthContext";
 import { useTranslation } from "@/lib/i18n";
 
 export default function LoginPage() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { refreshUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -36,15 +38,23 @@ export default function LoginPage() {
         }
         const user = await signIn(email.trim(), password);
         if (user) {
-          router.push("/");
+          await refreshUser();
+          router.push(user.role === "seller" ? "/seller-dashboard" : "/");
         } else {
           setError(t("login.errorLoginFailed"));
           setIsSubmitting(false);
         }
       } else {
-        const profile = getUserProfile();
-        if (profile && profile.email === email.trim()) {
-          router.push("/");
+        const found =
+          getUserByEmail(email.trim()) ||
+          (getUserProfile()?.email.toLowerCase() === email.trim().toLowerCase()
+            ? getUserProfile()
+            : null);
+
+        if (found) {
+          saveUserProfile(found);
+          await refreshUser();
+          router.push(found.role === "seller" ? "/seller-dashboard" : "/");
         } else {
           setError(t("login.errorNoAccount"));
           setIsSubmitting(false);

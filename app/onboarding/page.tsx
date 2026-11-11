@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useTranslation } from "@/lib/i18n";
 import { isFirebaseConfigured } from "@/lib/firebase";
 import { signUp } from "@/lib/auth";
+import { useAuth } from "@/lib/AuthContext";
 import {
   saveUserProfile,
   generateId,
@@ -140,6 +141,7 @@ const sellerSteps = [
 
 export default function OnboardingPage() {
   const { t } = useTranslation();
+  const { refreshUser } = useAuth();
   const [customCategory, setCustomCategory] = useState("");
   const router = useRouter();
   const [role, setRole] = useState<"buyer" | "seller" | null>(null);
@@ -222,7 +224,10 @@ export default function OnboardingPage() {
 
   const handleFinish = async () => {
     if (!name.trim() || !email.trim()) return;
-    if (isConfigured && !password.trim()) return;
+    if (isConfigured && (!password.trim() || password.length < 6)) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
 
     setError("");
     setIsSubmitting(true);
@@ -243,16 +248,18 @@ export default function OnboardingPage() {
             }
           : undefined;
 
+      const finalStoreName = storeName.trim() || name.trim();
+
       const businessProfile =
         role === "seller"
           ? {
-              storeName: storeName.trim() || name.trim(),
-              category: normalizedCategories[0] || "",
-              products: normalizedCategories,
-              minOrderQty: preferences.minOrderQty?.[0] || "",
+              storeName: finalStoreName,
+              category: normalizedCategories[0] || "General",
+              products: normalizedCategories.length > 0 ? normalizedCategories : ["General"],
+              minOrderQty: preferences.minOrderQty?.[0] || "1 unit",
               location: preferences.locationRadius?.[0] || "Kigali, Rwanda",
-              serviceRange: preferences.serviceRange?.[0] || "",
-              capacity: preferences.capacity?.[0] || "",
+              serviceRange: preferences.serviceRange?.[0] || "Nationwide",
+              capacity: preferences.capacity?.[0] || "Solo entrepreneur",
             }
           : undefined;
 
@@ -269,6 +276,7 @@ export default function OnboardingPage() {
           businessProfile,
           tierForRole,
         );
+        await refreshUser();
       } else {
         // Use localStorage
         const userId = generateId("user");
@@ -288,9 +296,14 @@ export default function OnboardingPage() {
         if (role === "seller") {
           createSellerFromUser(userProfile);
         }
+        await refreshUser();
       }
 
-      router.push("/");
+      if (role === "seller") {
+        router.push("/seller-dashboard");
+      } else {
+        router.push("/");
+      }
     } catch (err: any) {
       console.error("Registration error:", err);
       setError(err.message || "Failed to create account. Please try again.");
@@ -532,9 +545,8 @@ export default function OnboardingPage() {
       ? name.trim() &&
         email.trim() &&
         password.trim() &&
-        password.length >= 6 &&
-        (role !== "seller" || storeName.trim())
-      : name.trim() && email.trim() && (role !== "seller" || storeName.trim());
+        password.length >= 6
+      : name.trim() && email.trim();
 
     return (
       <div className="min-h-screen bg-[#1152A2] flex flex-col">
@@ -713,14 +725,20 @@ export default function OnboardingPage() {
 
       <div className="px-6 lg:px-8 pb-10 max-w-2xl mx-auto w-full">
         <div className="flex gap-4">
-          {step > 0 && (
-            <button
-              onClick={() => setStep(step - 1)}
-              className="flex-1 py-4 border border-white/20 text-white font-semibold rounded-md"
-            >
-              Back
-            </button>
-          )}
+          <button
+            onClick={() => {
+              if (step > 0) {
+                setStep(step - 1);
+              } else {
+                setRole(null);
+                setStep(0);
+                setPreferences({});
+              }
+            }}
+            className="flex-1 py-4 border border-white/20 text-white font-semibold rounded-md"
+          >
+            Back
+          </button>
           <button
             onClick={handleContinue}
             disabled={!canContinue}

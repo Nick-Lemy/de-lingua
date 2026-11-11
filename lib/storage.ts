@@ -33,6 +33,7 @@ export { generateId } from "./utils";
 
 const KEYS = {
   USER_PROFILE: "delingua_user_profile",
+  USERS: "delingua_users",
   MISSIONS: "delingua_missions",
   SELLERS: "delingua_sellers",
   MATCHES: "delingua_matches",
@@ -46,9 +47,58 @@ const KEYS = {
   PAYMENTS: "delingua_payments",
 };
 
-// User Profile
+// Users List
+export function getUsers(): UserProfile[] {
+  return safeGet<UserProfile[]>(KEYS.USERS, []);
+}
+
+export function saveUser(user: UserProfile): void {
+  const users = getUsers();
+  const index = users.findIndex(
+    (u) => u.id === user.id || (u.email && user.email && u.email.toLowerCase() === user.email.toLowerCase()),
+  );
+  if (index >= 0) {
+    users[index] = { ...users[index], ...user };
+  } else {
+    users.push(user);
+  }
+  safeSet(KEYS.USERS, users);
+}
+
+export function getUserById(id: string): UserProfile | null {
+  const users = getUsers();
+  const found = users.find((u) => u.id === id);
+  if (found) return found;
+  const current = getUserProfile();
+  return current?.id === id ? current : null;
+}
+
+export function getUserByEmail(email: string): UserProfile | null {
+  const users = getUsers();
+  const found = users.find(
+    (u) => u.email.trim().toLowerCase() === email.trim().toLowerCase(),
+  );
+  if (found) return found;
+  const current = getUserProfile();
+  if (current && current.email.trim().toLowerCase() === email.trim().toLowerCase()) {
+    return current;
+  }
+  return null;
+}
+
+export function deleteUser(id: string): void {
+  const users = getUsers().filter((u) => u.id !== id);
+  safeSet(KEYS.USERS, users);
+  const current = getUserProfile();
+  if (current?.id === id) {
+    clearUserProfile();
+  }
+}
+
+// User Profile (Active Session)
 export function saveUserProfile(profile: UserProfile): void {
   safeSet(KEYS.USER_PROFILE, profile);
+  saveUser(profile);
 }
 
 export function getUserProfile(): UserProfile | null {
@@ -104,6 +154,34 @@ export function getSellers(): Seller[] {
 export function getSellerById(id: string): Seller | null {
   const sellers = getSellers();
   return sellers.find((s) => s.id === id) || null;
+}
+
+export function deleteSeller(id: string): void {
+  const sellers = getSellers().filter((s) => s.id !== id);
+  safeSet(KEYS.SELLERS, sellers);
+}
+
+export function deleteUserAccountLocal(userId: string): void {
+  // Delete user from USERS & session
+  deleteUser(userId);
+  // Delete seller entry if any
+  deleteSeller(userId);
+  // Delete user missions
+  const missions = getMissions().filter((m) => m.buyerId !== userId);
+  safeSet(KEYS.MISSIONS, missions);
+  // Delete user matches
+  const matches = getMatches().filter((m) => m.sellerId !== userId);
+  safeSet(KEYS.MATCHES, matches);
+  // Delete user wishlist
+  const wishlist = safeGet<WishlistItem[]>(KEYS.WISHLIST, []).filter(
+    (w) => w.buyerId !== userId && w.sellerId !== userId,
+  );
+  safeSet(KEYS.WISHLIST, wishlist);
+  // Delete user wishlist alerts
+  const alerts = safeGet<WishlistAlert[]>(KEYS.WISHLIST_ALERTS, []).filter(
+    (a) => a.buyerId !== userId && a.sellerId !== userId,
+  );
+  safeSet(KEYS.WISHLIST_ALERTS, alerts);
 }
 
 // Matches
@@ -191,9 +269,9 @@ export function getChatByMissionAndSeller(
   missionId: string,
   sellerId: string,
 ): ChatMessage[] {
-  return getChatMessages().filter(
-    (m) => m.missionId === missionId && m.sellerId === sellerId,
-  );
+  return getChatMessages()
+    .filter((m) => m.missionId === missionId && m.sellerId === sellerId)
+    .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
 }
 
 export function getChatsForBuyer(buyerId: string): ChatMessage[] {

@@ -114,6 +114,41 @@ export async function updateUser(
   );
 }
 
+export async function deleteUserAccount(userId: string): Promise<void> {
+  if (!isFirebaseConfigured() || !db) return;
+  await safeCall(
+    "deleteUserAccount",
+    async () => {
+      // 1. Delete user profile
+      const userRef = doc(db!, COLLECTIONS.USERS, userId);
+      await deleteDoc(userRef);
+
+      // 2. Delete seller profile if present
+      const sellerRef = doc(db!, COLLECTIONS.SELLERS, userId);
+      await deleteDoc(sellerRef);
+
+      // 3. Delete seller analytics if present
+      const analyticsRef = doc(db!, COLLECTIONS.ANALYTICS, userId);
+      await deleteDoc(analyticsRef);
+
+      // 4. Delete user missions
+      const missionsRef = collection(db!, COLLECTIONS.MISSIONS);
+      const mSnap = await getDocs(query(missionsRef, where("buyerId", "==", userId)));
+      for (const mDoc of mSnap.docs) {
+        await deleteDoc(mDoc.ref);
+      }
+
+      // 5. Delete user wishlist items
+      const wishlistRef = collection(db!, COLLECTIONS.WISHLIST);
+      const wSnap = await getDocs(query(wishlistRef, where("buyerId", "==", userId)));
+      for (const wDoc of wSnap.docs) {
+        await deleteDoc(wDoc.ref);
+      }
+    },
+    undefined,
+  );
+}
+
 // ==================== MISSION OPERATIONS ====================
 
 export async function createMission(mission: Mission): Promise<string> {
