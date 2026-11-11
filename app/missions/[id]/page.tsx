@@ -5,13 +5,30 @@ import { useTranslation } from "@/lib/i18n";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { isFirebaseConfigured } from "@/lib/firebase";
-import { getMissionById, getMatchesByMission } from "@/lib/storage";
+import {
+  getMissionById,
+  getMatchesByMission,
+  getSellers,
+  getFeedPosts,
+  saveMatch as saveLocalMatch,
+  saveMission as saveLocalMission,
+  deleteMatchesByMission as deleteMatchesByMissionLocal,
+  generateId as generateLocalId,
+} from "@/lib/storage";
 import {
   getMissionById as getFirebaseMission,
   getMatchesByMission as getFirebaseMatches,
+  getAllSellers,
+  getAllFeedPosts,
+  createMatch as createFirebaseMatch,
+  updateMission as updateFirebaseMission,
+  deleteMatchesByMission,
+  generateId as generateFirebaseId,
 } from "@/lib/db";
+import { generateAIMatches } from "@/app/actions/matching";
 import type { Mission, Match } from "@/lib/types";
 import { BottomNav } from "@/components/BottomNav";
+import { IoRefresh, IoStorefront, IoSparkles } from "react-icons/io5";
 
 export default function MissionDetailPage() {
   const router = useRouter();
@@ -20,6 +37,7 @@ export default function MissionDetailPage() {
   const [mission, setMission] = useState<Mission | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -50,12 +68,104 @@ export default function MissionDetailPage() {
         return;
       }
 
+      // Auto-scan once on load if there are currently 0 matches
+      if (foundMatches.length === 0) {
+        try {
+          const [sellers, feedPosts] = isConfigured
+            ? await Promise.all([getAllSellers(), getAllFeedPosts()])
+            : [getSellers(), getFeedPosts()];
+          const newMatches = await generateAIMatches(
+            foundMission,
+            sellers,
+            "match",
+            feedPosts,
+          );
+          if (newMatches.length > 0) {
+            if (isConfigured) {
+              for (const m of newMatches) {
+                await createFirebaseMatch({
+                  ...m,
+                  id: generateFirebaseId("match"),
+                });
+              }
+              await updateFirebaseMission(foundMission.id, {
+                status: "matched",
+              });
+            } else {
+              for (const m of newMatches) {
+                saveLocalMatch({ ...m, id: generateLocalId("match") });
+              }
+              saveLocalMission({ ...foundMission, status: "matched" });
+            }
+            foundMatches = newMatches;
+            foundMission = { ...foundMission, status: "matched" };
+          }
+        } catch (e) {
+          console.error("Auto match scan error:", e);
+        }
+      }
+
       setMission(foundMission);
       setMatches(foundMatches.sort((a, b) => b.matchScore - a.matchScore));
     };
 
     loadData();
   }, [params, router]);
+
+  const handleRefreshMatches = async () => {
+    if (!mission || refreshing) return;
+    setRefreshing(true);
+
+    try {
+      const isConfigured = isFirebaseConfigured();
+      const [sellers, feedPosts] = isConfigured
+        ? await Promise.all([getAllSellers(), getAllFeedPosts()])
+        : [getSellers(), getFeedPosts()];
+
+      const idPrefix = isConfigured ? "match" : "match";
+      const newMatches = await generateAIMatches(
+        mission,
+        sellers,
+        idPrefix,
+        feedPosts,
+      );
+
+      if (isConfigured) {
+        await deleteMatchesByMission(mission.id);
+        for (const m of newMatches) {
+          const matchWithId = {
+            ...m,
+            id: generateFirebaseId("match"),
+          };
+          await createFirebaseMatch(matchWithId);
+        }
+        if (newMatches.length > 0) {
+          await updateFirebaseMission(mission.id, { status: "matched" });
+        }
+      } else {
+        deleteMatchesByMissionLocal(mission.id);
+        for (const m of newMatches) {
+          const matchWithId = {
+            ...m,
+            id: generateLocalId("match"),
+          };
+          saveLocalMatch(matchWithId);
+        }
+        if (newMatches.length > 0) {
+          saveLocalMission({ ...mission, status: "matched" });
+        }
+      }
+
+      setMatches(newMatches.sort((a, b) => b.matchScore - a.matchScore));
+      if (newMatches.length > 0) {
+        setMission((prev) => (prev ? { ...prev, status: "matched" } : null));
+      }
+    } catch (err) {
+      console.error("Manual refresh matches failed:", err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   if (!mounted || !mission) {
     return (
@@ -176,11 +286,43 @@ export default function MissionDetailPage() {
           <h3 className="text-lg font-bold">
             {t("missionDetails.matchesFound", { count: matches.length })}
           </h3>
+          <button
+            onClick={handleRefreshMatches}
+            disabled={refreshing}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1152A2]/10 hover:bg-[#1152A2]/20 text-[#1152A2] rounded-xl text-xs font-semibold transition-all disabled:opacity-50 cursor-pointer"
+          >
+            <IoRefresh
+              className={`w-4 h-4 ${refreshing ? "animate-spin text-[#1152A2]" : ""}`}
+            />
+            <span>{refreshing ? "Scanning..." : "Re-scan Suppliers"}</span>
+          </button>
         </div>
 
         {matches.length === 0 ? (
-          <div className="bg-gray-50 rounded-md p-8 text-center border border-gray-200">
-            <p className="text-gray-600">{t("missionDetails.looking")}</p>
+          <div className="bg-white rounded-2xl p-8 text-center border border-gray-100 shadow-sm">
+            <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-3">
+              <IoStorefront className="w-7 h-7 text-[#1152A2]" />
+            </div>
+            <h4 className="font-bold text-gray-800 text-sm mb-1">
+              No matches found yet
+            </h4>
+            <p className="text-gray-500 text-xs mb-4 max-w-sm mx-auto">
+              We checked suppliers and community feed posts. When suppliers update stock or post offers, re-scan to get matches!
+            </p>
+            <button
+              onClick={handleRefreshMatches}
+              disabled={refreshing}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1152A2] hover:bg-[#0d3d7a] text-white rounded-xl text-xs font-bold transition-all shadow-sm disabled:opacity-50 cursor-pointer"
+            >
+              <IoRefresh
+                className={`w-4 h-4 ${refreshing ? "animate-spin text-white" : ""}`}
+              />
+              <span>
+                {refreshing
+                  ? "Scanning suppliers & feed..."
+                  : "Scan for Matches Now"}
+              </span>
+            </button>
           </div>
         ) : (
           <div className="space-y-4">
@@ -234,7 +376,9 @@ export default function MissionDetailPage() {
                 {/* Why This Match */}
                 <div className="bg-gray-50 rounded-md p-3">
                   <p className="text-xs text-gray-600 mb-1">{t("missionDetails.why")}</p>
-                  <p className="text-sm text-black">{match.whyMatch}</p>
+                  <p className="text-sm text-black">
+                    {Array.isArray(match.whyMatch) ? match.whyMatch.join(", ") : match.whyMatch}
+                  </p>
                 </div>
 
                 {/* View Profile CTA */}

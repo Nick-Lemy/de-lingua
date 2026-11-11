@@ -11,6 +11,7 @@ import {
   orderBy,
   increment,
   runTransaction,
+  writeBatch,
 } from "firebase/firestore";
 import { db, isFirebaseConfigured } from "./firebase";
 import type {
@@ -282,6 +283,22 @@ export async function updateMatch(
     async () => {
       const matchRef = doc(db!, COLLECTIONS.MATCHES, id);
       await updateDoc(matchRef, updates);
+    },
+    undefined,
+  );
+}
+
+export async function deleteMatchesByMission(missionId: string): Promise<void> {
+  if (!isFirebaseConfigured() || !db) return;
+  await safeCall(
+    "deleteMatchesByMission",
+    async () => {
+      const matchesRef = collection(db!, COLLECTIONS.MATCHES);
+      const q = query(matchesRef, where("missionId", "==", missionId));
+      const snapshot = await getDocs(q);
+      const batch = writeBatch(db!);
+      snapshot.docs.forEach((d) => batch.delete(d.ref));
+      await batch.commit();
     },
     undefined,
   );

@@ -204,6 +204,11 @@ export function getMatchesByMission(missionId: string): Match[] {
   return getMatches().filter((m) => m.missionId === missionId);
 }
 
+export function deleteMatchesByMission(missionId: string): void {
+  const matches = getMatches().filter((m) => m.missionId !== missionId);
+  safeSet(KEYS.MATCHES, matches);
+}
+
 export function getMatchesForSeller(sellerId: string): Match[] {
   return getMatches().filter((m) => m.sellerId === sellerId);
 }
