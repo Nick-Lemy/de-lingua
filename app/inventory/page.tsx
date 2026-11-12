@@ -11,12 +11,14 @@ import {
   createSellerFromUser,
   getWishlistItemsForSeller,
   saveWishlistAlert,
+  getWishlistAlertsByBuyer as getLocalWishlistAlerts,
   generateId,
 } from "@/lib/storage";
 import {
   getSellerById as getFirebaseSeller,
   updateSellerInventory,
   getWishlistItemsForSeller as getFirebaseWishlistItems,
+  getWishlistAlertsByBuyer as getFirebaseWishlistAlerts,
   createWishlistAlert,
   createSellerFromUser as createFirebaseSellerFromUser,
 } from "@/lib/db";
@@ -201,6 +203,14 @@ export default function InventoryPage() {
         const kw = wItem.alertKeyword.toLowerCase();
         const matched = newInventory.find((inv) => inv.name.toLowerCase().includes(kw));
         if (matched) {
+          const existingAlerts = isConfigured
+            ? await getFirebaseWishlistAlerts(wItem.buyerId)
+            : getLocalWishlistAlerts(wItem.buyerId);
+          const alreadyAlerted = existingAlerts.some(
+            (a) => !a.seen && a.sellerId === sellerId && a.keyword.toLowerCase() === kw,
+          );
+          if (alreadyAlerted) continue;
+
           const alert = {
             id: generateId("wa"),
             buyerId: wItem.buyerId,

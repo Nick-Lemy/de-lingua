@@ -86,10 +86,10 @@ export default function ReviewsPage() {
       setSeller(foundSeller);
       setReviews(foundReviews);
 
-      if (currentUser && missionId) {
+      if (currentUser) {
         const reviewed = isConfigured
-          ? await firebaseHasReviewed(currentUser.id, sellerId, missionId)
-          : hasReviewedSeller(currentUser.id, sellerId, missionId);
+          ? await firebaseHasReviewed(currentUser.id, sellerId, missionId || undefined)
+          : hasReviewedSeller(currentUser.id, sellerId, missionId || undefined);
         setAlreadyReviewed(reviewed);
       }
     };
@@ -98,7 +98,7 @@ export default function ReviewsPage() {
   }, [mounted, authLoading, authUser, sellerId, missionId, router]);
 
   const handleSubmitReview = async () => {
-    if (!user || !seller || rating === 0 || !missionId || submitting) return;
+    if (!user || !seller || rating === 0 || submitting) return;
 
     setSubmitting(true);
     try {
@@ -111,7 +111,7 @@ export default function ReviewsPage() {
         buyerAvatar: user.avatar,
         rating,
         comment: comment.trim(),
-        missionId,
+        missionId: missionId || "direct",
         createdAt: new Date().toISOString(),
       };
 
@@ -146,7 +146,7 @@ export default function ReviewsPage() {
     );
   }
 
-  const canReview = user?.role === "buyer" && missionId && !alreadyReviewed;
+  const canReview = user?.role === "buyer" && !alreadyReviewed;
 
   const ratingDistribution = [5, 4, 3, 2, 1].map((star) => ({
     star,

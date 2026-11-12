@@ -683,19 +683,21 @@ export async function getReviewsByBuyer(buyerId: string): Promise<Review[]> {
 export async function hasReviewedSeller(
   buyerId: string,
   sellerId: string,
-  missionId: string,
+  missionId?: string,
 ): Promise<boolean> {
   if (!isFirebaseConfigured() || !db) return false;
   return safeCall(
     "hasReviewedSeller",
     async () => {
       const reviewsRef = collection(db!, COLLECTIONS.REVIEWS);
-      const q = query(
-        reviewsRef,
+      const constraints: any[] = [
         where("buyerId", "==", buyerId),
         where("sellerId", "==", sellerId),
-        where("missionId", "==", missionId),
-      );
+      ];
+      if (missionId) {
+        constraints.push(where("missionId", "==", missionId));
+      }
+      const q = query(reviewsRef, ...constraints);
       const querySnapshot = await getDocs(q);
       return !querySnapshot.empty;
     },

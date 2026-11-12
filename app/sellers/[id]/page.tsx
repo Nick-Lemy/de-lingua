@@ -12,6 +12,9 @@ import {
   getMissions,
   incrementProfileView as incrementProfileViewLocal,
   incrementItemView as incrementItemViewLocal,
+  getUserById as getLocalUserById,
+  getFeedPosts as getLocalFeedPosts,
+  saveSeller as saveLocalSeller,
 } from "@/lib/storage";
 import {
   getSellerById as getFirebaseSeller,
@@ -19,6 +22,8 @@ import {
   getMissionsByBuyer,
   incrementProfileView as incrementProfileViewFirebase,
   incrementItemView as incrementItemViewFirebase,
+  getUserById as getFirebaseUserById,
+  getAllFeedPosts as getFirebaseFeedPosts,
 } from "@/lib/db";
 import type { Seller, Review, UserProfile, Mission } from "@/lib/types";
 import { StarRating } from "@/components/StarRating";
@@ -85,6 +90,45 @@ export default function SellerProfilePage() {
               (m.status === "finding" || m.status === "matched"),
           );
           setBuyerMissions(missions);
+        }
+      }
+
+      if (!foundSeller) {
+        const userProf = configured ? await getFirebaseUserById(id) : getLocalUserById(id);
+        const feedOffers = configured ? await getFirebaseFeedPosts() : getLocalFeedPosts();
+        const userPosts = feedOffers.filter((p) => p.userId === id);
+        if (userProf || userPosts.length > 0) {
+          const displayName = userProf?.businessProfile?.storeName || userProf?.name || userPosts[0]?.userName || "Supplier";
+          const synthesized: Seller = {
+            id,
+            name: displayName,
+            avatar: userProf?.avatar || userPosts[0]?.userAvatar || displayName.charAt(0).toUpperCase(),
+            category: userProf?.businessProfile?.category || userPosts[0]?.category || "General",
+            rating: 5.0,
+            reviews: 0,
+            verified: false,
+            location: userProf?.businessProfile?.location || userPosts[0]?.location || "Kigali, Rwanda",
+            serviceRange: "Nationwide",
+            minOrder: "1 unit",
+            responseTime: "< 24 hours",
+            description: userProf?.businessProfile?.storeName
+              ? `${displayName} is a supplier in Rwanda.`
+              : (userPosts[0]?.description || `${displayName} offers products on De-Lingua.`),
+            certifications: [],
+            inventory: userPosts.map((p) => ({
+              id: "post-" + p.id,
+              name: p.title,
+              price: p.budget || "0",
+              stock: 100,
+              moq: "1 unit",
+              leadTime: "1-2 days",
+            })),
+            badges: ["fast-reply"],
+          };
+          if (!configured) {
+            saveLocalSeller(synthesized);
+          }
+          foundSeller = synthesized;
         }
       }
 
@@ -413,22 +457,45 @@ export default function SellerProfilePage() {
               Select a Mission
             </h2>
             <p className="text-sm text-gray-500 mb-4">
-              Which mission is this for?
+              Connect directly with {seller.name}:
             </p>
+
+            {/* Direct conversation option always available */}
+            <Link
+              href={`/chat/direct-${seller.id}?seller=${seller.id}`}
+              className="flex items-center justify-between p-3.5 mb-3 rounded-xl border border-dashed border-[#EF7C29] bg-orange-50/70 hover:bg-orange-50 text-gray-900 transition-colors"
+            >
+              <div>
+                <p className="font-semibold text-sm text-[#EF7C29]">
+                  Start General Conversation
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Direct message without selecting a mission
+                </p>
+              </div>
+              <IoChatbubble className="w-5 h-5 text-[#EF7C29]" />
+            </Link>
+
+            {buyerMissions.length > 0 && (
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 mt-3">
+                Or select an active mission
+              </p>
+            )}
+
             {buyerMissions.length === 0 ? (
-              <div className="text-center py-6">
-                <p className="text-sm text-gray-500 mb-4">
-                  You don&apos;t have any active missions yet.
+              <div className="text-center py-3">
+                <p className="text-xs text-gray-400">
+                  Or create a targeted procurement mission:
                 </p>
                 <Link
                   href="/missions/create"
-                  className="inline-block px-5 py-2.5 bg-[#EF7C29] text-white rounded-md text-sm font-semibold"
+                  className="inline-block mt-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold transition-colors"
                 >
                   Create a Mission
                 </Link>
               </div>
             ) : (
-              <div className="space-y-2 max-h-72 overflow-y-auto">
+              <div className="space-y-2 max-h-60 overflow-y-auto">
                 {buyerMissions.map((mission) => (
                   <Link
                     key={mission.id}

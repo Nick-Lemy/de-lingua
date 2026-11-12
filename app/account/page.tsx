@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
-import { getUserProfile, clearUserProfile, saveUserProfile } from "@/lib/storage";
-import { createOrUpdateUser } from "@/lib/db";
+import { getUserProfile, clearUserProfile, saveUserProfile, updateSeller as updateLocalSeller } from "@/lib/storage";
+import { createOrUpdateUser, updateSeller as updateFirebaseSeller } from "@/lib/db";
 import type { UserProfile } from "@/lib/types";
 import { Button } from "@/components/ui";
 import { BottomNav } from "@/components/BottomNav";
@@ -72,9 +72,15 @@ export default function AccountPage() {
     try {
       if (isConfigured) {
         await createOrUpdateUser(updated);
+        if (user.role === "seller") {
+          await updateFirebaseSeller(user.id, { name: nameValue.trim(), avatar: newAvatar });
+        }
         await refreshUser();
       } else {
         saveUserProfile(updated);
+        if (user.role === "seller") {
+          updateLocalSeller(user.id, { name: nameValue.trim(), avatar: newAvatar });
+        }
         setUser(updated);
       }
       setEditingName(false);

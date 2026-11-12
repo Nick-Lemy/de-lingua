@@ -166,10 +166,26 @@ export default function MatchesPage() {
               const mission = isConfigured
                 ? missionsMap[match.missionId]
                 : getMissionById(match.missionId);
-              const seller = isConfigured
-                ? sellersMap[match.sellerId]
-                : getSellerById(match.sellerId);
-              if (!mission || !seller) return null;
+              const seller =
+                (isConfigured
+                  ? sellersMap[match.sellerId]
+                  : getSellerById(match.sellerId)) || {
+                  id: match.sellerId,
+                  name: match.sellerName,
+                  avatar: match.sellerAvatar || match.sellerName.charAt(0).toUpperCase(),
+                  category: mission?.category || "General",
+                  rating: 5.0,
+                  reviews: 0,
+                  verified: false,
+                  location: match.distance || "Rwanda",
+                  serviceRange: "Nationwide",
+                  minOrder: "1 unit",
+                  responseTime: "< 24 hours",
+                  description: `${match.sellerName} is a supplier in Rwanda.`,
+                  certifications: [],
+                  inventory: [],
+                };
+              if (!mission) return null;
 
               return (
                 <Link

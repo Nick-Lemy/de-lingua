@@ -190,24 +190,26 @@ export default function CreateFeedPostPage() {
         saveFeedPost(post);
       }
 
-      // Full reload so the feed page re-fetches from localStorage/Firebase fresh
-      window.location.href = "/feed";
-
-      // AI suggestions run after redirect (best-effort, non-blocking)
+      // AI suggestions for looking-for posts (best-effort, max 3.5s timeout)
       if (formData.type === "looking-for") {
         try {
           const sellers = isConfigured ? await getAllSellers() : getSellers();
-          const aiSuggestions = await generateFeedAISuggestions(
-            {
-              title: formData.title,
-              description: formData.description,
-              category: formData.category,
-              budget: formData.budget,
-              location: formData.location,
-            },
-            sellers,
-          );
-          if (aiSuggestions.length > 0) {
+          const aiSuggestions = await Promise.race([
+            generateFeedAISuggestions(
+              {
+                title: formData.title,
+                description: formData.description,
+                category: formData.category,
+                budget: formData.budget,
+                location: formData.location,
+              },
+              sellers,
+            ),
+            new Promise<FeedAISuggestion[]>((resolve) =>
+              setTimeout(() => resolve([]), 3500),
+            ),
+          ]);
+          if (aiSuggestions && aiSuggestions.length > 0) {
             if (isConfigured) {
               await updateFirebaseFeedPost(postId, { aiSuggestions });
             } else {
@@ -218,6 +220,9 @@ export default function CreateFeedPostPage() {
           // AI is optional — silently ignore failures
         }
       }
+
+      // Full reload so the feed page re-fetches from localStorage/Firebase fresh
+      window.location.href = "/feed";
     } catch (error) {
       console.error("Failed to create post:", error);
       setSubmitError(

@@ -10,6 +10,7 @@ import {
   getChatsForSeller,
   getMissionById,
   getSellerById,
+  getUserById as getLocalUserById,
 } from "@/lib/storage";
 import {
   getChatsForBuyer as getFirebaseChatsForBuyer,
@@ -125,7 +126,7 @@ export default function MessagesPage() {
         ),
         Promise.all(
           uniqueBuyerIds.map(async (id) => {
-            const b = isConfigured ? await getUserById(id) : null;
+            const b = isConfigured ? await getUserById(id) : getLocalUserById(id);
             if (b) buyerMap.set(id, b);
           }),
         ),

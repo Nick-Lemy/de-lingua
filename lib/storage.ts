@@ -222,6 +222,14 @@ export function updateMatch(id: string, updates: Partial<Match>): void {
   }
 }
 
+// Update seller details
+export function updateSeller(id: string, updates: Partial<Seller>): void {
+  const seller = getSellerById(id);
+  if (seller) {
+    saveSeller({ ...seller, ...updates });
+  }
+}
+
 // Update seller inventory
 export function updateSellerInventory(
   sellerId: string,
@@ -383,10 +391,13 @@ export function getReviewsByBuyer(buyerId: string): Review[] {
 export function hasReviewedSeller(
   buyerId: string,
   sellerId: string,
-  missionId: string,
+  missionId?: string,
 ): boolean {
   return getReviewsAll().some(
-    (r) => r.buyerId === buyerId && r.sellerId === sellerId && r.missionId === missionId,
+    (r) =>
+      r.buyerId === buyerId &&
+      r.sellerId === sellerId &&
+      (!missionId || r.missionId === missionId),
   );
 }
 

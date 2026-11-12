@@ -103,7 +103,8 @@ export default function DiscoverPage() {
           s.name.toLowerCase().includes(query) ||
           s.category.toLowerCase().includes(query) ||
           s.location.toLowerCase().includes(query) ||
-          s.description.toLowerCase().includes(query),
+          s.description.toLowerCase().includes(query) ||
+          s.inventory?.some((item) => item.name.toLowerCase().includes(query)),
       );
     }
 

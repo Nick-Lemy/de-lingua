@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/AuthContext";
 import { isFirebaseConfigured } from "@/lib/firebase";
-import { getUserProfile, getSellers, getMissions, getWishlistAlertsByBuyer } from "@/lib/storage";
-import { getAllSellers, getMissionsByBuyer, getWishlistAlertsByBuyer as getFirebaseAlerts } from "@/lib/db";
+import { getUserProfile, getSellers, getMissions, getWishlistAlertsByBuyer, getMatches } from "@/lib/storage";
+import { getAllSellers, getMissionsByBuyer, getWishlistAlertsByBuyer as getFirebaseAlerts, getAllMatchesForBuyer } from "@/lib/db";
 import type { UserProfile, Seller, Mission } from "@/lib/types";
 import { BottomNav } from "@/components/BottomNav";
 import { WishlistButton } from "@/components/WishlistButton";
@@ -31,6 +31,7 @@ export default function HomePage() {
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [missions, setMissions] = useState<Mission[]>([]);
   const [unseenAlerts, setUnseenAlerts] = useState(0);
+  const [totalMatches, setTotalMatches] = useState(0);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -53,14 +54,16 @@ export default function HomePage() {
           return;
         }
 
-        const [fbSellers, fbMissions, fbAlerts] = await Promise.all([
+        const [fbSellers, fbMissions, fbAlerts, fbMatches] = await Promise.all([
           getAllSellers(),
           getMissionsByBuyer(currentUser.id),
           getFirebaseAlerts(currentUser.id),
+          getAllMatchesForBuyer(currentUser.id),
         ]);
         setSellers(fbSellers);
         setMissions(fbMissions);
         setUnseenAlerts(fbAlerts.filter((a) => !a.seen).length);
+        setTotalMatches(fbMatches.length);
       } else {
         const localUser = currentUser || getUserProfile();
         if (!localUser) {
@@ -69,7 +72,11 @@ export default function HomePage() {
         }
         currentUser = localUser;
         setSellers(getSellers());
-        setMissions(getMissions().filter((m) => m.buyerId === currentUser!.id));
+        const buyerMissions = getMissions().filter((m) => m.buyerId === currentUser!.id);
+        const missionIds = new Set(buyerMissions.map((m) => m.id));
+        const localMatches = getMatches().filter((m) => missionIds.has(m.missionId));
+        setMissions(buyerMissions);
+        setTotalMatches(localMatches.length);
         const localAlerts = getWishlistAlertsByBuyer(currentUser.id);
         setUnseenAlerts(localAlerts.filter((a) => !a.seen).length);
       }
@@ -186,7 +193,7 @@ export default function HomePage() {
             <p className="text-gray-500 text-xs mt-1 font-medium leading-tight">{t("home.stats.suppliers")}</p>
           </Link>
           <Link href="/matches" className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:border-green-300 transition-colors">
-            <p className="text-2xl font-bold text-green-600">{activeMissionCount}</p>
+            <p className="text-2xl font-bold text-green-600">{totalMatches}</p>
             <p className="text-gray-500 text-xs mt-1 font-medium leading-tight">{t("home.stats.matches")}</p>
           </Link>
         </div>

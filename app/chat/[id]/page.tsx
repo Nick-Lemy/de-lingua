@@ -15,6 +15,8 @@ import {
   savePaymentRequest,
   updatePaymentStatus as updateLocalPaymentStatus,
   generateId,
+  getUserById as getLocalUserById,
+  saveMission as saveLocalMission,
 } from "@/lib/storage";
 import {
   getMissionById as getFirebaseMission,
@@ -26,6 +28,7 @@ import {
   getPaymentsByChat as getFirebasePayments,
   createPaymentRequest,
   updatePaymentStatus as updateFirebasePaymentStatus,
+  createMission as createFirebaseMission,
 } from "@/lib/db";
 import type {
   ChatMessage,
@@ -88,8 +91,11 @@ export default function ChatPage() {
 
     if (isConfigured) {
       chat = await getChatMessages(mission.id, sellerId);
+      const updatedPayments = await getFirebasePayments(mission.id, sellerId);
+      setPayments(updatedPayments);
     } else {
       chat = getChatByMissionAndSeller(mission.id, sellerId);
+      setPayments(getLocalPayments(mission.id, sellerId));
     }
 
     setMessages((prev) => {
@@ -151,19 +157,6 @@ export default function ChatPage() {
 
       setUser(currentUser);
 
-      let foundMission: Mission | null = null;
-      if (isConfigured) {
-        foundMission = await getFirebaseMission(missionId);
-      } else {
-        foundMission = getMissionById(missionId);
-      }
-
-      if (!foundMission) {
-        router.push(currentUser.role === "buyer" ? "/missions" : "/seller-dashboard");
-        return;
-      }
-      setMission(foundMission);
-
       let foundSeller: Seller | null = null;
       if (isConfigured) {
         foundSeller = await getFirebaseSeller(sellerId);
@@ -177,17 +170,51 @@ export default function ChatPage() {
       }
       setSeller(foundSeller);
 
-      if (currentUser.role === "seller" && isConfigured) {
-        const buyerProfile = await getUserById(foundMission.buyerId);
-        setBuyer(buyerProfile);
-      } else if (currentUser.role === "seller") {
-        setBuyer({
-          id: foundMission.buyerId,
-          name: t("chat.buyer"),
-          email: "",
-          role: "buyer",
-          avatar: "B",
-        });
+      let foundMission: Mission | null = null;
+      if (isConfigured) {
+        foundMission = await getFirebaseMission(missionId);
+      } else {
+        foundMission = getMissionById(missionId);
+      }
+
+      if (!foundMission) {
+        // Direct conversation or newly created inquiry thread
+        const inquiryMission: Mission = {
+          id: missionId,
+          buyerId: currentUser.role === "buyer" ? currentUser.id : "buyer",
+          product: `Inquiry with ${foundSeller.name}`,
+          category: foundSeller.category || "General",
+          quantity: "1 unit",
+          urgency: "normal",
+          budgetMin: "0",
+          budgetMax: "0",
+          location: foundSeller.location || "Rwanda",
+          description: `Direct conversation with ${foundSeller.name}`,
+          status: "matched",
+          createdAt: new Date().toISOString(),
+        };
+        if (isConfigured) {
+          await createFirebaseMission(inquiryMission);
+        } else {
+          saveLocalMission(inquiryMission);
+        }
+        foundMission = inquiryMission;
+      }
+      setMission(foundMission);
+
+      if (currentUser.role === "seller") {
+        const buyerProfile = isConfigured
+          ? await getUserById(foundMission.buyerId)
+          : getLocalUserById(foundMission.buyerId);
+        setBuyer(
+          buyerProfile || {
+            id: foundMission.buyerId,
+            name: t("chat.buyer"),
+            email: "",
+            role: "buyer",
+            avatar: "B",
+          },
+        );
       }
 
       // Load messages and payments concurrently
