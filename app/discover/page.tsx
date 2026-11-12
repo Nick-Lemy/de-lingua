@@ -264,7 +264,7 @@ export default function DiscoverPage() {
         </div>
       </div>
 
-      <BottomNav role="buyer" />
+      <BottomNav role={user?.role || "buyer"} />
     </div>
   );
 }

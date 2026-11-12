@@ -19,14 +19,27 @@ import {
   IoPeopleOutline,
 } from "react-icons/io5";
 import { useTranslation } from "@/lib/i18n";
+import { useAuth } from "@/lib/AuthContext";
+import { getUserProfile } from "@/lib/storage";
 
 interface BottomNavProps {
   role?: "buyer" | "seller";
 }
 
-export function BottomNav({ role = "buyer" }: BottomNavProps) {
+export function BottomNav({ role }: BottomNavProps) {
   const pathname = usePathname();
   const { t } = useTranslation();
+  const { user } = useAuth();
+
+  const isSellerRole =
+    role === "seller" ||
+    user?.role === "seller" ||
+    (typeof window !== "undefined" &&
+      (getUserProfile()?.role === "seller" || !!getUserProfile()?.businessProfile));
+
+  const effectiveRole: "buyer" | "seller" = isSellerRole
+    ? "seller"
+    : (role || (user?.role === "seller" ? "seller" : "buyer"));
 
   const buyerItems = [
     { href: "/", iconActive: IoHome, iconInactive: IoHomeOutline, label: t("nav.home") },
@@ -43,7 +56,7 @@ export function BottomNav({ role = "buyer" }: BottomNavProps) {
     { href: "/account", iconActive: IoPerson, iconInactive: IoPersonOutline, label: t("nav.account") },
   ];
 
-  const items = role === "seller" ? sellerItems : buyerItems;
+  const items = effectiveRole === "seller" ? sellerItems : buyerItems;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-gray-100 z-50 safe-area-pb">

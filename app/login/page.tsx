@@ -39,7 +39,11 @@ export default function LoginPage() {
         const user = await signIn(email.trim(), password);
         if (user) {
           await refreshUser();
-          router.push(user.role === "seller" ? "/seller-dashboard" : "/");
+          if (user.role === "seller") {
+            window.location.href = "/seller-dashboard";
+          } else {
+            window.location.href = "/";
+          }
         } else {
           setError(t("login.errorLoginFailed"));
           setIsSubmitting(false);
@@ -53,8 +57,13 @@ export default function LoginPage() {
 
         if (found) {
           saveUserProfile(found);
+          const activeUser = getUserProfile() || found;
           await refreshUser();
-          router.push(found.role === "seller" ? "/seller-dashboard" : "/");
+          if (activeUser.role === "seller") {
+            window.location.href = "/seller-dashboard";
+          } else {
+            window.location.href = "/";
+          }
         } else {
           setError(t("login.errorNoAccount"));
           setIsSubmitting(false);

@@ -53,12 +53,8 @@ export default function AccountPage() {
   }, [mounted, loading, authUser, isConfigured, router, user]);
 
   const handleSignOut = async () => {
-    if (isConfigured) {
-      await signOut();
-    } else {
-      clearUserProfile();
-    }
-    router.push("/onboarding");
+    await signOut();
+    window.location.href = "/onboarding";
   };
 
   const handleSaveName = async () => {

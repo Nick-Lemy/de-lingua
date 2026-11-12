@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { isFirebaseConfigured } from "@/lib/firebase";
 import {
   getUserProfile,
+  saveUserProfile,
   getSellerById,
   saveSeller,
   createSellerFromUser,
@@ -15,6 +16,7 @@ import {
   generateId,
 } from "@/lib/storage";
 import {
+  createOrUpdateUser,
   getSellerById as getFirebaseSeller,
   updateSellerInventory,
   getWishlistItemsForSeller as getFirebaseWishlistItems,
@@ -64,27 +66,19 @@ export default function InventoryPage() {
     if (!mounted || (loading && !user)) return;
 
     const loadData = async () => {
-      let currentUser: UserProfile | null = authUser || user;
+      let currentUser: UserProfile | null = isConfigured
+        ? (authUser || user)
+        : (getUserProfile() || authUser || user);
 
-      if (isConfigured) {
-        if (!currentUser) {
-          router.push("/onboarding");
-          return;
+      if (!currentUser) {
+        if (!isConfigured) {
+          currentUser = getUserProfile();
         }
-      } else {
-        currentUser = currentUser || getUserProfile();
         if (!currentUser) {
           router.push("/onboarding");
           return;
         }
       }
-
-      if (currentUser.role !== "seller") {
-        router.push("/");
-        return;
-      }
-
-      setUser(currentUser);
 
       // Load seller data
       let sellerData: Seller | null = null;
@@ -93,6 +87,28 @@ export default function InventoryPage() {
       } else {
         sellerData = getSellerById(currentUser.id);
       }
+
+      const isSeller =
+        currentUser.role === "seller" ||
+        !!currentUser.businessProfile?.storeName ||
+        !!currentUser.subscriptionTier ||
+        !!sellerData;
+
+      if (!isSeller) {
+        router.push("/");
+        return;
+      }
+
+      if (currentUser.role !== "seller") {
+        currentUser = { ...currentUser, role: "seller" };
+        if (isConfigured) {
+          await createOrUpdateUser(currentUser);
+        } else {
+          saveUserProfile(currentUser);
+        }
+      }
+
+      setUser(currentUser);
 
       // If no seller profile exists, create one
       if (!sellerData) {

@@ -7,11 +7,15 @@ import { useAuth } from "@/lib/AuthContext";
 import { isFirebaseConfigured } from "@/lib/firebase";
 import {
   getUserProfile,
+  saveUserProfile,
+  getSellerById,
   getMatchesForSeller,
   getMissionById,
   updateMatch as updateMatchLocal,
 } from "@/lib/storage";
 import {
+  createOrUpdateUser,
+  getSellerById as getFirebaseSeller,
   getMatchesForSeller as getFirebaseMatchesForSeller,
   getMissionById as getFirebaseMission,
   updateMatch as updateMatchFirebase,
@@ -45,24 +49,42 @@ export default function RequestsPage() {
 
     const loadData = async () => {
       const isConfigured = isFirebaseConfigured();
-      let currentUser: UserProfile | null = authUser || user;
+      let currentUser: UserProfile | null = isConfigured
+        ? (authUser || user)
+        : (getUserProfile() || authUser || user);
 
-      if (isConfigured) {
-        if (!currentUser) {
-          router.push("/onboarding");
-          return;
+      if (!currentUser) {
+        if (!isConfigured) {
+          currentUser = getUserProfile();
         }
-      } else {
-        currentUser = currentUser || getUserProfile();
         if (!currentUser) {
           router.push("/onboarding");
           return;
         }
       }
 
-      if (currentUser.role !== "seller") {
+      const sellerData = isConfigured
+        ? await getFirebaseSeller(currentUser.id)
+        : getSellerById(currentUser.id);
+
+      const isSeller =
+        currentUser.role === "seller" ||
+        !!currentUser.businessProfile?.storeName ||
+        !!currentUser.subscriptionTier ||
+        !!sellerData;
+
+      if (!isSeller) {
         router.push("/");
         return;
+      }
+
+      if (currentUser.role !== "seller") {
+        currentUser = { ...currentUser, role: "seller" };
+        if (isConfigured) {
+          await createOrUpdateUser(currentUser);
+        } else {
+          saveUserProfile(currentUser);
+        }
       }
 
       setUser(currentUser);

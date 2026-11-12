@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { isFirebaseConfigured } from "@/lib/firebase";
 import {
   getUserProfile,
+  saveUserProfile,
   getSellerById,
   getMatchesForSeller,
   getMissionById,
@@ -16,6 +17,7 @@ import {
   getSellerAnalytics,
 } from "@/lib/storage";
 import {
+  createOrUpdateUser,
   getSellerById as getFirebaseSeller,
   getMatchesForSeller as getFirebaseMatchesForSeller,
   getMissionById as getFirebaseMission,
@@ -77,34 +79,67 @@ export default function SellerDashboardPage() {
 
     const loadData = async () => {
       const isConfigured = isFirebaseConfigured();
-      let currentUser: UserProfile | null = authUser || user;
+      let currentUser: UserProfile | null = isConfigured
+        ? (authUser || user)
+        : (getUserProfile() || authUser || user);
 
-      if (isConfigured) {
-        if (!currentUser) {
-          router.push("/onboarding");
-          return;
+      if (!currentUser) {
+        if (!isConfigured) {
+          currentUser = getUserProfile();
         }
-      } else {
-        currentUser = currentUser || getUserProfile();
         if (!currentUser) {
           router.push("/onboarding");
           return;
         }
       }
 
-      if (currentUser.role !== "seller") {
-        router.push("/");
-        return;
-      }
-
-      setUser(currentUser);
-
+      // Check if user is a seller or has seller credentials
       let sellerData: Seller | null = null;
       if (isConfigured) {
         sellerData = await getFirebaseSeller(currentUser.id);
       } else {
         sellerData = getSellerById(currentUser.id);
       }
+
+      const hasPendingRole =
+        typeof window !== "undefined" &&
+        sessionStorage.getItem("delingua_pending_role") === "seller";
+
+      const isSeller =
+        currentUser.role === "seller" ||
+        !!currentUser.businessProfile?.storeName ||
+        !!currentUser.subscriptionTier ||
+        !!sellerData ||
+        hasPendingRole;
+
+      if (!isSeller) {
+        router.push("/");
+        return;
+      }
+
+      // Auto-heal role to "seller" permanently
+      if (currentUser.role !== "seller") {
+        currentUser = {
+          ...currentUser,
+          role: "seller",
+          businessProfile: currentUser.businessProfile || {
+            storeName: sellerData?.name || currentUser.name,
+            category: sellerData?.category || "General",
+            products: [sellerData?.category || "General"],
+            minOrderQty: sellerData?.minOrder || "1 unit",
+            location: sellerData?.location || "Kigali, Rwanda",
+            serviceRange: sellerData?.serviceRange || "Nationwide",
+            capacity: "Solo entrepreneur",
+          },
+        };
+        if (isConfigured) {
+          await createOrUpdateUser(currentUser);
+        } else {
+          saveUserProfile(currentUser);
+        }
+      }
+
+      setUser(currentUser);
 
       if (!sellerData) {
         if (isConfigured) {

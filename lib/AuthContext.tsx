@@ -19,6 +19,7 @@ import {
   clearUserProfile as clearLocalUserProfile,
   getSellerById as getLocalSeller,
   saveUserProfile as saveLocalUserProfile,
+  enforceUserRole,
 } from "@/lib/storage";
 
 interface AuthContextType {
@@ -57,9 +58,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (fbUser) {
           let userProfile = await getUserById(fbUser.uid);
 
-          // If null, wait briefly and retry once in case signUp is still writing
-          if (!userProfile) {
-            await new Promise((res) => setTimeout(res, 500));
+          // Retry up to 3 times in case signUp is still writing profile or seller document
+          for (let attempt = 0; attempt < 3 && !userProfile; attempt++) {
+            await new Promise((res) => setTimeout(res, 400));
             if (!mounted) return;
             userProfile = await getUserById(fbUser.uid);
           }
@@ -72,9 +73,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // ignore
           }
 
+          const hasPendingSeller =
+            typeof window !== "undefined" &&
+            sessionStorage.getItem("delingua_pending_role") === "seller";
+
+          const isSeller =
+            !!sellerDoc ||
+            userProfile?.role === "seller" ||
+            !!userProfile?.businessProfile ||
+            hasPendingSeller;
+
           if (!userProfile) {
-            // Firestore document missing — construct from Auth & Seller data
-            const isSeller = !!sellerDoc;
+            // Construct profile
             userProfile = {
               id: fbUser.uid,
               name: sellerDoc?.name || fbUser.displayName || fbUser.email?.split("@")[0] || "User",
@@ -87,35 +97,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 "U"
               ).toUpperCase(),
               createdAt: fbUser.metadata.creationTime || new Date().toISOString(),
-              ...(sellerDoc && {
+              ...(isSeller && {
                 businessProfile: {
-                  storeName: sellerDoc.name,
-                  category: sellerDoc.category,
-                  products: [sellerDoc.category],
-                  minOrderQty: sellerDoc.minOrder,
-                  location: sellerDoc.location,
-                  serviceRange: sellerDoc.serviceRange,
-                  capacity: "",
+                  storeName: sellerDoc?.name || fbUser.displayName || "My Store",
+                  category: sellerDoc?.category || "General",
+                  products: [sellerDoc?.category || "General"],
+                  minOrderQty: sellerDoc?.minOrder || "1 unit",
+                  location: sellerDoc?.location || "Kigali, Rwanda",
+                  serviceRange: sellerDoc?.serviceRange || "Nationwide",
+                  capacity: "Solo entrepreneur",
                 },
               }),
             };
             await createOrUpdateUser(userProfile);
-          } else if (sellerDoc && userProfile.role !== "seller") {
-            // Auto-heal: If seller document exists, ensure user role is seller
+          } else if (isSeller && userProfile.role !== "seller") {
+            // Auto-heal: Ensure seller role and businessProfile are maintained
             userProfile = {
               ...userProfile,
               role: "seller",
               businessProfile: userProfile.businessProfile || {
-                storeName: sellerDoc.name,
-                category: sellerDoc.category,
-                products: [sellerDoc.category],
-                minOrderQty: sellerDoc.minOrder,
-                location: sellerDoc.location,
-                serviceRange: sellerDoc.serviceRange,
-                capacity: "",
+                storeName: sellerDoc?.name || userProfile.name,
+                category: sellerDoc?.category || "General",
+                products: [sellerDoc?.category || "General"],
+                minOrderQty: sellerDoc?.minOrder || "1 unit",
+                location: sellerDoc?.location || "Kigali, Rwanda",
+                serviceRange: sellerDoc?.serviceRange || "Nationwide",
+                capacity: "Solo entrepreneur",
               },
             };
             await createOrUpdateUser(userProfile);
+          }
+
+          if (hasPendingSeller && userProfile.role === "seller") {
+            try {
+              sessionStorage.removeItem("delingua_pending_role");
+            } catch {}
           }
 
           if (!mounted) return;
@@ -133,11 +149,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       let localUser = getLocalUserProfile();
       if (localUser) {
-        const localSeller = getLocalSeller(localUser.id);
-        if (localSeller && localUser.role !== "seller") {
-          localUser = { ...localUser, role: "seller" };
-          saveLocalUserProfile(localUser);
-        }
+        localUser = enforceUserRole(localUser);
+        saveLocalUserProfile(localUser);
       }
       setUser(localUser);
       setLoading(false);
@@ -148,6 +161,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = async () => {
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.removeItem("delingua_pending_role");
+      } catch {}
+    }
     if (isConfigured) {
       await authSignOut();
     } else {
@@ -162,8 +180,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       let userProfile = await getUserById(firebaseUser.uid);
       const sellerDoc = await getSellerById(firebaseUser.uid);
 
+      const hasPendingSeller =
+        typeof window !== "undefined" &&
+        sessionStorage.getItem("delingua_pending_role") === "seller";
+
+      const isSeller =
+        !!sellerDoc ||
+        userProfile?.role === "seller" ||
+        !!userProfile?.businessProfile ||
+        hasPendingSeller;
+
       if (!userProfile) {
-        const isSeller = !!sellerDoc;
         userProfile = {
           id: firebaseUser.uid,
           name: sellerDoc?.name || firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "User",
@@ -176,31 +203,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             "U"
           ).toUpperCase(),
           createdAt: firebaseUser.metadata.creationTime || new Date().toISOString(),
-          ...(sellerDoc && {
+          ...(isSeller && {
             businessProfile: {
-              storeName: sellerDoc.name,
-              category: sellerDoc.category,
-              products: [sellerDoc.category],
-              minOrderQty: sellerDoc.minOrder,
-              location: sellerDoc.location,
-              serviceRange: sellerDoc.serviceRange,
-              capacity: "",
+              storeName: sellerDoc?.name || firebaseUser.displayName || "My Store",
+              category: sellerDoc?.category || "General",
+              products: [sellerDoc?.category || "General"],
+              minOrderQty: sellerDoc?.minOrder || "1 unit",
+              location: sellerDoc?.location || "Kigali, Rwanda",
+              serviceRange: sellerDoc?.serviceRange || "Nationwide",
+              capacity: "Solo entrepreneur",
             },
           }),
         };
         await createOrUpdateUser(userProfile);
-      } else if (sellerDoc && userProfile.role !== "seller") {
+      } else if (isSeller && userProfile.role !== "seller") {
         userProfile = {
           ...userProfile,
           role: "seller",
           businessProfile: userProfile.businessProfile || {
-            storeName: sellerDoc.name,
-            category: sellerDoc.category,
-            products: [sellerDoc.category],
-            minOrderQty: sellerDoc.minOrder,
-            location: sellerDoc.location,
-            serviceRange: sellerDoc.serviceRange,
-            capacity: "",
+            storeName: sellerDoc?.name || userProfile.name,
+            category: sellerDoc?.category || "General",
+            products: [sellerDoc?.category || "General"],
+            minOrderQty: sellerDoc?.minOrder || "1 unit",
+            location: sellerDoc?.location || "Kigali, Rwanda",
+            serviceRange: sellerDoc?.serviceRange || "Nationwide",
+            capacity: "Solo entrepreneur",
           },
         };
         await createOrUpdateUser(userProfile);
@@ -209,11 +236,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else if (!isConfigured) {
       let localUser = getLocalUserProfile();
       if (localUser) {
-        const localSeller = getLocalSeller(localUser.id);
-        if (localSeller && localUser.role !== "seller") {
-          localUser = { ...localUser, role: "seller" };
-          saveLocalUserProfile(localUser);
-        }
+        localUser = enforceUserRole(localUser);
+        saveLocalUserProfile(localUser);
       }
       setUser(localUser);
     }

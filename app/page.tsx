@@ -6,8 +6,23 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/AuthContext";
 import { isFirebaseConfigured } from "@/lib/firebase";
-import { getUserProfile, getSellers, getMissions, getWishlistAlertsByBuyer, getMatches } from "@/lib/storage";
-import { getAllSellers, getMissionsByBuyer, getWishlistAlertsByBuyer as getFirebaseAlerts, getAllMatchesForBuyer } from "@/lib/db";
+import {
+  getUserProfile,
+  saveUserProfile,
+  getSellerById,
+  getSellers,
+  getMissions,
+  getWishlistAlertsByBuyer,
+  getMatches,
+} from "@/lib/storage";
+import {
+  createOrUpdateUser,
+  getSellerById as getFirebaseSeller,
+  getAllSellers,
+  getMissionsByBuyer,
+  getWishlistAlertsByBuyer as getFirebaseAlerts,
+  getAllMatchesForBuyer,
+} from "@/lib/db";
 import type { UserProfile, Seller, Mission } from "@/lib/types";
 import { BottomNav } from "@/components/BottomNav";
 import { WishlistButton } from "@/components/WishlistButton";
@@ -46,14 +61,62 @@ export default function HomePage() {
     if (!mounted || (loading && !user)) return;
 
     const loadData = async () => {
-      let currentUser: UserProfile | null = authUser || user;
+      let currentUser: UserProfile | null = isConfigured
+        ? (authUser || user)
+        : (getUserProfile() || authUser || user);
 
-      if (isConfigured) {
+      if (!currentUser) {
+        if (!isConfigured) {
+          currentUser = getUserProfile();
+        }
         if (!currentUser) {
           router.push("/onboarding");
           return;
         }
+      }
 
+      // Check if user has seller credentials
+      const sellerData = isConfigured
+        ? await getFirebaseSeller(currentUser.id)
+        : getSellerById(currentUser.id);
+
+      const hasPendingRole =
+        typeof window !== "undefined" &&
+        sessionStorage.getItem("delingua_pending_role") === "seller";
+
+      const isSeller =
+        currentUser.role === "seller" ||
+        !!currentUser.businessProfile?.storeName ||
+        !!currentUser.subscriptionTier ||
+        !!sellerData ||
+        hasPendingRole;
+
+      if (isSeller) {
+        if (currentUser.role !== "seller") {
+          currentUser = {
+            ...currentUser,
+            role: "seller",
+            businessProfile: currentUser.businessProfile || {
+              storeName: sellerData?.name || currentUser.name,
+              category: sellerData?.category || "General",
+              products: [sellerData?.category || "General"],
+              minOrderQty: sellerData?.minOrder || "1 unit",
+              location: sellerData?.location || "Kigali, Rwanda",
+              serviceRange: sellerData?.serviceRange || "Nationwide",
+              capacity: "Solo entrepreneur",
+            },
+          };
+          if (isConfigured) {
+            await createOrUpdateUser(currentUser);
+          } else {
+            saveUserProfile(currentUser);
+          }
+        }
+        router.replace("/seller-dashboard");
+        return;
+      }
+
+      if (isConfigured) {
         const [fbSellers, fbMissions, fbAlerts, fbMatches] = await Promise.all([
           getAllSellers(),
           getMissionsByBuyer(currentUser.id),
@@ -65,12 +128,6 @@ export default function HomePage() {
         setUnseenAlerts(fbAlerts.filter((a) => !a.seen).length);
         setTotalMatches(fbMatches.length);
       } else {
-        const localUser = currentUser || getUserProfile();
-        if (!localUser) {
-          router.push("/onboarding");
-          return;
-        }
-        currentUser = localUser;
         setSellers(getSellers());
         const buyerMissions = getMissions().filter((m) => m.buyerId === currentUser!.id);
         const missionIds = new Set(buyerMissions.map((m) => m.id));
@@ -81,18 +138,13 @@ export default function HomePage() {
         setUnseenAlerts(localAlerts.filter((a) => !a.seen).length);
       }
 
-      if (currentUser?.role === "seller") {
-        router.push("/seller-dashboard");
-        return;
-      }
-
       setUser(currentUser);
     };
 
     loadData();
   }, [mounted, loading, authUser, isConfigured, router]);
 
-  if ((!mounted && !user) || (loading && !user)) {
+  if ((!mounted && !user) || (loading && !user) || user?.role === "seller") {
     return (
       <div className="min-h-screen bg-[#f8faff] flex items-center justify-center">
         <div className="w-10 h-10 border-3 border-[#1152A2] border-t-transparent rounded-full animate-spin" />

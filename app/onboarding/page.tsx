@@ -265,6 +265,14 @@ export default function OnboardingPage() {
 
       const tierForRole = role === "seller" ? selectedTier : undefined;
 
+      if (role === "seller") {
+        if (typeof window !== "undefined") {
+          try {
+            sessionStorage.setItem("delingua_pending_role", "seller");
+          } catch {}
+        }
+      }
+
       if (isConfigured) {
         // Use Firebase Auth
         await signUp(
@@ -290,19 +298,19 @@ export default function OnboardingPage() {
           preferences: userPreferences,
           businessProfile,
         };
-        saveUserProfile(userProfile);
 
-        // If seller, also create a Seller entry
+        // If seller, ensure seller entry is created in storage first
         if (role === "seller") {
           createSellerFromUser(userProfile);
         }
+        saveUserProfile(userProfile);
         await refreshUser();
       }
 
       if (role === "seller") {
-        router.push("/seller-dashboard");
+        window.location.href = "/seller-dashboard";
       } else {
-        router.push("/");
+        window.location.href = "/";
       }
     } catch (err: any) {
       console.error("Registration error:", err);

@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
-import { getUserProfile, saveUserProfile } from "@/lib/storage";
-import { createOrUpdateUser } from "@/lib/db";
+import { getUserProfile, saveUserProfile, getSellerById } from "@/lib/storage";
+import { createOrUpdateUser, getSellerById as getFirebaseSeller } from "@/lib/db";
 import type { UserProfile, SubscriptionTier } from "@/lib/types";
 import { SUBSCRIPTION_LIMITS, SUBSCRIPTION_PRICE } from "@/lib/types";
 import { BottomNav } from "@/components/BottomNav";
@@ -70,16 +70,49 @@ export default function SubscriptionPage() {
 
   useEffect(() => {
     if (!mounted || (loading && !user)) return;
-    let currentUser: UserProfile | null = authUser || user;
-    if (isConfigured) {
-      if (!currentUser) { router.push("/onboarding"); return; }
-    } else {
-      currentUser = currentUser || getUserProfile();
-      if (!currentUser) { router.push("/onboarding"); return; }
-    }
-    if (currentUser.role !== "seller") { router.push("/"); return; }
-    setUser(currentUser);
-    setSelectedTier(currentUser.subscriptionTier || "lite");
+    const checkUser = async () => {
+      let currentUser: UserProfile | null = isConfigured
+        ? (authUser || user)
+        : (getUserProfile() || authUser || user);
+
+      if (!currentUser) {
+        if (!isConfigured) {
+          currentUser = getUserProfile();
+        }
+        if (!currentUser) {
+          router.push("/onboarding");
+          return;
+        }
+      }
+
+      const sellerData = isConfigured
+        ? await getFirebaseSeller(currentUser.id)
+        : getSellerById(currentUser.id);
+
+      const isSeller =
+        currentUser.role === "seller" ||
+        !!currentUser.businessProfile?.storeName ||
+        !!currentUser.subscriptionTier ||
+        !!sellerData;
+
+      if (!isSeller) {
+        router.push("/");
+        return;
+      }
+
+      if (currentUser.role !== "seller") {
+        currentUser = { ...currentUser, role: "seller" };
+        if (isConfigured) {
+          await createOrUpdateUser(currentUser);
+        } else {
+          saveUserProfile(currentUser);
+        }
+      }
+
+      setUser(currentUser);
+      setSelectedTier(currentUser.subscriptionTier || "lite");
+    };
+    checkUser();
   }, [mounted, loading, authUser, isConfigured, router, user]);
 
   const handleSave = async () => {

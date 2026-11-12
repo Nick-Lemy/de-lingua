@@ -42,20 +42,20 @@ export async function signUp(
     throw new Error("Firebase is not configured");
   }
 
+  if (role === "seller") {
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem("delingua_pending_role", "seller");
+      } catch {}
+    }
+  }
+
   const userCredential = await createUserWithEmailAndPassword(
     auth,
     email,
     password,
   );
   const user = userCredential.user;
-
-  await updateProfile(user, { displayName: name });
-
-  try {
-    await sendEmailVerification(user);
-  } catch (err) {
-    console.error("sendEmailVerification failed", err);
-  }
 
   const userProfile: UserProfile = {
     id: user.uid,
@@ -69,6 +69,7 @@ export async function signUp(
     ...(businessProfile && { businessProfile }),
   };
 
+  // Persist user and seller document IMMEDIATELY so onAuthStateChanged detects it without racing
   await createOrUpdateUser(userProfile);
 
   if (role === "seller") {
@@ -89,6 +90,18 @@ export async function signUp(
       inventory: [],
     };
     await createSellerFromUser(user.uid, sellerData);
+  }
+
+  try {
+    await updateProfile(user, { displayName: name });
+  } catch (err) {
+    console.error("updateProfile failed", err);
+  }
+
+  try {
+    await sendEmailVerification(user);
+  } catch (err) {
+    console.error("sendEmailVerification failed", err);
   }
 
   return userProfile;
@@ -112,8 +125,13 @@ export async function signIn(
   let userProfile = await getUserById(fbUser.uid);
   const sellerDoc = await getSellerById(fbUser.uid);
 
+  const isSeller =
+    (userProfile && userProfile.role === "seller") ||
+    !!userProfile?.businessProfile ||
+    !!sellerDoc ||
+    (typeof window !== "undefined" && sessionStorage.getItem("delingua_pending_role") === "seller");
+
   if (!userProfile) {
-    const isSeller = !!sellerDoc;
     userProfile = {
       id: fbUser.uid,
       name: sellerDoc?.name || fbUser.displayName || email.split("@")[0],
@@ -121,32 +139,32 @@ export async function signIn(
       role: isSeller ? "seller" : "buyer",
       avatar: initialFor(sellerDoc?.name || fbUser.displayName || email),
       createdAt: fbUser.metadata.creationTime || new Date().toISOString(),
-      ...(sellerDoc && {
+      ...(isSeller && {
         businessProfile: {
-          storeName: sellerDoc.name,
-          category: sellerDoc.category,
-          products: [sellerDoc.category],
-          minOrderQty: sellerDoc.minOrder,
-          location: sellerDoc.location,
-          serviceRange: sellerDoc.serviceRange,
-          capacity: "",
+          storeName: sellerDoc?.name || fbUser.displayName || "My Store",
+          category: sellerDoc?.category || "General",
+          products: [sellerDoc?.category || "General"],
+          minOrderQty: sellerDoc?.minOrder || "1 unit",
+          location: sellerDoc?.location || "Kigali, Rwanda",
+          serviceRange: sellerDoc?.serviceRange || "Nationwide",
+          capacity: "Solo entrepreneur",
         },
       }),
     };
     await createOrUpdateUser(userProfile);
-  } else if (sellerDoc && userProfile.role !== "seller") {
+  } else if (isSeller && userProfile.role !== "seller") {
     // Auto-heal: If seller document exists, ensure role is seller
     userProfile = {
       ...userProfile,
       role: "seller",
       businessProfile: userProfile.businessProfile || {
-        storeName: sellerDoc.name,
-        category: sellerDoc.category,
-        products: [sellerDoc.category],
-        minOrderQty: sellerDoc.minOrder,
-        location: sellerDoc.location,
-        serviceRange: sellerDoc.serviceRange,
-        capacity: "",
+        storeName: sellerDoc?.name || userProfile.name,
+        category: sellerDoc?.category || "General",
+        products: [sellerDoc?.category || "General"],
+        minOrderQty: sellerDoc?.minOrder || "1 unit",
+        location: sellerDoc?.location || "Kigali, Rwanda",
+        serviceRange: sellerDoc?.serviceRange || "Nationwide",
+        capacity: "Solo entrepreneur",
       },
     };
     await createOrUpdateUser(userProfile);
@@ -170,8 +188,13 @@ export async function signInWithGoogle(): Promise<UserProfile | null> {
   let userProfile = await getUserById(user.uid);
   const sellerDoc = await getSellerById(user.uid);
 
+  const isSeller =
+    (userProfile && userProfile.role === "seller") ||
+    !!userProfile?.businessProfile ||
+    !!sellerDoc ||
+    (typeof window !== "undefined" && sessionStorage.getItem("delingua_pending_role") === "seller");
+
   if (!userProfile) {
-    const isSeller = !!sellerDoc;
     userProfile = {
       id: user.uid,
       name: sellerDoc?.name || user.displayName || "User",
@@ -179,32 +202,32 @@ export async function signInWithGoogle(): Promise<UserProfile | null> {
       role: isSeller ? "seller" : "buyer",
       avatar: initialFor(sellerDoc?.name || user.displayName),
       createdAt: new Date().toISOString(),
-      ...(sellerDoc && {
+      ...(isSeller && {
         businessProfile: {
-          storeName: sellerDoc.name,
-          category: sellerDoc.category,
-          products: [sellerDoc.category],
-          minOrderQty: sellerDoc.minOrder,
-          location: sellerDoc.location,
-          serviceRange: sellerDoc.serviceRange,
-          capacity: "",
+          storeName: sellerDoc?.name || user.displayName || "My Store",
+          category: sellerDoc?.category || "General",
+          products: [sellerDoc?.category || "General"],
+          minOrderQty: sellerDoc?.minOrder || "1 unit",
+          location: sellerDoc?.location || "Kigali, Rwanda",
+          serviceRange: sellerDoc?.serviceRange || "Nationwide",
+          capacity: "Solo entrepreneur",
         },
       }),
     };
 
     await createOrUpdateUser(userProfile);
-  } else if (sellerDoc && userProfile.role !== "seller") {
+  } else if (isSeller && userProfile.role !== "seller") {
     userProfile = {
       ...userProfile,
       role: "seller",
       businessProfile: userProfile.businessProfile || {
-        storeName: sellerDoc.name,
-        category: sellerDoc.category,
-        products: [sellerDoc.category],
-        minOrderQty: sellerDoc.minOrder,
-        location: sellerDoc.location,
-        serviceRange: sellerDoc.serviceRange,
-        capacity: "",
+        storeName: sellerDoc?.name || userProfile.name,
+        category: sellerDoc?.category || "General",
+        products: [sellerDoc?.category || "General"],
+        minOrderQty: sellerDoc?.minOrder || "1 unit",
+        location: sellerDoc?.location || "Kigali, Rwanda",
+        serviceRange: sellerDoc?.serviceRange || "Nationwide",
+        capacity: "Solo entrepreneur",
       },
     };
     await createOrUpdateUser(userProfile);

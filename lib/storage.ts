@@ -47,42 +47,100 @@ const KEYS = {
   PAYMENTS: "delingua_payments",
 };
 
+// Auto-heals and guarantees role integrity for sellers.
+// If a user has a business profile, subscription tier, or seller record, their role is locked to "seller".
+export function enforceUserRole(user: UserProfile): UserProfile {
+  if (!user) return user;
+
+  const sellers = safeGet<Seller[]>(KEYS.SELLERS, []);
+  const sellerEntry = sellers.find(
+    (s) => s.id === user.id || (user.email && s.name && s.name.toLowerCase() === user.name.toLowerCase()),
+  );
+
+  const hasBusinessProfile = !!(
+    user.businessProfile?.storeName ||
+    user.businessProfile?.category ||
+    (user.businessProfile?.products && user.businessProfile.products.length > 0)
+  );
+
+  const isSeller =
+    user.role === "seller" ||
+    hasBusinessProfile ||
+    !!user.subscriptionTier ||
+    !!sellerEntry ||
+    (typeof window !== "undefined" && sessionStorage.getItem("delingua_pending_role") === "seller");
+
+  if (isSeller) {
+    const updated: UserProfile = {
+      ...user,
+      role: "seller",
+      businessProfile: user.businessProfile || {
+        storeName: sellerEntry?.name || user.name,
+        category: sellerEntry?.category || "General",
+        products: [sellerEntry?.category || "General"],
+        minOrderQty: sellerEntry?.minOrder || "1 unit",
+        location: sellerEntry?.location || "Kigali, Rwanda",
+        serviceRange: sellerEntry?.serviceRange || "Nationwide",
+        capacity: "Solo entrepreneur",
+      },
+    };
+
+    if (!sellerEntry && user.id) {
+      createSellerFromUser(updated);
+    }
+    return updated;
+  }
+
+  return user;
+}
+
 // Users List
 export function getUsers(): UserProfile[] {
-  return safeGet<UserProfile[]>(KEYS.USERS, []);
+  const users = safeGet<UserProfile[]>(KEYS.USERS, []);
+  return users.map(enforceUserRole);
 }
 
 export function saveUser(user: UserProfile): void {
+  const enforced = enforceUserRole(user);
   const users = getUsers();
   const index = users.findIndex(
-    (u) => u.id === user.id || (u.email && user.email && u.email.toLowerCase() === user.email.toLowerCase()),
+    (u) => u.id === enforced.id || (u.email && enforced.email && u.email.toLowerCase() === enforced.email.toLowerCase()),
   );
   if (index >= 0) {
-    users[index] = { ...users[index], ...user };
+    // If either was seller, role is permanently seller
+    const isSeller = enforced.role === "seller" || users[index].role === "seller";
+    users[index] = {
+      ...users[index],
+      ...enforced,
+      role: isSeller ? "seller" : "buyer",
+      businessProfile: enforced.businessProfile || users[index].businessProfile,
+    };
   } else {
-    users.push(user);
+    users.push(enforced);
   }
   safeSet(KEYS.USERS, users);
 }
 
 export function getUserById(id: string): UserProfile | null {
+  const current = getUserProfile();
+  if (current?.id === id) return enforceUserRole(current);
   const users = getUsers();
   const found = users.find((u) => u.id === id);
-  if (found) return found;
-  const current = getUserProfile();
-  return current?.id === id ? current : null;
+  if (found) return enforceUserRole(found);
+  return null;
 }
 
 export function getUserByEmail(email: string): UserProfile | null {
+  const normEmail = email.trim().toLowerCase();
+  const current = getUserProfile();
+  if (current && current.email.trim().toLowerCase() === normEmail) {
+    return enforceUserRole(current);
+  }
   const users = getUsers();
   const found = users.find(
-    (u) => u.email.trim().toLowerCase() === email.trim().toLowerCase(),
+    (u) => u.email.trim().toLowerCase() === normEmail,
   );
-  if (found) return found;
-  const current = getUserProfile();
-  if (current && current.email.trim().toLowerCase() === email.trim().toLowerCase()) {
-    return current;
-  }
+  if (found) return enforceUserRole(found);
   return null;
 }
 
@@ -97,12 +155,22 @@ export function deleteUser(id: string): void {
 
 // User Profile (Active Session)
 export function saveUserProfile(profile: UserProfile): void {
-  safeSet(KEYS.USER_PROFILE, profile);
-  saveUser(profile);
+  const enforced = enforceUserRole(profile);
+  safeSet(KEYS.USER_PROFILE, enforced);
+  saveUser(enforced);
+  if (enforced.role === "seller") {
+    createSellerFromUser(enforced);
+  }
 }
 
 export function getUserProfile(): UserProfile | null {
-  return safeGet<UserProfile | null>(KEYS.USER_PROFILE, null);
+  const user = safeGet<UserProfile | null>(KEYS.USER_PROFILE, null);
+  if (!user) return null;
+  const enforced = enforceUserRole(user);
+  if (enforced.role !== user.role || (!user.businessProfile && enforced.businessProfile)) {
+    safeSet(KEYS.USER_PROFILE, enforced);
+  }
+  return enforced;
 }
 
 export function clearUserProfile(): void {
