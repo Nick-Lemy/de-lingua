@@ -14,6 +14,11 @@ export const metadata: Metadata = {
     "Connect with verified suppliers, create missions, and find perfect matches for your needs.",
   keywords: ["marketplace", "suppliers", "shopping", "matching", "procurement"],
   authors: [{ name: "DeLingua Team" }],
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "DeLingua",
+  },
   openGraph: {
     title: "DeLingua - Smart Marketplace",
     description: "The future of smart commerce",
@@ -26,6 +31,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: "cover",
   themeColor: "#1152A2",
 };
 
@@ -60,7 +66,9 @@ export default function RootLayout({
           sizes="512x512"
           href="/android-chrome-512x512.png"
         />
-        <meta name="theme-color" content="#ffffff" />
+        <meta name="theme-color" content="#1152A2" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
       <body className={`${inter.variable} antialiased font-sans`} suppressHydrationWarning>
         <AuthProvider>{children}</AuthProvider>

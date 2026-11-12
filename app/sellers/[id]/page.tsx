@@ -198,7 +198,7 @@ export default function SellerProfilePage() {
   return (
     <div className="min-h-screen bg-[#f8faff] pb-28">
       {/* Header */}
-      <div className="bg-gradient-to-br from-[#1152A2] via-[#1a6bc9] to-[#0d3d7a] text-white px-5 pt-12 pb-8">
+      <div className="bg-gradient-to-br from-[#1152A2] via-[#1a6bc9] to-[#0d3d7a] text-white px-5 safe-area-header pb-8">
         <div className="max-w-2xl mx-auto">
           {/* Back button */}
           <button

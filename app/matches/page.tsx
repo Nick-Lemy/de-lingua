@@ -117,7 +117,7 @@ export default function MatchesPage() {
   return (
     <div className="min-h-screen bg-white pb-24">
       {/* Header */}
-      <div className="bg-[#1152A2] text-white px-6 lg:px-8 pt-14 pb-8">
+      <div className="bg-[#1152A2] text-white px-6 lg:px-8 safe-area-header pb-8">
         <div className="max-w-4xl mx-auto">
           <div>
             <h1 className="text-2xl font-bold">All Matches</h1>

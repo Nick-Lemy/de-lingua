@@ -117,7 +117,7 @@ export default function MissionsPage() {
   return (
     <div className="min-h-screen bg-white pb-24">
       {/* Header */}
-      <div className="bg-[#1152A2] text-white px-5 pt-12 pb-6">
+      <div className="bg-[#1152A2] text-white px-5 safe-area-header pb-6">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between mb-3">
             <div>

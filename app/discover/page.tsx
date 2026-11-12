@@ -132,7 +132,7 @@ export default function DiscoverPage() {
   return (
     <div className="min-h-screen bg-[#f8faff] pb-28">
       {/* Sticky header */}
-      <div className="sticky top-0 z-40 bg-gradient-to-br from-[#1152A2] via-[#1a6bc9] to-[#0d3d7a] text-white px-5 pt-14 pb-5 shadow-lg">
+      <div className="sticky top-0 z-40 bg-gradient-to-br from-[#1152A2] via-[#1a6bc9] to-[#0d3d7a] text-white px-5 safe-area-header pb-5 shadow-lg">
         <div className="max-w-lg mx-auto">
           <h1 className="text-2xl font-bold tracking-tight mb-4">{t("discover.title")}</h1>
 

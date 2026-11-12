@@ -242,7 +242,7 @@ export default function FeedPostDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
       {/* Header */}
-      <div className="bg-[#1152A2] text-white px-5 pt-12 pb-6">
+      <div className="bg-[#1152A2] text-white px-5 safe-area-header pb-6">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center gap-3">
             <button

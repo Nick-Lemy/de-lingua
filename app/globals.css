@@ -15,6 +15,8 @@
   --teal: #1152a2;
   --orange: #ef7c29;
   --pink: #ef7c29;
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
 }
 
 @theme inline {
@@ -31,6 +33,7 @@
 
 html {
   scroll-behavior: smooth;
+  background-color: #1152a2;
 }
 
 body {
@@ -39,11 +42,32 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: var(--background);
   color: var(--foreground);
+  min-height: 100vh;
 }
 
-/* Safe area for mobile */
+/* Safe area utilities for PWA and mobile devices */
+.safe-area-header {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 2.75rem) !important;
+}
+
+.safe-area-header-compact {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 1.25rem) !important;
+}
+
+.safe-area-pt {
+  padding-top: max(1rem, env(safe-area-inset-top, 0px)) !important;
+}
+
+.safe-area-pb {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px)) !important;
+}
+
 .safe-area-inset-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-area-inset-top {
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 /* Custom scrollbar */
