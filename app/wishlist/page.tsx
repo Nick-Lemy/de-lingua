@@ -152,9 +152,11 @@ export default function WishlistPage() {
               <IoArrowBack className="w-5 h-5" />
             </button>
             <div className="flex-1">
-              <h1 className="text-xl font-bold">My Wishlist</h1>
+              <h1 className="text-xl font-bold">Notifications & Saved</h1>
               <p className="text-blue-200 text-sm">
-                {wishlist.length} saved supplier{wishlist.length !== 1 ? "s" : ""}
+                {unseenAlerts.length > 0
+                  ? `${unseenAlerts.length} new alert${unseenAlerts.length !== 1 ? "s" : ""} · ${wishlist.length} saved supplier${wishlist.length !== 1 ? "s" : ""}`
+                  : `${wishlist.length} saved supplier${wishlist.length !== 1 ? "s" : ""}`}
               </p>
             </div>
             {unseenAlerts.length > 0 && (
@@ -208,12 +210,12 @@ export default function WishlistPage() {
         {/* Wishlist items */}
         {wishlist.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-10 text-center">
-            <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
-              <IoHeart className="w-8 h-8 text-red-200" />
+            <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-4">
+              <IoNotifications className="w-8 h-8 text-[#1152A2]/40" />
             </div>
-            <p className="font-bold text-gray-600">No saved suppliers</p>
-            <p className="text-sm text-gray-400 mt-1 mb-6">
-              Tap the heart on a supplier to save them
+            <p className="font-bold text-gray-700">No active alerts or saved suppliers</p>
+            <p className="text-sm text-gray-400 mt-1 mb-6 max-w-sm mx-auto">
+              Save suppliers in Discover and set product keywords to get instant restock notifications here.
             </p>
             <Link
               href="/discover"

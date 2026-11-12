@@ -229,14 +229,17 @@ export default function SellerDashboardPage() {
               <h1 className="text-2xl font-bold tracking-tight">{user.name}</h1>
             </div>
             <div className="flex items-center gap-2.5">
-              <button className="relative w-11 h-11 rounded-2xl bg-white/15 hover:bg-white/25 transition-colors flex items-center justify-center">
+              <Link
+                href="/requests"
+                className="relative w-11 h-11 rounded-2xl bg-white/15 hover:bg-white/25 transition-colors flex items-center justify-center"
+              >
                 <IoNotifications className="w-5 h-5" />
                 {pendingCount > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#EF7C29] rounded-full text-[10px] font-bold flex items-center justify-center shadow-lg">
                     {pendingCount}
                   </span>
                 )}
-              </button>
+              </Link>
               <Link
                 href="/account"
                 className="w-11 h-11 rounded-2xl bg-[#EF7C29] flex items-center justify-center text-lg font-bold shadow-lg"
